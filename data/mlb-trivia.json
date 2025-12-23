@@ -1,0 +1,352 @@
+[
+  {
+    "id": "mlb_q1",
+    "question": "Who holds the MLB single-season home run record with 73?",
+    "options": ["Mark McGwire", "Sammy Sosa", "Barry Bonds", "Babe Ruth"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q2",
+    "question": "Which team won the 2024 World Series?",
+    "options": ["New York Yankees", "Los Angeles Dodgers", "Philadelphia Phillies", "San Diego Padres"],
+    "correctAnswer": "Los Angeles Dodgers",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q3",
+    "question": "Who was the 2024 AL Cy Young Award winner?",
+    "options": ["Gerrit Cole", "Tarik Skubal", "Corbin Burnes", "Cole Ragans"],
+    "correctAnswer": "Tarik Skubal",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q4",
+    "question": "Which player set the AL single-season home run record with 62 in 2022?",
+    "options": ["Shohei Ohtani", "Aaron Judge", "Kyle Schwarber", "Pete Alonso"],
+    "correctAnswer": "Aaron Judge",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q5",
+    "question": "Who was the 2024 World Series MVP?",
+    "options": ["Mookie Betts", "Shohei Ohtani", "Freddie Freeman", "Walker Buehler"],
+    "correctAnswer": "Freddie Freeman",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q6",
+    "question": "Which player signed a record $700 million contract with the Dodgers?",
+    "options": ["Mookie Betts", "Freddie Freeman", "Juan Soto", "Shohei Ohtani"],
+    "correctAnswer": "Shohei Ohtani",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q7",
+    "question": "Who holds the career home run record with 762?",
+    "options": ["Hank Aaron", "Babe Ruth", "Barry Bonds", "Alex Rodriguez"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q8",
+    "question": "Who was the first player to hit 40 home runs and steal 70 bases in a season?",
+    "options": ["Rickey Henderson", "Ronald Acuña Jr.", "Trea Turner", "Bobby Bonds"],
+    "correctAnswer": "Ronald Acuña Jr.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q9",
+    "question": "Which team has won the most World Series titles?",
+    "options": ["St. Louis Cardinals", "Boston Red Sox", "Los Angeles Dodgers", "New York Yankees"],
+    "correctAnswer": "New York Yankees",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q10",
+    "question": "Who won back-to-back AL MVP awards in 2021 and 2023?",
+    "options": ["Mike Trout", "Aaron Judge", "Shohei Ohtani", "Mookie Betts"],
+    "correctAnswer": "Shohei Ohtani",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q11",
+    "question": "Which stadium is known as 'The Friendly Confines'?",
+    "options": ["Fenway Park", "Yankee Stadium", "Wrigley Field", "Dodger Stadium"],
+    "correctAnswer": "Wrigley Field",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q12",
+    "question": "Who was the 2024 NL Cy Young Award winner?",
+    "options": ["Zack Wheeler", "Chris Sale", "Spencer Strider", "Corbin Burnes"],
+    "correctAnswer": "Chris Sale",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q13",
+    "question": "Which player signed a record $765 million contract with the Mets?",
+    "options": ["Shohei Ohtani", "Juan Soto", "Mookie Betts", "Francisco Lindor"],
+    "correctAnswer": "Juan Soto",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q14",
+    "question": "Who holds the career strikeout record for pitchers?",
+    "options": ["Roger Clemens", "Randy Johnson", "Nolan Ryan", "Steve Carlton"],
+    "correctAnswer": "Nolan Ryan",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q15",
+    "question": "Which team won the first World Series in 1903?",
+    "options": ["Pittsburgh Pirates", "Boston Americans", "Chicago Cubs", "New York Giants"],
+    "correctAnswer": "Boston Americans",
+    "difficulty": "hard"
+  },
+  {
+    "id": "mlb_q16",
+    "question": "Who was the 2024 NL Rookie of the Year?",
+    "options": ["Jackson Merrill", "Paul Skenes", "Masyn Winn", "Jackson Chourio"],
+    "correctAnswer": "Paul Skenes",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q17",
+    "question": "Which pitcher has the most career wins?",
+    "options": ["Walter Johnson", "Cy Young", "Grover Alexander", "Warren Spahn"],
+    "correctAnswer": "Cy Young",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q18",
+    "question": "Who hit 'The Shot Heard Round the World' in 1951?",
+    "options": ["Willie Mays", "Bobby Thomson", "Jackie Robinson", "Duke Snider"],
+    "correctAnswer": "Bobby Thomson",
+    "difficulty": "hard"
+  },
+  {
+    "id": "mlb_q19",
+    "question": "Which player has the longest consecutive games played streak?",
+    "options": ["Lou Gehrig", "Cal Ripken Jr.", "Pete Rose", "Steve Garvey"],
+    "correctAnswer": "Cal Ripken Jr.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q20",
+    "question": "Who was the last player to hit .400 in a season?",
+    "options": ["Tony Gwynn", "Ted Williams", "Rod Carew", "George Brett"],
+    "correctAnswer": "Ted Williams",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q21",
+    "question": "Which team broke the 'Curse of the Bambino' in 2004?",
+    "options": ["Chicago Cubs", "Cleveland Indians", "Boston Red Sox", "Chicago White Sox"],
+    "correctAnswer": "Boston Red Sox",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q22",
+    "question": "Who holds the record for most career stolen bases?",
+    "options": ["Lou Brock", "Tim Raines", "Rickey Henderson", "Ty Cobb"],
+    "correctAnswer": "Rickey Henderson",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q23",
+    "question": "Which team won the 2023 World Series?",
+    "options": ["Arizona Diamondbacks", "Philadelphia Phillies", "Houston Astros", "Texas Rangers"],
+    "correctAnswer": "Texas Rangers",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q24",
+    "question": "Who was the 2023 World Series MVP?",
+    "options": ["Marcus Semien", "Corey Seager", "Adolis García", "Nathan Eovaldi"],
+    "correctAnswer": "Corey Seager",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q25",
+    "question": "Which stadium has the 'Green Monster'?",
+    "options": ["Wrigley Field", "Yankee Stadium", "Fenway Park", "Camden Yards"],
+    "correctAnswer": "Fenway Park",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q26",
+    "question": "Who holds the single-season stolen base record with 130?",
+    "options": ["Lou Brock", "Vince Coleman", "Rickey Henderson", "Tim Raines"],
+    "correctAnswer": "Rickey Henderson",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q27",
+    "question": "Which pitcher threw the only perfect game in World Series history?",
+    "options": ["Sandy Koufax", "Bob Gibson", "Don Larsen", "Whitey Ford"],
+    "correctAnswer": "Don Larsen",
+    "difficulty": "hard"
+  },
+  {
+    "id": "mlb_q28",
+    "question": "Who hit 755 career home runs, second most all-time?",
+    "options": ["Babe Ruth", "Willie Mays", "Hank Aaron", "Alex Rodriguez"],
+    "correctAnswer": "Hank Aaron",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q29",
+    "question": "Which team ended a 108-year championship drought in 2016?",
+    "options": ["Cleveland Indians", "Chicago Cubs", "Boston Red Sox", "Chicago White Sox"],
+    "correctAnswer": "Chicago Cubs",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q30",
+    "question": "Which player is known as 'The Sultan of Swat'?",
+    "options": ["Lou Gehrig", "Babe Ruth", "Ty Cobb", "Joe DiMaggio"],
+    "correctAnswer": "Babe Ruth",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q31",
+    "question": "Which pitcher has won the most Cy Young Awards?",
+    "options": ["Randy Johnson", "Greg Maddux", "Roger Clemens", "Steve Carlton"],
+    "correctAnswer": "Roger Clemens",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q32",
+    "question": "Who broke baseball's color barrier in 1947?",
+    "options": ["Satchel Paige", "Willie Mays", "Jackie Robinson", "Larry Doby"],
+    "correctAnswer": "Jackie Robinson",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q33",
+    "question": "Which team plays at Oracle Park?",
+    "options": ["Oakland Athletics", "Los Angeles Dodgers", "San Diego Padres", "San Francisco Giants"],
+    "correctAnswer": "San Francisco Giants",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q34",
+    "question": "Who holds the record for most hits in a career?",
+    "options": ["Ty Cobb", "Hank Aaron", "Pete Rose", "Stan Musial"],
+    "correctAnswer": "Pete Rose",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q35",
+    "question": "Who was the 2022 AL Rookie of the Year?",
+    "options": ["Adley Rutschman", "Bobby Witt Jr.", "Julio Rodríguez", "Jeremy Peña"],
+    "correctAnswer": "Julio Rodríguez",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q36",
+    "question": "Who threw seven no-hitters, the most in MLB history?",
+    "options": ["Sandy Koufax", "Bob Feller", "Nolan Ryan", "Randy Johnson"],
+    "correctAnswer": "Nolan Ryan",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q37",
+    "question": "Which stadium opened in 1912 and is the oldest in MLB?",
+    "options": ["Wrigley Field", "Yankee Stadium", "Fenway Park", "Dodger Stadium"],
+    "correctAnswer": "Fenway Park",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q38",
+    "question": "Who was the first overall pick in the 2023 MLB Draft?",
+    "options": ["Dylan Crews", "Paul Skenes", "Wyatt Langford", "Max Clark"],
+    "correctAnswer": "Paul Skenes",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q39",
+    "question": "Which player hit 60 home runs in 1927?",
+    "options": ["Lou Gehrig", "Jimmie Foxx", "Babe Ruth", "Hack Wilson"],
+    "correctAnswer": "Babe Ruth",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q40",
+    "question": "Who won the 2023 NL MVP?",
+    "options": ["Mookie Betts", "Freddie Freeman", "Ronald Acuña Jr.", "Matt Olson"],
+    "correctAnswer": "Ronald Acuña Jr.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q41",
+    "question": "Which team plays at Truist Park?",
+    "options": ["Miami Marlins", "Washington Nationals", "Atlanta Braves", "Tampa Bay Rays"],
+    "correctAnswer": "Atlanta Braves",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q42",
+    "question": "Who holds the record for most RBIs in a season with 191?",
+    "options": ["Lou Gehrig", "Hank Greenberg", "Hack Wilson", "Jimmie Foxx"],
+    "correctAnswer": "Hack Wilson",
+    "difficulty": "hard"
+  },
+  {
+    "id": "mlb_q43",
+    "question": "Which player is nicknamed 'El Niño'?",
+    "options": ["Vladimir Guerrero Jr.", "Juan Soto", "Fernando Tatis Jr.", "Ronald Acuña Jr."],
+    "correctAnswer": "Fernando Tatis Jr.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q44",
+    "question": "Who was the first Japanese position player to win MVP?",
+    "options": ["Hideki Matsui", "Ichiro Suzuki", "Shohei Ohtani", "Kazuo Matsui"],
+    "correctAnswer": "Ichiro Suzuki",
+    "difficulty": "hard"
+  },
+  {
+    "id": "mlb_q45",
+    "question": "Which team won the 2022 World Series?",
+    "options": ["Philadelphia Phillies", "Los Angeles Dodgers", "Houston Astros", "New York Yankees"],
+    "correctAnswer": "Houston Astros",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q46",
+    "question": "How many games did Joe DiMaggio's famous hitting streak last?",
+    "options": ["44", "56", "61", "50"],
+    "correctAnswer": "56",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q47",
+    "question": "Which pitcher holds the record for most career saves?",
+    "options": ["Trevor Hoffman", "Mariano Rivera", "Lee Smith", "Dennis Eckersley"],
+    "correctAnswer": "Mariano Rivera",
+    "difficulty": "easy"
+  },
+  {
+    "id": "mlb_q48",
+    "question": "Who was the 2024 AL Rookie of the Year?",
+    "options": ["Colton Cowser", "Austin Wells", "Luis Gil", "Yoshinobu Yamamoto"],
+    "correctAnswer": "Luis Gil",
+    "difficulty": "medium"
+  },
+  {
+    "id": "mlb_q49",
+    "question": "Which team has the longest current World Series drought?",
+    "options": ["Seattle Mariners", "Cleveland Guardians", "San Diego Padres", "Milwaukee Brewers"],
+    "correctAnswer": "Cleveland Guardians",
+    "difficulty": "hard"
+  },
+  {
+    "id": "mlb_q50",
+    "question": "Who holds the record for most Gold Glove Awards?",
+    "options": ["Ozzie Smith", "Roberto Clemente", "Greg Maddux", "Brooks Robinson"],
+    "correctAnswer": "Greg Maddux",
+    "difficulty": "hard"
+  }
+]

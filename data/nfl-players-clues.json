@@ -1,0 +1,704 @@
+{
+  "players": [
+    {
+      "id": 1,
+      "name": "Patrick Mahomes",
+      "team": "KC",
+      "position": "QB",
+      "clues": [
+        "His father Pat Mahomes pitched 11 seasons in MLB for six different teams",
+        "3-time Super Bowl champion, though lost Super Bowl LIX 40-22 to the Eagles",
+        "Currently sidelined with a knee injury, replaced by Gardner Minshew",
+        "Selected 10th overall in 2017 out of Texas Tech, traded up by the Chiefs",
+        "Quarterback for the Kansas City Chiefs, seeking to bounce back in 2025",
+        "Wears #15, known as 'Showtime' for his no-look passes"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Josh Allen",
+      "team": "BUF",
+      "position": "QB",
+      "clues": [
+        "Grew up on a cotton farm in Firebaugh, California, population 8,000",
+        "Won the 2024 NFL MVP award, beating out Lamar Jackson",
+        "Signed a record 6-year, $330 million extension with $250 million guaranteed",
+        "Selected 7th overall in 2018 out of Wyoming",
+        "Quarterback for the Buffalo Bills, still seeking his first Super Bowl",
+        "Wears #17, famous for hurdling defenders"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Lamar Jackson",
+      "team": "BAL",
+      "position": "QB",
+      "clues": [
+        "Won the Heisman Trophy at Louisville in 2016, becoming the youngest winner at 19",
+        "2-time NFL MVP, finished second to Josh Allen in 2024 voting",
+        "First player in history to throw for 4,000 yards and rush for 800 in a season",
+        "Selected 32nd overall in 2018, the final pick of the first round",
+        "Quarterback for the Baltimore Ravens, all-time leader in QB rushing yards",
+        "Wears #8, nicknamed 'Action Jackson'"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Ja'Marr Chase",
+      "team": "CIN",
+      "position": "WR",
+      "clues": [
+        "Sat out the 2020 college season to prepare for the NFL Draft",
+        "Won the 2024 receiving triple crown - most receptions, yards, and TDs",
+        "Signed a $161 million extension, highest-paid non-QB in NFL history",
+        "Selected 5th overall in 2021 out of LSU, reuniting with college QB Joe Burrow",
+        "Wide receiver for the Cincinnati Bengals, 4-time Pro Bowler",
+        "Wears #1, college teammate of Justin Jefferson at LSU"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Tyreek Hill",
+      "team": "MIA",
+      "position": "WR",
+      "clues": [
+        "Transferred from Oklahoma State to West Alabama, a Division II school",
+        "Won Super Bowl LIV with the Chiefs, catching a touchdown in the comeback",
+        "Ran a 4.29-second 40-yard dash at his Pro Day, one of the fastest ever",
+        "Selected in the 5th round, 165th overall in 2016 despite elite speed",
+        "Wide receiver for the Miami Dolphins, traded from Kansas City in 2022",
+        "Wears #10, nicknamed 'Cheetah' for his blazing speed"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Travis Kelce",
+      "team": "KC",
+      "position": "TE",
+      "clues": [
+        "His brother Jason retired as the Philadelphia Eagles center in 2024",
+        "Holds the record for most receiving yards by a tight end in a single season",
+        "Broke the Chiefs franchise record for total touchdowns with 84 in October 2025",
+        "Selected in the 3rd round, 63rd overall in 2013 out of Cincinnati",
+        "Tight end for the Kansas City Chiefs, in final year of his contract",
+        "Wears #87, hosts the 'New Heights' podcast with his brother"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Micah Parsons",
+      "team": "DAL",
+      "position": "LB",
+      "clues": [
+        "Originally recruited as a running back before switching to linebacker at Penn State",
+        "Won the 2021 Defensive Rookie of the Year with 13 sacks in his first season",
+        "Had 40.5 sacks in his first three NFL seasons, most by a linebacker in that span",
+        "Selected 12th overall in 2021, the first linebacker taken in that draft",
+        "Linebacker for the Dallas Cowboys, 4-time First-Team All-Pro",
+        "Wears #11, known as 'The Terminator'"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "T.J. Watt",
+      "team": "PIT",
+      "position": "LB",
+      "clues": [
+        "Youngest of three NFL brothers, including a three-time Defensive Player of the Year",
+        "Won 2021 Defensive Player of the Year, tying the single-season sack record with 22.5",
+        "Led the NFL in sacks in 2020 and 2021, with 15 and 22.5 respectively",
+        "Selected 30th overall in 2017 out of Wisconsin",
+        "Outside linebacker for the Pittsburgh Steelers, 5-time First-Team All-Pro",
+        "Wears #90, following his brother J.J.'s legacy as a dominant pass rusher"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Justin Jefferson",
+      "team": "MIN",
+      "position": "WR",
+      "clues": [
+        "His brothers Jordan and Rickey Jefferson both played college football at LSU",
+        "Won Offensive Player of the Year and was MVP runner-up",
+        "Signed a $140 million extension, then the highest-paid non-QB in NFL history",
+        "Selected 22nd overall in 2020 out of LSU, where he won a national championship",
+        "Wide receiver for the Minnesota Vikings, 4-time Pro Bowler",
+        "Wears #18, famous for his 'Griddy' touchdown celebration"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Derrick Henry",
+      "team": "BAL",
+      "position": "RB",
+      "clues": [
+        "Set the national high school record with 12,124 career rushing yards",
+        "Won the 2015 Heisman Trophy at Alabama, rushing for 2,219 yards",
+        "Rushed for 2,027 yards in 2020, becoming the 8th player to reach 2,000",
+        "Selected in the 2nd round, 45th overall in 2016",
+        "Running back for the Baltimore Ravens, signed in 2024 after 8 seasons with Titans",
+        "Wears #22, nicknamed 'King Henry' for his punishing style"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Saquon Barkley",
+      "team": "PHI",
+      "position": "RB",
+      "clues": [
+        "Born in the Bronx and became a star at Penn State",
+        "Super Bowl LIX champion with the Eagles, defeating the Chiefs 40-22",
+        "Signed a 2-year, $41.2M extension making him the highest-paid RB ever",
+        "Selected 2nd overall in 2018 by the Giants, joined Eagles in 2024",
+        "Running back for the Philadelphia Eagles, reigning Super Bowl champion",
+        "Wears #26, known for his explosive athleticism"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Jalen Hurts",
+      "team": "PHI",
+      "position": "QB",
+      "clues": [
+        "Transferred from Alabama to Oklahoma after losing his starting job to Tua",
+        "Super Bowl LIX champion and MVP, leading the Eagles to a 40-22 victory",
+        "One of the best rushing quarterbacks in NFL history",
+        "Selected in the 2nd round, 53rd overall in 2020",
+        "Quarterback for the Philadelphia Eagles, Super Bowl winning QB",
+        "Wears #1, known for his leadership and dual-threat ability"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Joe Burrow",
+      "team": "CIN",
+      "position": "QB",
+      "clues": [
+        "His father Jimmy was a longtime college coach and former CFL player",
+        "Won the Heisman Trophy and national championship at LSU in 2019",
+        "Led the Bengals to Super Bowl LVI in just his second season",
+        "Selected 1st overall in 2020, first Bengal to go first since 2003",
+        "Quarterback for the Cincinnati Bengals, elite pocket passer",
+        "Wears #9, nicknamed 'Joe Cool' and 'Joe Shiesty'"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "CeeDee Lamb",
+      "team": "DAL",
+      "position": "WR",
+      "clues": [
+        "Grew up in Opelousas, Louisiana and starred at Oklahoma",
+        "Led the NFL in receptions with 135 in the 2023 season",
+        "Now paired with George Pickens who was traded to Dallas in 2025",
+        "Selected 17th overall in 2020, fell in the draft due to other WR talent",
+        "Wide receiver for the Dallas Cowboys, their number one target",
+        "Wears #88, the iconic Cowboys receiver number"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Nick Bosa",
+      "team": "SF",
+      "position": "DE",
+      "clues": [
+        "His father John and brother Joey also played in the NFL",
+        "Won Defensive Player of the Year in 2022 with 18.5 sacks",
+        "Had 19 sacks in 2023, second most in a single season in 49ers history",
+        "Selected 2nd overall in 2019 out of Ohio State",
+        "Defensive end for the San Francisco 49ers, elite pass rusher",
+        "Wears #97, one of the most feared edge rushers in the league"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Myles Garrett",
+      "team": "CLE",
+      "position": "DE",
+      "clues": [
+        "Wrote poetry in college at Texas A&M and is known for his dinosaur obsession",
+        "Won Defensive Player of the Year in 2023",
+        "Signed an extension averaging $40M per year, then highest for a non-QB",
+        "Selected 1st overall in 2017 by the Cleveland Browns",
+        "Defensive end for the Cleveland Browns, franchise cornerstone",
+        "Wears #95, one of the most dominant pass rushers in the league"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "C.J. Stroud",
+      "team": "HOU",
+      "position": "QB",
+      "clues": [
+        "Lost his father to gun violence when he was young, wears his memory proudly",
+        "Won Offensive Rookie of the Year in 2023 with record-breaking numbers",
+        "Returned from a 3-game concussion absence in Week 13 of 2025",
+        "Selected 2nd overall in 2023 out of Ohio State",
+        "Quarterback for the Houston Texans, leading playoff push",
+        "Wears #7, poised pocket passer with elite accuracy"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Amon-Ra St. Brown",
+      "team": "DET",
+      "position": "WR",
+      "clues": [
+        "His father was a two-time Mr. Universe bodybuilder from Germany",
+        "Named after the Egyptian sun god Ra, all his brothers have Egyptian names",
+        "Led the Lions to their first NFC Championship game since 1991",
+        "Selected in the 4th round, 112th overall in 2021 out of USC",
+        "Wide receiver for the Detroit Lions, their most reliable target",
+        "Wears #14, nicknamed 'The Sun God'"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Aaron Rodgers",
+      "team": "PIT",
+      "position": "QB",
+      "clues": [
+        "Hosted Jeopardy! during his offseason and is interested in alternative medicine",
+        "4-time NFL MVP, won Super Bowl XLV with the Packers",
+        "Signed with the Steelers in June 2025 for one more championship run",
+        "Selected 24th overall in 2005 by Green Bay, sat behind Brett Favre",
+        "Quarterback for the Pittsburgh Steelers, future Hall of Famer",
+        "Wears #8, one of the most talented QBs in NFL history"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "DK Metcalf",
+      "team": "PIT",
+      "position": "WR",
+      "clues": [
+        "Ran a 4.33 40-yard dash at 228 pounds at the NFL Combine",
+        "Famous for chasing down Budda Baker on a 90-yard interception return",
+        "Traded from Seattle to Pittsburgh in 2025, signed a $150M extension",
+        "Selected in the 2nd round, 64th overall in 2019 out of Ole Miss",
+        "Wide receiver for the Pittsburgh Steelers, elite deep threat",
+        "Wears #14, known for his incredible athleticism and physique"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Sauce Gardner",
+      "team": "NYJ",
+      "position": "CB",
+      "clues": [
+        "Nicknamed 'Sauce' since childhood, real first name is Ahmad",
+        "Won Defensive Rookie of the Year in 2022, didn't allow a TD all season",
+        "Did not allow a receiving touchdown in his first two NFL seasons",
+        "Selected 4th overall in 2022 out of Cincinnati",
+        "Cornerback for the New York Jets, elite shutdown corner",
+        "Wears #1, known for his lockdown coverage ability"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Garrett Wilson",
+      "team": "NYJ",
+      "position": "WR",
+      "clues": [
+        "His father played basketball at George Mason University",
+        "Won Offensive Rookie of the Year in 2022 with 1,103 receiving yards",
+        "Signed a record 4-year, $130M extension ($31M/year) after 3 seasons",
+        "Selected 10th overall in 2022 out of Ohio State",
+        "Wide receiver for the New York Jets, their go-to receiver",
+        "Wears #5, elite route runner with great hands"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Chris Jones",
+      "team": "KC",
+      "position": "DT",
+      "clues": [
+        "Played basketball at Mississippi State before focusing on football",
+        "3-time Super Bowl champion with the Kansas City Chiefs",
+        "One of the few interior defensive linemen to record double-digit sacks multiple times",
+        "Selected in the 2nd round, 37th overall in 2016",
+        "Defensive tackle for the Kansas City Chiefs, dominant interior presence",
+        "Wears #95, one of the best interior pass rushers in the NFL"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Davante Adams",
+      "team": "LAR",
+      "position": "WR",
+      "clues": [
+        "Played at Fresno State where he caught passes from Derek Carr",
+        "Has the most receiving touchdowns (17) in a single season since 2020",
+        "Signed with the Rams on a 2-year, $46M deal with $26M guaranteed in 2025",
+        "Selected 53rd overall in 2014 by Green Bay, traded to Las Vegas in 2022",
+        "Wide receiver for the Los Angeles Rams, elite route runner",
+        "Wears #17, one of the best WRs of his generation"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Breece Hall",
+      "team": "NYJ",
+      "position": "RB",
+      "clues": [
+        "From Wichita, Kansas and set records at Iowa State",
+        "Tore his ACL as a rookie but came back to be one of the top RBs",
+        "One of the most complete backs in the league - running and receiving",
+        "Selected in the 2nd round, 36th overall in 2022",
+        "Running back for the New York Jets, dual-threat back",
+        "Wears #20, explosive and versatile runner"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "clues": [
+        "His first name means 'Hero' in Persian",
+        "Was considered the best running back prospect since Saquon Barkley",
+        "Elite receiving ability for a running back, highly versatile",
+        "Selected 8th overall in 2023 out of Texas, highest RB pick since 2018",
+        "Running back for the Atlanta Falcons, their offensive centerpiece",
+        "Wears #7, smooth runner with elite vision"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "A.J. Brown",
+      "team": "PHI",
+      "position": "WR",
+      "clues": [
+        "From Starkville, Mississippi and starred at Ole Miss",
+        "Super Bowl LIX champion with the Philadelphia Eagles",
+        "One of the most physical receivers in the NFL after the catch",
+        "Traded from Tennessee to Philadelphia on 2022 draft night",
+        "Wide receiver for the Philadelphia Eagles, big-play threat",
+        "Wears #11, known for his physical playing style"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Jared Goff",
+      "team": "DET",
+      "position": "QB",
+      "clues": [
+        "His father Jerry Goff played as a catcher in MLB",
+        "Led the Lions to consecutive NFC Championship games",
+        "Was traded straight up for Matthew Stafford in a blockbuster 2021 deal",
+        "Selected 1st overall in 2016 by the Los Angeles Rams",
+        "Quarterback for the Detroit Lions, revival story of the decade",
+        "Wears #16, accurate passer with great pocket presence"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Fred Warner",
+      "team": "SF",
+      "position": "LB",
+      "clues": [
+        "From San Marcos, California and played at BYU",
+        "5-time Pro Bowl selection, one of the best coverage linebackers",
+        "Considered the heart and soul of the 49ers defense",
+        "Selected in the 3rd round, 70th overall in 2018",
+        "Linebacker for the San Francisco 49ers, defensive captain",
+        "Wears #54, elite sideline-to-sideline linebacker"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Roquan Smith",
+      "team": "BAL",
+      "position": "LB",
+      "clues": [
+        "From Montezuma, Georgia and was a star at the University of Georgia",
+        "Led the NFL in tackles in 2022 after being traded mid-season",
+        "Two-time First-Team All-Pro since joining Baltimore",
+        "Selected 8th overall in 2018 by Chicago, traded to Ravens in 2022",
+        "Linebacker for the Baltimore Ravens, tackling machine",
+        "Wears #0, one of the best linebackers in football"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Maxx Crosby",
+      "team": "LV",
+      "position": "DE",
+      "clues": [
+        "Overcame alcohol addiction early in his career, now advocates for sobriety",
+        "4-time Pro Bowl selection, known for his relentless motor",
+        "Has had double-digit sacks in multiple seasons",
+        "Selected in the 4th round, 106th overall in 2019 out of Eastern Michigan",
+        "Defensive end for the Las Vegas Raiders, their best player",
+        "Wears #98, nicknamed 'Madd Maxx'"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Patrick Surtain II",
+      "team": "DEN",
+      "position": "CB",
+      "clues": [
+        "His father was a 3-time Pro Bowl cornerback who played for the Dolphins and Chiefs",
+        "Won Defensive Player of the Year in 2024",
+        "One of the best man-coverage corners in the NFL",
+        "Selected 9th overall in 2021 out of Alabama",
+        "Cornerback for the Denver Broncos, elite shutdown corner",
+        "Wears #2, nicknamed 'PS2'"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "George Kittle",
+      "team": "SF",
+      "position": "TE",
+      "clues": [
+        "His father Bruce played offensive line in the NFL for seven seasons",
+        "Set the single-season receiving yards record for tight ends in 2018 with 1,377",
+        "Known for his bone-crushing blocks and explosive plays after the catch",
+        "Selected in the 5th round, 146th overall in 2017 out of Iowa",
+        "Tight end for the San Francisco 49ers, one of the best at his position",
+        "Wears #85, known for his WWE-style celebrations"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Justin Herbert",
+      "team": "LAC",
+      "position": "QB",
+      "clues": [
+        "From Eugene, Oregon and turned down an offer to play for the Ducks baseball team",
+        "Set the rookie record for touchdown passes with 31 in 2020",
+        "Has one of the strongest arms in the NFL",
+        "Selected 6th overall in 2020 out of Oregon",
+        "Quarterback for the Los Angeles Chargers, franchise QB",
+        "Wears #10, elite arm talent and size"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Jayden Daniels",
+      "team": "WAS",
+      "position": "QB",
+      "clues": [
+        "Won the Heisman Trophy at LSU in 2023 with historic numbers",
+        "Won Offensive Rookie of the Year in 2024",
+        "Shut down for final 3 games of 2025 due to elbow injury",
+        "Selected 2nd overall in 2024 out of LSU",
+        "Quarterback for the Washington Commanders, future franchise star",
+        "Wears #5, dynamic dual-threat quarterback"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Puka Nacua",
+      "team": "LAR",
+      "position": "WR",
+      "clues": [
+        "From Provo, Utah and comes from a large athletic family",
+        "Set the NFL rookie records for receptions (105) and receiving yards (1,486)",
+        "Teaming up with Davante Adams in the Rams' new-look offense",
+        "Selected in the 5th round, 177th overall in 2023 out of BYU",
+        "Wide receiver for the Los Angeles Rams, breakout star",
+        "Wears #17, quickly became one of the best young receivers"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Cam Ward",
+      "team": "TEN",
+      "position": "QB",
+      "clues": [
+        "Transferred to Miami after playing at Washington State and Incarnate Word",
+        "Led Miami to an undefeated regular season in 2024",
+        "Selected 1st overall in the 2025 NFL Draft by Tennessee",
+        "One of three rookie QBs starting in the 2025 season",
+        "Quarterback for the Tennessee Titans, franchise's new hope",
+        "Wears #1, strong-armed passer with swagger"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Shedeur Sanders",
+      "team": "CLE",
+      "position": "QB",
+      "clues": [
+        "Son of a two-sport Hall of Famer who won Super Bowls with two different teams",
+        "Followed his father from Jackson State to Colorado",
+        "Highly anticipated starting debut with the Browns in 2025",
+        "Selected in the 2025 NFL Draft after starring at Colorado",
+        "Quarterback for the Cleveland Browns, famous football family",
+        "Wears #2, known for his accuracy and poise"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Tetairoa McMillan",
+      "team": "CAR",
+      "position": "WR",
+      "clues": [
+        "From Anaheim Hills, California and starred at Arizona",
+        "Leading candidate for Offensive Rookie of the Year in 2025",
+        "Has 57 receptions, 826 yards, and 6 TDs as a rookie through Week 14",
+        "Selected 8th overall in 2025, first WR taken in the draft",
+        "Wide receiver for the Carolina Panthers, go-to target for Bryce Young",
+        "Wears #0, big-play threat averaging 14.5 yards per catch"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Carson Schwesinger",
+      "team": "LAR",
+      "position": "LB",
+      "clues": [
+        "From Los Alamitos, California and starred at UCLA",
+        "Leading candidate for Defensive Rookie of the Year in 2025",
+        "Has 106 tackles, 1.5 sacks, and 2 INTs through Week 14",
+        "Selected 33rd overall in 2025, early 2nd round pick",
+        "Linebacker for the Los Angeles Rams, immediate impact player",
+        "Wears #53, leads all rookies in tackles"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Jahmyr Gibbs",
+      "team": "DET",
+      "position": "RB",
+      "clues": [
+        "From Dalton, Georgia and played at Georgia Tech before transferring to Alabama",
+        "Forms a dynamic duo with David Montgomery in Detroit's backfield",
+        "One of the most explosive receiving backs in the NFL",
+        "Selected 12th overall in 2023 out of Alabama",
+        "Running back for the Detroit Lions, versatile playmaker",
+        "Wears #26, lightning-fast with great hands"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Trey McBride",
+      "team": "ARI",
+      "position": "TE",
+      "clues": [
+        "From Fort Morgan, Colorado and starred at Colorado State",
+        "Emerging as one of the best young tight ends in the NFL",
+        "Led all tight ends in receptions in the 2024 season",
+        "Selected in the 2nd round, 55th overall in 2022",
+        "Tight end for the Arizona Cardinals, their most reliable target",
+        "Wears #85, becoming a Pro Bowl-caliber player"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Tua Tagovailoa",
+      "team": "MIA",
+      "position": "QB",
+      "clues": [
+        "From Ewa Beach, Hawaii and led Alabama to a national championship",
+        "Has battled multiple concussions throughout his NFL career",
+        "Led the highest-scoring offense in the NFL in 2023",
+        "Selected 5th overall in 2020 out of Alabama",
+        "Quarterback for the Miami Dolphins, accurate short-to-intermediate passer",
+        "Wears #1, quick release and precision"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Deebo Samuel",
+      "team": "WAS",
+      "position": "WR",
+      "clues": [
+        "From Inman, South Carolina and starred at South Carolina",
+        "Pioneered the 'wide back' role, taking handoffs as a receiver",
+        "Traded from San Francisco to Washington in 2025",
+        "Selected in the 2nd round, 36th overall in 2019",
+        "Wide receiver for the Washington Commanders, versatile weapon",
+        "Wears #1, one of the most unique players in the NFL"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Quinnen Williams",
+      "team": "NYJ",
+      "position": "DT",
+      "clues": [
+        "From Birmingham, Alabama and dominated at the University of Alabama",
+        "One of the highest-paid defensive tackles in NFL history",
+        "Elite pass rusher from the interior, has double-digit sack seasons",
+        "Selected 3rd overall in 2019 by the New York Jets",
+        "Defensive tackle for the New York Jets, anchor of the defense",
+        "Wears #95, dominant interior presence"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Sam LaPorta",
+      "team": "DET",
+      "position": "TE",
+      "clues": [
+        "From Highland, Illinois and starred at the University of Iowa",
+        "Set the rookie record for receptions by a tight end with 86 in 2023",
+        "Key part of the Lions' explosive offensive attack",
+        "Selected in the 2nd round, 34th overall in 2023",
+        "Tight end for the Detroit Lions, immediate impact player",
+        "Wears #87, reliable target in the red zone"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Nico Collins",
+      "team": "HOU",
+      "position": "WR",
+      "clues": [
+        "From Birmingham, Alabama and played at Michigan",
+        "Emerged as one of the best deep threats in the NFL",
+        "C.J. Stroud's favorite target in Houston's offense",
+        "Selected in the 3rd round, 89th overall in 2021",
+        "Wide receiver for the Houston Texans, big-play receiver",
+        "Wears #12, tall target with excellent body control"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Jordan Love",
+      "team": "GB",
+      "position": "QB",
+      "clues": [
+        "From Bakersfield, California and played at Utah State",
+        "Took over as Packers starter after Aaron Rodgers was traded",
+        "Led one of the youngest rosters in the NFL to the playoffs",
+        "Selected 26th overall in 2020, sat behind Rodgers for 3 years",
+        "Quarterback for the Green Bay Packers, the post-Rodgers era",
+        "Wears #10, strong arm with playmaking ability"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Aidan Hutchinson",
+      "team": "DET",
+      "position": "DE",
+      "clues": [
+        "His father Chris played linebacker at Michigan and in the NFL",
+        "Finished 2nd in Defensive Player of the Year voting in 2023",
+        "Had 11.5 sacks before a season-ending leg injury in 2024",
+        "Selected 2nd overall in 2022 out of Michigan",
+        "Defensive end for the Detroit Lions, homegrown star",
+        "Wears #97, beloved in Detroit for his Michigan roots"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Brock Purdy",
+      "team": "SF",
+      "position": "QB",
+      "clues": [
+        "From Queen Creek, Arizona and starred at Iowa State",
+        "Selected with the final pick of the 2022 Draft, 'Mr. Irrelevant'",
+        "Led the 49ers to Super Bowl LVIII in just his second season",
+        "Has the highest passer rating of any QB in their first two seasons",
+        "Quarterback for the San Francisco 49ers, ultimate underdog story",
+        "Wears #13, proved everyone wrong"
+      ]
+    }
+  ]
+}

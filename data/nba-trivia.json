@@ -1,0 +1,352 @@
+[
+  {
+    "id": "nba_q1",
+    "question": "Who holds the NBA record for most points in a single game?",
+    "options": ["Kobe Bryant", "Michael Jordan", "Wilt Chamberlain", "LeBron James"],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q2",
+    "question": "Which team has won the most NBA championships?",
+    "options": ["Los Angeles Lakers", "Chicago Bulls", "Boston Celtics", "Golden State Warriors"],
+    "correctAnswer": "Boston Celtics",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q3",
+    "question": "Who is the NBA's all-time leading scorer?",
+    "options": ["Kareem Abdul-Jabbar", "Karl Malone", "LeBron James", "Michael Jordan"],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q4",
+    "question": "How many points did Wilt Chamberlain score in his record-setting game?",
+    "options": ["81", "100", "92", "88"],
+    "correctAnswer": "100",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q5",
+    "question": "Which player has won the most NBA MVP awards?",
+    "options": ["Michael Jordan", "LeBron James", "Kareem Abdul-Jabbar", "Bill Russell"],
+    "correctAnswer": "Kareem Abdul-Jabbar",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q6",
+    "question": "What year was the NBA founded?",
+    "options": ["1936", "1946", "1956", "1966"],
+    "correctAnswer": "1946",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q7",
+    "question": "Who was the first player to be drafted straight from high school?",
+    "options": ["Kobe Bryant", "Kevin Garnett", "LeBron James", "Moses Malone"],
+    "correctAnswer": "Moses Malone",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q8",
+    "question": "Which player is known as 'The Greek Freak'?",
+    "options": ["Luka Doncic", "Giannis Antetokounmpo", "Nikola Jokic", "Kristaps Porzingis"],
+    "correctAnswer": "Giannis Antetokounmpo",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q9",
+    "question": "How many championships did Michael Jordan win?",
+    "options": ["4", "5", "6", "7"],
+    "correctAnswer": "6",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q10",
+    "question": "Which team did LeBron James win his first championship with?",
+    "options": ["Cleveland Cavaliers", "Miami Heat", "Los Angeles Lakers", "San Antonio Spurs"],
+    "correctAnswer": "Miami Heat",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q11",
+    "question": "Who holds the record for most assists in NBA history?",
+    "options": ["Magic Johnson", "John Stockton", "Steve Nash", "Chris Paul"],
+    "correctAnswer": "John Stockton",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q12",
+    "question": "Which player has the most rebounds in NBA history?",
+    "options": ["Wilt Chamberlain", "Bill Russell", "Kareem Abdul-Jabbar", "Tim Duncan"],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q13",
+    "question": "What is the name of the NBA championship trophy?",
+    "options": ["Commissioner's Trophy", "Larry O'Brien Trophy", "Vince Lombardi Trophy", "Stanley Cup"],
+    "correctAnswer": "Larry O'Brien Trophy",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q14",
+    "question": "Which player won MVP of the 2024 NBA Finals?",
+    "options": ["Jayson Tatum", "Jaylen Brown", "Luka Doncic", "Kyrie Irving"],
+    "correctAnswer": "Jaylen Brown",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q15",
+    "question": "Who is the shortest player in NBA history?",
+    "options": ["Spud Webb", "Muggsy Bogues", "Earl Boykins", "Nate Robinson"],
+    "correctAnswer": "Muggsy Bogues",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q16",
+    "question": "Which team drafted Kobe Bryant in 1996?",
+    "options": ["Los Angeles Lakers", "Charlotte Hornets", "Philadelphia 76ers", "Boston Celtics"],
+    "correctAnswer": "Charlotte Hornets",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q17",
+    "question": "How tall is Muggsy Bogues?",
+    "options": ["5'1\"", "5'3\"", "5'5\"", "5'7\""],
+    "correctAnswer": "5'3\"",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q18",
+    "question": "Which team won the 2024 NBA Championship?",
+    "options": ["Denver Nuggets", "Boston Celtics", "Dallas Mavericks", "Miami Heat"],
+    "correctAnswer": "Boston Celtics",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q19",
+    "question": "Who holds the record for most three-pointers made in NBA history?",
+    "options": ["Ray Allen", "Reggie Miller", "Stephen Curry", "Klay Thompson"],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q20",
+    "question": "Which player won the 2024 NBA MVP award?",
+    "options": ["Luka Doncic", "Shai Gilgeous-Alexander", "Nikola Jokic", "Giannis Antetokounmpo"],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q21",
+    "question": "What number did Michael Jordan famously wear?",
+    "options": ["12", "23", "33", "45"],
+    "correctAnswer": "23",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q22",
+    "question": "Which team has the longest championship drought in the NBA?",
+    "options": ["Sacramento Kings", "Phoenix Suns", "Brooklyn Nets", "Charlotte Hornets"],
+    "correctAnswer": "Sacramento Kings",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q23",
+    "question": "Who scored 81 points in a single game in 2006?",
+    "options": ["LeBron James", "Kobe Bryant", "Tracy McGrady", "Allen Iverson"],
+    "correctAnswer": "Kobe Bryant",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q24",
+    "question": "Which player won Rookie of the Year in 2024?",
+    "options": ["Victor Wembanyama", "Chet Holmgren", "Brandon Miller", "Scoot Henderson"],
+    "correctAnswer": "Victor Wembanyama",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q25",
+    "question": "How many triple-doubles does Russell Westbrook have (career record)?",
+    "options": ["150+", "175+", "198+", "220+"],
+    "correctAnswer": "198+",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q26",
+    "question": "Which city are the Bucks from?",
+    "options": ["Minneapolis", "Milwaukee", "Detroit", "Indianapolis"],
+    "correctAnswer": "Milwaukee",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q27",
+    "question": "Who was the first overall pick in the 2023 NBA Draft?",
+    "options": ["Scoot Henderson", "Brandon Miller", "Victor Wembanyama", "Amen Thompson"],
+    "correctAnswer": "Victor Wembanyama",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q28",
+    "question": "Which player holds the record for most steals in NBA history?",
+    "options": ["Michael Jordan", "Gary Payton", "John Stockton", "Scottie Pippen"],
+    "correctAnswer": "John Stockton",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q29",
+    "question": "What is Shaquille O'Neal's nickname?",
+    "options": ["The Diesel", "The Dream", "The Admiral", "The Mailman"],
+    "correctAnswer": "The Diesel",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q30",
+    "question": "Which team did Tim Duncan play his entire career for?",
+    "options": ["Dallas Mavericks", "San Antonio Spurs", "Houston Rockets", "Phoenix Suns"],
+    "correctAnswer": "San Antonio Spurs",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q31",
+    "question": "Who was the first European player to be drafted #1 overall?",
+    "options": ["Dirk Nowitzki", "Pau Gasol", "Andrea Bargnani", "Yao Ming"],
+    "correctAnswer": "Andrea Bargnani",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q32",
+    "question": "How many points did Donovan Mitchell score in a playoff game in 2020 (Jazz record)?",
+    "options": ["51", "57", "63", "71"],
+    "correctAnswer": "57",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q33",
+    "question": "Which player is nicknamed 'The Beard'?",
+    "options": ["Anthony Davis", "James Harden", "Kawhi Leonard", "Paul George"],
+    "correctAnswer": "James Harden",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q34",
+    "question": "What college did Kevin Durant attend?",
+    "options": ["Duke", "Kentucky", "Texas", "Kansas"],
+    "correctAnswer": "Texas",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q35",
+    "question": "Which team won 73 games in the 2015-16 regular season?",
+    "options": ["Cleveland Cavaliers", "San Antonio Spurs", "Golden State Warriors", "Oklahoma City Thunder"],
+    "correctAnswer": "Golden State Warriors",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q36",
+    "question": "Who hit 'The Shot' over Craig Ehlo in 1989?",
+    "options": ["Larry Bird", "Magic Johnson", "Michael Jordan", "Isiah Thomas"],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q37",
+    "question": "Which player has won the most Defensive Player of the Year awards?",
+    "options": ["Dikembe Mutombo", "Ben Wallace", "Rudy Gobert", "Hakeem Olajuwon"],
+    "correctAnswer": "Rudy Gobert",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q38",
+    "question": "What team does Stephen Curry play for?",
+    "options": ["Los Angeles Lakers", "Brooklyn Nets", "Golden State Warriors", "Phoenix Suns"],
+    "correctAnswer": "Golden State Warriors",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q39",
+    "question": "Who is the all-time leading scorer for the Los Angeles Lakers?",
+    "options": ["Kobe Bryant", "Magic Johnson", "Shaquille O'Neal", "Jerry West"],
+    "correctAnswer": "Kobe Bryant",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q40",
+    "question": "Which player won back-to-back-to-back MVP awards from 2021-2024?",
+    "options": ["Giannis Antetokounmpo", "LeBron James", "Nikola Jokic", "Joel Embiid"],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q41",
+    "question": "How many teams are in the NBA?",
+    "options": ["28", "30", "32", "34"],
+    "correctAnswer": "30",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q42",
+    "question": "Which player won Finals MVP while on the losing team?",
+    "options": ["LeBron James", "Jerry West", "Magic Johnson", "Kareem Abdul-Jabbar"],
+    "correctAnswer": "Jerry West",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q43",
+    "question": "What is the name of the arena where the Knicks play?",
+    "options": ["Barclays Center", "Madison Square Garden", "TD Garden", "United Center"],
+    "correctAnswer": "Madison Square Garden",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q44",
+    "question": "Which player averaged a triple-double for an entire season first?",
+    "options": ["Magic Johnson", "Oscar Robertson", "Russell Westbrook", "LeBron James"],
+    "correctAnswer": "Oscar Robertson",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q45",
+    "question": "Who coached the Chicago Bulls during their 1990s dynasty?",
+    "options": ["Pat Riley", "Phil Jackson", "Gregg Popovich", "Larry Brown"],
+    "correctAnswer": "Phil Jackson",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q46",
+    "question": "Which country is Luka Doncic from?",
+    "options": ["Serbia", "Croatia", "Slovenia", "Greece"],
+    "correctAnswer": "Slovenia",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nba_q47",
+    "question": "Who holds the record for most blocks in a single game?",
+    "options": ["Hakeem Olajuwon", "Elmore Smith", "Shaquille O'Neal", "Dikembe Mutombo"],
+    "correctAnswer": "Elmore Smith",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nba_q48",
+    "question": "What was the original name of the Oklahoma City Thunder?",
+    "options": ["Vancouver Grizzlies", "Seattle SuperSonics", "Kansas City Kings", "New Jersey Nets"],
+    "correctAnswer": "Seattle SuperSonics",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q49",
+    "question": "Which player has the most career playoff points?",
+    "options": ["Michael Jordan", "Kareem Abdul-Jabbar", "LeBron James", "Kobe Bryant"],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nba_q50",
+    "question": "Who was nicknamed 'The Answer'?",
+    "options": ["Gary Payton", "Allen Iverson", "Steve Nash", "Ray Allen"],
+    "correctAnswer": "Allen Iverson",
+    "difficulty": "easy"
+  }
+]

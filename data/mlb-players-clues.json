@@ -1,0 +1,704 @@
+{
+  "players": [
+    {
+      "id": 1,
+      "name": "Shohei Ohtani",
+      "team": "LAD",
+      "position": "DH",
+      "clues": [
+        "This player was the first pick in the 2012 NPB draft by the Hokkaido Nippon-Ham Fighters",
+        "He won back-to-back AL MVP awards in 2021 and 2023 as a two-way player",
+        "In 2023, he hit 44 home runs while also posting a 10-5 record with 167 strikeouts as a pitcher",
+        "He signed a record-breaking 10-year, $700 million contract before the 2024 season",
+        "He joined the Dodgers in 2024 and won his first World Series title",
+        "The Japanese superstar known as 'Shotime' wears number 17"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Aaron Judge",
+      "team": "NYY",
+      "position": "OF",
+      "clues": [
+        "He was adopted as an infant and raised in Linden, California",
+        "He set the AL single-season home run record with 62 in 2022",
+        "Standing 6'7\", he's one of the tallest position players in MLB history",
+        "He was drafted by the Yankees in the first round of the 2013 draft out of Fresno State",
+        "He became the 16th captain in Yankees history in 2023",
+        "This towering right fielder wears number 99 and his fans sit in the 'Judge's Chambers'"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Mookie Betts",
+      "team": "LAD",
+      "position": "SS",
+      "clues": [
+        "He's an accomplished bowler who has competed in PBA events with a 300 game to his credit",
+        "He won both an MVP award and a World Series with the Red Sox in 2018",
+        "He's a six-time Gold Glove winner who transitioned to shortstop in 2024",
+        "He was traded from Boston to the Dodgers in a blockbuster deal before the 2020 season",
+        "He won his second World Series ring with LA in 2024",
+        "This versatile star wears number 50 and his real first name is Markus"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Ronald Acuña Jr.",
+      "team": "ATL",
+      "position": "OF",
+      "clues": [
+        "His father and uncles all played professional baseball in Venezuela",
+        "He won NL MVP in 2023, becoming the first player with 40 HR and 70 SB in a season",
+        "He hit a home run in his first MLB at-bat on April 25, 2018",
+        "He signed a team-friendly 8-year, $100 million extension in 2019",
+        "He tore his ACL in May 2024 while playing for the Braves",
+        "This Venezuelan outfielder wears number 13 and is nicknamed 'El Abusador'"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Mike Trout",
+      "team": "LAA",
+      "position": "CF",
+      "clues": [
+        "He grew up in Millville, New Jersey, where his high school jersey was retired",
+        "He's a three-time AL MVP (2014, 2016, 2019) and 11-time All-Star",
+        "He won the 2012 AL Rookie of the Year with 129 runs scored and 49 stolen bases",
+        "He was drafted 25th overall by the Angels in 2009 and has never played for another team",
+        "A torn meniscus limited him to just 29 games in 2024",
+        "This generational talent wears number 27 and is known as 'The Millville Meteor'"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Freddie Freeman",
+      "team": "LAD",
+      "position": "1B",
+      "clues": [
+        "He was born in Fountain Valley, California but moved to Canada at age 10",
+        "He won the 2020 NL MVP and was the 2021 World Series champion with Atlanta",
+        "He had a remarkable 2023 NLCS, hitting .400 with 4 HR against the Diamondbacks",
+        "He played 12 seasons with the Braves before signing with the Dodgers in 2022",
+        "He was the 2024 World Series MVP with a historic performance",
+        "This first baseman wears number 5 and is known for his signature 'Freeman Shuffle'"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Juan Soto",
+      "team": "NYM",
+      "position": "OF",
+      "clues": [
+        "He was discovered by scout Oz Ocampo while playing in the Dominican Republic at age 15",
+        "He was the youngest player to hit a home run in a World Series game at 20 years old",
+        "He has a career .421 OBP, one of the highest among active players",
+        "He was traded from Washington to San Diego in 2022, then to the Yankees in 2023",
+        "He signed a record $765 million contract with the Mets before the 2025 season",
+        "This left fielder wears number 22 and does the 'Soto Shuffle' in the batter's box"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Corey Seager",
+      "team": "TEX",
+      "position": "SS",
+      "clues": [
+        "His brother Kyle is a former MLB third baseman who played for the Mariners",
+        "He won World Series MVP in 2020 with the Dodgers, hitting .400 with 2 HR",
+        "He won his second World Series MVP in 2023, the first to win with two different teams",
+        "He was the first overall pick by the Dodgers in the 2012 draft",
+        "He signed a 10-year, $325 million deal with Texas before the 2022 season",
+        "This shortstop wears number 5 and was 2016 NL Rookie of the Year"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Trea Turner",
+      "team": "PHI",
+      "position": "SS",
+      "clues": [
+        "He attended NC State and was drafted in the first round by the Padres in 2014",
+        "He led the NL in stolen bases three times and batting average once",
+        "His grand slam in the 2022 NLCS Game 5 helped Philadelphia reach the World Series",
+        "He was traded to the Nationals as part of the three-team Wil Myers deal",
+        "He signed an 11-year, $300 million deal with the Phillies before 2023",
+        "This speedy shortstop wears number 7"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Manny Machado",
+      "team": "SDP",
+      "position": "3B",
+      "clues": [
+        "He was born in Miami and attended Brito High School, a powerhouse for Latin talent",
+        "He finished second in MVP voting twice (2018, 2020) but has never won",
+        "He was an All-Star in his rookie season in 2012 at just 19 years old",
+        "He was drafted 3rd overall by the Orioles in 2010",
+        "He signed a 10-year, $300 million deal with the Padres in 2019",
+        "This third baseman wears number 13 and is known for his flashy defense"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Gerrit Cole",
+      "team": "NYY",
+      "position": "P",
+      "clues": [
+        "He attended UCLA, where he was teammates with Trevor Bauer",
+        "He won the 2023 AL Cy Young Award with a 15-4 record and 2.63 ERA",
+        "He struck out 326 batters in 2019, the most in the majors that year",
+        "He was drafted first overall by the Pirates in 2011, then traded to Houston",
+        "He signed a 9-year, $324 million deal with the Yankees before 2020",
+        "This ace wears number 45 and was the highest-paid pitcher when he signed"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Max Scherzer",
+      "team": "TEX",
+      "position": "P",
+      "clues": [
+        "He has heterochromia - one blue eye and one brown eye",
+        "He's a three-time Cy Young Award winner (2013, 2016, 2017)",
+        "He threw two no-hitters in 2015 and has 3,000+ career strikeouts",
+        "He was drafted by the Diamondbacks and has also pitched for the Tigers, Nationals, Dodgers, and Mets",
+        "He helped the Rangers win their first World Series in 2023",
+        "This fiery competitor is known as 'Mad Max' and wears number 31"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Bryce Harper",
+      "team": "PHI",
+      "position": "1B",
+      "clues": [
+        "He appeared on the cover of Sports Illustrated at 16, dubbed 'The Chosen One'",
+        "He's a two-time NL MVP (2015, 2021) and was the 2012 NL Rookie of the Year",
+        "His walk-off home run in the 2022 NLCS sent the Phillies to the World Series",
+        "He was the first overall pick in 2010 by the Nationals at age 17",
+        "He signed a 13-year, $330 million deal with Philadelphia in 2019",
+        "This star wears number 3 and is known for his 'That's a clown question, bro' quote"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Pete Alonso",
+      "team": "NYM",
+      "position": "1B",
+      "clues": [
+        "He played college baseball at the University of Florida",
+        "He's a three-time Home Run Derby champion (2019, 2021, 2024)",
+        "He set the rookie home run record with 53 in 2019",
+        "He was drafted in the second round by the Mets in 2016",
+        "He's been the Mets' primary first baseman since his rookie year",
+        "This power hitter wears number 20 and is nicknamed 'Polar Bear'"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "TOR",
+      "position": "1B",
+      "clues": [
+        "His father is a Hall of Famer who hit 449 career home runs",
+        "He finished second in AL MVP voting in 2021 with 48 HR and a .311 average",
+        "He won the 2023 World Baseball Classic with the Dominican Republic",
+        "He was drafted 2nd overall in the 2015 international signing period",
+        "He's been the Blue Jays' cornerstone since his 2019 debut",
+        "This first baseman wears number 27 like his famous father"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Fernando Tatis Jr.",
+      "team": "SDP",
+      "position": "OF",
+      "clues": [
+        "His father hit two grand slams in a single inning for the Cardinals in 1999",
+        "He led the NL in home runs in 2021 with 42 despite missing time",
+        "He was suspended 80 games in 2022 for PED use and missed most of 2023 with injury",
+        "He was acquired by the Padres in the James Shields trade with the White Sox",
+        "He signed a 14-year, $340 million extension with San Diego in 2021",
+        "This flashy player wears number 23 and is known as 'El Niño'"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Bo Bichette",
+      "team": "TOR",
+      "position": "SS",
+      "clues": [
+        "His father was a four-time All-Star outfielder in the 1990s who played for the Rockies",
+        "He had a 26-game hitting streak as a rookie in 2019",
+        "He led the American League in hits in 2021 with 191",
+        "He was drafted by the Blue Jays in the second round in 2016",
+        "He forms a dynamic duo with Guerrero Jr. in Toronto's infield",
+        "This shortstop wears number 11 and is known for his flowing hair"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Marcus Semien",
+      "team": "TEX",
+      "position": "2B",
+      "clues": [
+        "He played college baseball at Cal and was drafted by the White Sox in 2011",
+        "He finished third in AL MVP voting in 2019 with 33 HR and 43 doubles",
+        "He set the record for home runs by a second baseman with 45 in 2021",
+        "He was traded from Chicago to Oakland in the Jeff Samardzija deal",
+        "He won his first World Series with the Rangers in 2023",
+        "This infielder wears number 2 and is one of baseball's best leadoff hitters"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Corbin Carroll",
+      "team": "ARI",
+      "position": "OF",
+      "clues": [
+        "He was born in Seattle and attended Lakeside School, the same school Bill Gates attended",
+        "He won both NL Rookie of the Year and a Silver Slugger in 2023",
+        "He stole 54 bases in his rookie season, the most by a Diamondbacks player",
+        "He was drafted 16th overall by Arizona in 2019",
+        "He helped lead the Diamondbacks to the World Series in 2023",
+        "This speedy outfielder wears number 7"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Julio Rodríguez",
+      "team": "SEA",
+      "position": "CF",
+      "clues": [
+        "He was born in the Dominican Republic and signed with Seattle at age 16",
+        "He won the 2022 AL Rookie of the Year and Home Run Derby",
+        "He hit 28 home runs and stole 25 bases in his rookie season",
+        "He signed a 12-year, $209 million extension in his rookie year",
+        "He's the face of the Mariners franchise",
+        "This center fielder wears number 44 and is nicknamed 'J-Rod'"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Spencer Strider",
+      "team": "ATL",
+      "position": "P",
+      "clues": [
+        "He played college baseball at Clemson and was a fourth-round pick in 2020",
+        "He set the record for strikeouts in a pitcher's first 100 innings with 154",
+        "He led the NL in strikeouts in 2023 with 281 in just 186.2 innings",
+        "He underwent Tommy John surgery in April 2024",
+        "He's been a dominant force for the Braves rotation since 2022",
+        "This fireballer wears number 99 and is known for his signature mustache"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Zack Wheeler",
+      "team": "PHI",
+      "position": "P",
+      "clues": [
+        "He attended East Paulding High School in Dallas, Georgia",
+        "He finished second in NL Cy Young voting in 2021 with 247 strikeouts",
+        "He's a two-time All-Star who hasn't missed a start in four seasons",
+        "He was drafted 6th overall by the Giants in 2009 and traded to the Mets",
+        "He signed a 5-year, $118 million deal with Philadelphia before 2020",
+        "This workhorse pitcher wears number 45"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Yordan Alvarez",
+      "team": "HOU",
+      "position": "DH",
+      "clues": [
+        "He was born in Cuba and signed with the Dodgers before being traded to Houston",
+        "He won the 2019 AL Rookie of the Year in only 87 games",
+        "He hit a walk-off three-run homer in Game 6 of the 2022 ALCS",
+        "He was acquired from LA for reliever Josh Fields in 2016",
+        "He won a World Series ring with the Astros in 2022",
+        "This powerful left-handed hitter wears number 44 and is nicknamed 'Yordaddy'"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Matt Olson",
+      "team": "ATL",
+      "position": "1B",
+      "clues": [
+        "He was born in Atlanta and returned to his hometown to play",
+        "He hit 54 home runs in 2023, the most in Braves history",
+        "He's won two Gold Gloves at first base (2018, 2019)",
+        "He was drafted by Oakland in the first round in 2012",
+        "He signed an 8-year, $168 million deal with Atlanta before 2022",
+        "This first baseman wears number 28"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Jose Ramirez",
+      "team": "CLE",
+      "position": "3B",
+      "clues": [
+        "He was signed as an international free agent from the Dominican Republic in 2009",
+        "He's finished in the top 6 of MVP voting five times",
+        "He became the sixth player ever with 20+ HR and 20+ SB in six straight seasons",
+        "He's spent his entire career with the same organization since 2013",
+        "He signed a 7-year extension with Cleveland in 2022",
+        "This switch-hitting third baseman wears number 11"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Rafael Devers",
+      "team": "BOS",
+      "position": "3B",
+      "clues": [
+        "He was signed out of the Dominican Republic at age 16",
+        "He hit a grand slam in Game 4 of the 2021 ALCS at just 24 years old",
+        "He led the AL in total bases in 2019 with 359",
+        "He made his MLB debut at 20 and hit .284 in his first postseason",
+        "He signed an 11-year, $313 million extension with Boston in 2023",
+        "This third baseman wears number 11 and is nicknamed 'Carita'"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Kyle Tucker",
+      "team": "CHC",
+      "position": "OF",
+      "clues": [
+        "He was born in Tampa and attended Plant High School",
+        "He hit for the cycle in the 2023 ALCS against the Rangers",
+        "He won a Gold Glove and Silver Slugger in 2023",
+        "He was drafted 5th overall by the Astros in 2015",
+        "He was traded to the Cubs in January 2025",
+        "This outfielder wears number 30 and was an Astros fan favorite"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Bobby Witt Jr.",
+      "team": "KCR",
+      "position": "SS",
+      "clues": [
+        "His father pitched 16 seasons in the majors for five different teams",
+        "He hit 30+ HR and stole 30+ bases in his second full season (2024)",
+        "He won a Gold Glove at shortstop in 2024",
+        "He was the 2nd overall pick in 2019 out of Colleyville Heritage High School",
+        "He's the face of the Royals' young core",
+        "This shortstop wears number 7"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Gunnar Henderson",
+      "team": "BAL",
+      "position": "SS",
+      "clues": [
+        "He was born in Montgomery, Alabama and attended John Carroll Catholic High",
+        "He finished second in AL Rookie of the Year voting in 2023",
+        "He hit 28 home runs and had a .255 average in his first full season",
+        "He was drafted in the second round by Baltimore in 2019",
+        "He's a key part of the Orioles' young playoff contending team",
+        "This shortstop wears number 2"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Adley Rutschman",
+      "team": "BAL",
+      "position": "C",
+      "clues": [
+        "He played college baseball at Oregon State and won the Golden Spikes Award",
+        "He finished second in 2022 AL Rookie of the Year voting",
+        "He's considered the best switch-hitting catcher in baseball",
+        "He was the 1st overall pick in 2019",
+        "He's the cornerstone of Baltimore's rebuild",
+        "This catcher wears number 35"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Elly De La Cruz",
+      "team": "CIN",
+      "position": "SS",
+      "clues": [
+        "He was signed out of the Dominican Republic in 2018",
+        "He stole 67 bases in 2024, leading the NL",
+        "At 6'5\", he's one of the tallest shortstops in MLB history",
+        "He made his MLB debut in June 2023 at age 21",
+        "He's become the most exciting player in Cincinnati",
+        "This dynamic shortstop wears number 44"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Cody Bellinger",
+      "team": "CHC",
+      "position": "1B/OF",
+      "clues": [
+        "His father played 11 seasons in the majors as an outfielder for the Yankees and others",
+        "He won NL MVP and was the 2017 NL Rookie of the Year",
+        "He hit a key home run in Game 7 of the 2020 NLCS",
+        "He was drafted by the Dodgers in the 4th round in 2013",
+        "He signed a 3-year, $80 million deal with the Cubs before 2024",
+        "This player wears number 24 and is nicknamed 'Belli'"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Paul Skenes",
+      "team": "PIT",
+      "position": "P",
+      "clues": [
+        "He played at Air Force before transferring to LSU",
+        "He was named NL Rookie of the Year in 2024",
+        "He started the 2024 All-Star Game as a rookie",
+        "He was the 1st overall pick in 2023",
+        "He's revitalizing the Pirates franchise",
+        "This hard-throwing righty wears number 30"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Tarik Skubal",
+      "team": "DET",
+      "position": "P",
+      "clues": [
+        "He played college baseball at Seattle University",
+        "He won the 2024 AL Cy Young Award",
+        "He led the majors in ERA (2.39) and strikeouts (228) in 2024",
+        "He was drafted in the 9th round by the Tigers in 2018",
+        "He's become the ace of the Detroit staff",
+        "This left-hander wears number 29"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Corbin Burnes",
+      "team": "ARI",
+      "position": "P",
+      "clues": [
+        "He played college baseball at Saint Mary's",
+        "He won the 2021 NL Cy Young Award with a 2.43 ERA",
+        "He set a record with 58 strikeouts before his first walk in 2021",
+        "He was drafted by the Brewers in the 4th round in 2016",
+        "He was traded to Arizona after the 2024 season",
+        "This right-hander wears number 39"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Yoshinobu Yamamoto",
+      "team": "LAD",
+      "position": "P",
+      "clues": [
+        "He spent seven seasons with the Orix Buffaloes in Japan",
+        "He won three consecutive NPB MVP awards from 2021-2023",
+        "He had a 1.82 ERA with 169 strikeouts in his final NPB season",
+        "He signed the largest contract ever for a pitcher from Japan",
+        "He joined the Dodgers in 2024 on a 12-year, $325 million deal",
+        "This Japanese pitcher wears number 18"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Blake Snell",
+      "team": "LAD",
+      "position": "P",
+      "clues": [
+        "He was born in Seattle and attended Shorewood High School",
+        "He's won two Cy Young Awards (2018 AL, 2023 NL)",
+        "He led the NL with a 2.25 ERA in 2023 despite only 32 starts",
+        "He was drafted by the Rays in the first round in 2011",
+        "He signed with the Dodgers as a free agent in spring 2024",
+        "This left-hander wears number 27"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Chris Sale",
+      "team": "ATL",
+      "position": "P",
+      "clues": [
+        "He attended Florida Gulf Coast University and was a first-round pick in 2010",
+        "He's a seven-time All-Star who has led the league in strikeouts twice",
+        "He famously cut up throwback jerseys while with the White Sox in 2016",
+        "He was traded from Boston to Atlanta before the 2024 season",
+        "He won the 2024 NL Cy Young Award in his first year with the Braves",
+        "This lanky left-hander wears number 51"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Tyler Glasnow",
+      "team": "LAD",
+      "position": "P",
+      "clues": [
+        "He was born in Los Angeles and attended Hart High School in Santa Clarita",
+        "He struck out 342 batters in 2024, leading the NL",
+        "He's battled multiple injuries including Tommy John surgery",
+        "He was originally drafted by the Pirates and later traded to Tampa Bay",
+        "He signed a 5-year, $136 million deal with the Dodgers before 2024",
+        "This tall right-hander wears number 31"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Nolan Arenado",
+      "team": "STL",
+      "position": "3B",
+      "clues": [
+        "He was born in Newport Beach, California and attended El Toro High School",
+        "He's won 10 Gold Gloves at third base, tied for most at the position",
+        "He hit 42 home runs in three consecutive seasons (2015-2017)",
+        "He was traded from Colorado to St. Louis after the 2020 season",
+        "He's been the Cardinals' star third baseman since 2021",
+        "This defensive wizard wears number 28"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Marcus Stroman",
+      "team": "NYY",
+      "position": "P",
+      "clues": [
+        "He played college baseball at Duke and was drafted 22nd overall in 2012",
+        "He led the AL in ground ball percentage for four consecutive seasons",
+        "At 5'7\", he's one of the shortest starting pitchers in the majors",
+        "He pitched for the Blue Jays, Mets, and Cubs before joining the Yankees",
+        "He signed a 2-year deal with New York before the 2024 season",
+        "This pitcher wears number 0 and champions 'Height Doesn't Measure Heart'"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Josh Hader",
+      "team": "HOU",
+      "position": "P",
+      "clues": [
+        "He was originally drafted by the Orioles in 2012",
+        "He's a four-time All-Star closer who struck out 17+ batters per 9 innings with Milwaukee",
+        "He set an MLB record with 40 straight games without allowing a run in 2022",
+        "He was traded from Milwaukee to San Diego and then to Houston",
+        "He joined the Astros in 2024 and became their closer",
+        "This left-handed reliever wears number 71"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Emmanuel Clase",
+      "team": "CLE",
+      "position": "P",
+      "clues": [
+        "He was signed as an international free agent from the Dominican Republic in 2015",
+        "He saved 44 games in 2023, leading the American League",
+        "His cutter averages over 100 mph, one of the hardest in baseball",
+        "He was acquired from Texas in the Corey Kluber trade",
+        "He's been Cleveland's dominant closer since 2021",
+        "This closer wears number 48"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Willy Adames",
+      "team": "SFG",
+      "position": "SS",
+      "clues": [
+        "He was originally signed by the Tigers out of the Dominican Republic",
+        "He hit 32 home runs in 2024, the most by a Brewers shortstop",
+        "He was a key part of Milwaukee's playoff teams from 2021-2024",
+        "He was traded from Tampa Bay to Milwaukee in 2021",
+        "He signed a 7-year, $182 million deal with the Giants before 2025",
+        "This shortstop wears number 11"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "William Contreras",
+      "team": "MIL",
+      "position": "C",
+      "clues": [
+        "His brother Willson is also a MLB catcher who plays for the Cardinals",
+        "He was named to his second straight All-Star team in 2024",
+        "He hit .281 with 23 home runs in 2023",
+        "He was traded from Atlanta to Milwaukee before the 2023 season",
+        "He's become one of the best hitting catchers in the NL",
+        "This catcher wears number 24"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Ketel Marte",
+      "team": "ARI",
+      "position": "2B",
+      "clues": [
+        "He was signed by the Mariners as an international free agent from the Dominican Republic",
+        "He was the NLCS MVP in 2023 when Arizona reached the World Series",
+        "He's the only Diamondback to hit 30+ HR multiple times",
+        "He was traded from Seattle to Arizona in 2016",
+        "He's been Arizona's most consistent hitter for years",
+        "This switch-hitter wears number 4"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Ozzie Albies",
+      "team": "ATL",
+      "position": "2B",
+      "clues": [
+        "He was signed by the Braves as an international free agent from Curacao",
+        "He won a World Series ring with Atlanta in 2021",
+        "He's hit 30+ home runs twice despite standing just 5'8\"",
+        "He signed a team-friendly 7-year extension before his prime years",
+        "He forms a dynamic duo with Ronald Acuña Jr. in Atlanta",
+        "This second baseman wears number 1"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Luis Robert Jr.",
+      "team": "CHW",
+      "position": "CF",
+      "clues": [
+        "He defected from Cuba in 2017 and was one of the most sought-after prospects",
+        "He finished second in AL Rookie of the Year voting in 2020",
+        "He's capable of 30-30 seasons when healthy",
+        "He signed a 6-year, $50 million extension with Chicago in 2020",
+        "He's been the centerpiece of the White Sox rebuild",
+        "This center fielder wears number 88"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Jackson Chourio",
+      "team": "MIL",
+      "position": "OF",
+      "clues": [
+        "He was signed by the Brewers at age 16 from Venezuela",
+        "He became the youngest Brewer ever to hit a home run in 2024 at 19",
+        "He signed an 8-year, $82 million extension before his MLB debut",
+        "He was the #1 prospect in baseball entering 2024",
+        "He's the future of the Milwaukee franchise",
+        "This outfielder wears number 11"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Jackson Holliday",
+      "team": "BAL",
+      "position": "2B",
+      "clues": [
+        "His father was a seven-time All-Star and 2011 World Series champion with the Cardinals",
+        "He won the Minor League Player of the Year award in 2023",
+        "He hit .326 across three levels of the minors before his debut",
+        "He was the 1st overall pick in the 2022 draft out of Stillwater High School",
+        "He made his MLB debut with the Orioles in 2024",
+        "This infielder wears number 7"
+      ]
+    }
+  ]
+}

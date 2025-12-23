@@ -1,0 +1,704 @@
+{
+  "players": [
+    {
+      "id": 1,
+      "name": "LeBron James",
+      "team": "LAL",
+      "position": "SF",
+      "clues": [
+        "Was drafted straight out of St. Vincent-St. Mary High School in Akron, Ohio",
+        "4-time NBA champion and 4-time Finals MVP with three different franchises",
+        "Became the NBA's all-time leading scorer in 2023, surpassing Kareem Abdul-Jabbar",
+        "Selected 1st overall in 2003 by his hometown Cleveland Cavaliers",
+        "Forward for the Los Angeles Lakers, entered the league at age 18",
+        "Wears #23, nicknamed 'King James'"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Stephen Curry",
+      "team": "GSW",
+      "position": "PG",
+      "clues": [
+        "His father played 16 seasons in the NBA and his brother also plays professionally",
+        "4-time NBA champion and only unanimous MVP in league history (2016)",
+        "Holds the record for most 3-pointers made in NBA history with over 3,700",
+        "Selected 7th overall in 2009 out of Davidson College",
+        "Point guard for the Golden State Warriors, revolutionized modern basketball",
+        "Wears #30, nicknamed 'Chef Curry' for cooking from deep"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Kevin Durant",
+      "team": "PHX",
+      "position": "SF",
+      "clues": [
+        "Grew up in Prince George's County, Maryland and played one year at Texas",
+        "2-time NBA Finals MVP, winning back-to-back titles with the Warriors",
+        "Has four scoring titles and a career scoring average over 27 points",
+        "Selected 2nd overall in 2007, one pick after Greg Oden",
+        "Forward for the Phoenix Suns, previously played for OKC, Warriors, and Nets",
+        "Wears #35, nicknamed 'KD' and 'The Slim Reaper'"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Giannis Antetokounmpo",
+      "team": "MIL",
+      "position": "PF",
+      "clues": [
+        "Born in Athens, Greece to Nigerian immigrant parents, sold goods on the streets as a child",
+        "2021 NBA Finals MVP, dropping 50 points in the closeout Game 6",
+        "2-time MVP and has averaged a triple-double in a playoff series",
+        "Selected 15th overall in 2013, considered one of the biggest draft steals ever",
+        "Power forward for the Milwaukee Bucks, only MVP in franchise history since Kareem",
+        "Wears #34, nicknamed 'The Greek Freak'"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Nikola Jokic",
+      "team": "DEN",
+      "position": "C",
+      "clues": [
+        "Was drafted while the Nuggets staff was at a Taco Bell, famously picked 41st overall",
+        "3-time MVP (2021, 2022, 2024) and 2023 NBA Finals MVP",
+        "Only center in NBA history to average 25+ points, 10+ rebounds, and 9+ assists",
+        "Selected in the second round of the 2014 draft out of Serbia",
+        "Center for the Denver Nuggets, led them to their first championship in 2023",
+        "Wears #15, nicknamed 'The Joker'"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Luka Doncic",
+      "team": "DAL",
+      "position": "PG",
+      "clues": [
+        "Won the EuroLeague MVP at age 19, the youngest ever, before entering the NBA",
+        "Led the Mavericks to the 2024 NBA Finals in just his sixth season",
+        "Youngest player in NBA history to record a 60-point triple-double",
+        "Selected 3rd overall in 2018 after being traded from Atlanta to Dallas",
+        "Point guard for the Dallas Mavericks, Slovenian superstar",
+        "Wears #77, Rookie of the Year in 2019"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Joel Embiid",
+      "team": "PHI",
+      "position": "C",
+      "clues": [
+        "Didn't start playing basketball until age 15 in his native Cameroon",
+        "2023 NBA MVP and has won multiple scoring titles",
+        "Missed his first two NBA seasons due to foot injuries",
+        "Selected 3rd overall in 2014 out of Kansas",
+        "Center for the Philadelphia 76ers, nicknamed 'The Process'",
+        "Wears #21, known for his dominant post moves and social media presence"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Jayson Tatum",
+      "team": "BOS",
+      "position": "SF",
+      "clues": [
+        "His godfather is former NBA player Larry Hughes who played with his father",
+        "2024 NBA champion and Finals MVP, leading Boston to their 18th title",
+        "Youngest player to score 50+ points in a playoff game at age 23",
+        "Selected 3rd overall in 2017 out of Duke University",
+        "Forward for the Boston Celtics, became franchise cornerstone",
+        "Wears #0, 5-time All-Star before age 26"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Anthony Edwards",
+      "team": "MIN",
+      "position": "SG",
+      "clues": [
+        "Grew up in Atlanta and was a standout football player before focusing on basketball",
+        "Led the Timberwolves to the Western Conference Finals in 2024",
+        "Averaged 25+ points in his fourth season, becoming a top-10 player",
+        "Selected 1st overall in 2020 out of Georgia, the pandemic draft",
+        "Shooting guard for the Minnesota Timberwolves, face of the franchise",
+        "Wears #5, nicknamed 'Ant-Man'"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Shai Gilgeous-Alexander",
+      "team": "OKC",
+      "position": "PG",
+      "clues": [
+        "Born in Toronto, Canada and played college basketball at Kentucky",
+        "Finished top-3 in MVP voting in 2024, leading OKC's rebuild",
+        "First player since Michael Jordan to average 30+ points with 2+ steals",
+        "Selected 11th overall in 2018, traded from Clippers to Thunder in Paul George deal",
+        "Point guard for the Oklahoma City Thunder, Canadian superstar",
+        "Wears #2, known as 'SGA'"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Jaylen Brown",
+      "team": "BOS",
+      "position": "SG",
+      "clues": [
+        "Studied philosophy at Cal Berkeley and is known for his intellectual pursuits",
+        "2024 NBA Finals MVP, leading the Celtics to their 18th championship",
+        "Signed the largest contract in NBA history in 2024 worth $304 million",
+        "Selected 3rd overall in 2016 out of California",
+        "Guard for the Boston Celtics, elite two-way player",
+        "Wears #7, known as 'JB'"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Devin Booker",
+      "team": "PHX",
+      "position": "SG",
+      "clues": [
+        "His father Melvin Booker played professionally overseas after a brief NBA career",
+        "Led the Suns to the 2021 NBA Finals, their first appearance since 1993",
+        "Scored 70 points against the Celtics in 2017, youngest player to do so",
+        "Selected 13th overall in 2015 out of Kentucky",
+        "Shooting guard for the Phoenix Suns, 4-time All-Star",
+        "Wears #1, nicknamed 'Book'"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Ja Morant",
+      "team": "MEM",
+      "position": "PG",
+      "clues": [
+        "Was a 2-star recruit who only had one D1 offer from Murray State",
+        "Won Rookie of the Year in 2020 and Most Improved Player in 2022",
+        "Known for his incredible athleticism and highlight-reel dunks",
+        "Selected 2nd overall in 2019 out of Murray State",
+        "Point guard for the Memphis Grizzlies, face of the franchise",
+        "Wears #12, one of the most athletic players in the league"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Donovan Mitchell",
+      "team": "CLE",
+      "position": "SG",
+      "clues": [
+        "His father Donovan Sr. was an MLB player in the Mets organization",
+        "Scored 71 points in a game against Chicago in 2023, most in Cavaliers history",
+        "Led Utah to the playoffs in each of his first five seasons",
+        "Selected 13th overall in 2017 out of Louisville, traded from Denver on draft night",
+        "Shooting guard for the Cleveland Cavaliers, traded from Utah in 2022",
+        "Wears #45, nicknamed 'Spida'"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Jimmy Butler",
+      "team": "MIA",
+      "position": "SF",
+      "clues": [
+        "Was homeless as a teenager and bounced between friends' homes in Texas",
+        "Led the Heat to two NBA Finals appearances (2020, 2023)",
+        "Had a 56-point game in the 2023 playoffs against Milwaukee",
+        "Selected 30th overall in 2011 out of Marquette, last pick of the first round",
+        "Forward for the Miami Heat, 6-time All-Star",
+        "Wears #22, nicknamed 'Jimmy Buckets'"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Damian Lillard",
+      "team": "MIL",
+      "position": "PG",
+      "clues": [
+        "From Oakland, California and played college ball at Weber State in Utah",
+        "Hit the famous 'Dame Time' series-winning shot against OKC in 2019",
+        "6-time All-Star and scored 71 points in a game in 2023",
+        "Selected 6th overall in 2012, spent 11 seasons with Portland before being traded",
+        "Point guard for the Milwaukee Bucks, traded from Portland in 2023",
+        "Wears #0, nicknamed 'Dame' and known for clutch shots"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Kyrie Irving",
+      "team": "DAL",
+      "position": "PG",
+      "clues": [
+        "Born in Melbourne, Australia and moved to the US at age 2",
+        "Hit the championship-winning shot in Game 7 of the 2016 Finals for Cleveland",
+        "Has one of the best handles in NBA history, known for finishing at the rim",
+        "Selected 1st overall in 2011 out of Duke",
+        "Point guard for the Dallas Mavericks, helped lead them to 2024 Finals",
+        "Wears #11, nicknamed 'Uncle Drew'"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Kawhi Leonard",
+      "team": "LAC",
+      "position": "SF",
+      "clues": [
+        "His father Mark was murdered at a car wash in Compton when Kawhi was 16",
+        "2-time Finals MVP with two different franchises (Spurs 2014, Raptors 2019)",
+        "Led the Raptors to their first championship in franchise history",
+        "Selected 15th overall in 2011, traded from Indiana to San Antonio on draft night",
+        "Forward for the Los Angeles Clippers, known for his defensive prowess",
+        "Wears #2, nicknamed 'The Klaw' and 'The Fun Guy'"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Paul George",
+      "team": "PHI",
+      "position": "SF",
+      "clues": [
+        "Suffered a gruesome leg injury during a Team USA scrimmage in 2014",
+        "Finished 3rd in MVP voting in 2019 while with Oklahoma City",
+        "9-time All-Star and 6-time All-Defensive team selection",
+        "Selected 10th overall in 2010 out of Fresno State",
+        "Forward for the Philadelphia 76ers, signed as free agent in 2024",
+        "Wears #8, nicknamed 'PG-13'"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Anthony Davis",
+      "team": "LAL",
+      "position": "PF",
+      "clues": [
+        "Won a national championship and was named MOP at Kentucky in 2012",
+        "2020 NBA champion with the Lakers, won in the Orlando bubble",
+        "Had a famous 'That's All Folks' moment when traded from New Orleans",
+        "Selected 1st overall in 2012 by the New Orleans Hornets",
+        "Power forward for the Los Angeles Lakers, dominant two-way big man",
+        "Wears #3, nicknamed 'AD' and 'The Brow'"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Trae Young",
+      "team": "ATL",
+      "position": "PG",
+      "clues": [
+        "Named after former NFL running back Trae Waynes; played at Oklahoma",
+        "Led the Hawks to the Eastern Conference Finals in 2021",
+        "One of two players ever to lead the league in total points and assists in a season",
+        "Selected 5th overall in 2018, traded from Dallas for Luka Doncic on draft night",
+        "Point guard for the Atlanta Hawks, elite playmaker",
+        "Wears #11, nicknamed 'Ice Trae'"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Zion Williamson",
+      "team": "NOP",
+      "position": "PF",
+      "clues": [
+        "Went viral in high school for his incredible dunks; played one year at Duke",
+        "Became the fastest player in NBA history to score 500 points in 30 games or fewer",
+        "Shot 74% from the field in February 2021, highest in a month in NBA history",
+        "Selected 1st overall in 2019, most hyped prospect since LeBron",
+        "Power forward for the New Orleans Pelicans, injury-prone star",
+        "Wears #1, known for his incredible athleticism at 285 pounds"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Karl-Anthony Towns",
+      "team": "NYK",
+      "position": "C",
+      "clues": [
+        "His mother Jacqueline died from COVID-19 complications in 2020",
+        "Won Rookie of the Year in 2016 and is a 4-time All-Star",
+        "One of the best 3-point shooting big men in NBA history",
+        "Selected 1st overall in 2015 out of Kentucky",
+        "Center for the New York Knicks, traded from Minnesota in 2024",
+        "Wears #32, nicknamed 'KAT'"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Bam Adebayo",
+      "team": "MIA",
+      "position": "C",
+      "clues": [
+        "Raised by a single mother in Newark, New Jersey; named Edrice but goes by Bam",
+        "Made the iconic block on Jayson Tatum in the 2020 Eastern Conference Finals",
+        "3-time All-Star and 2-time All-Defensive team selection",
+        "Selected 14th overall in 2017 out of Kentucky",
+        "Center for the Miami Heat, versatile defensive anchor",
+        "Wears #13, known for his passing ability as a big man"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Draymond Green",
+      "team": "GSW",
+      "position": "PF",
+      "clues": [
+        "From Saginaw, Michigan; was Big Ten Player of the Year at Michigan State",
+        "4-time NBA champion and 2017 Defensive Player of the Year",
+        "Only player in NBA history to record a triple-double with fewer than 10 points",
+        "Selected 35th overall in 2012, second round pick who became a star",
+        "Power forward for the Golden State Warriors, emotional leader",
+        "Wears #23, known for his podcasting and defensive versatility"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Jalen Brunson",
+      "team": "NYK",
+      "position": "PG",
+      "clues": [
+        "His father played 9 seasons in the NBA and is now an assistant coach for the Knicks",
+        "Won back-to-back national championships at Villanova (2016, 2018)",
+        "Led the Knicks to the playoffs in consecutive years, became a franchise player",
+        "Selected 33rd overall in 2018, second round pick who emerged as a star",
+        "Point guard for the New York Knicks, signed as free agent from Dallas",
+        "Wears #11, undersized guard with elite mid-range game"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "De'Aaron Fox",
+      "team": "SAC",
+      "position": "PG",
+      "clues": [
+        "From New Orleans; his speed at Kentucky earned him comparisons to John Wall",
+        "Led the Kings to their first playoff appearance in 17 years in 2023",
+        "One of the fastest players in the NBA with the ball in his hands",
+        "Selected 5th overall in 2017 out of Kentucky",
+        "Point guard for the Sacramento Kings, face of the franchise",
+        "Wears #5, nicknamed 'Swipa'"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Tyrese Haliburton",
+      "team": "IND",
+      "position": "PG",
+      "clues": [
+        "From Oshkosh, Wisconsin; played college ball at Iowa State",
+        "Led the league in assists in 2024, becoming an All-NBA player",
+        "Became an All-Star in his first full season with Indiana",
+        "Selected 12th overall in 2020, traded from Sacramento to Indiana in 2022",
+        "Point guard for the Indiana Pacers, elite playmaker",
+        "Wears #0, known for his unorthodox shooting form"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "LaMelo Ball",
+      "team": "CHA",
+      "position": "PG",
+      "clues": [
+        "Played professionally in Lithuania and Australia before the NBA draft",
+        "Won Rookie of the Year in 2021, youngest of three basketball-playing brothers",
+        "Became the youngest player to record a triple-double at 19 years old",
+        "Selected 3rd overall in 2020 by the Charlotte Hornets",
+        "Point guard for the Charlotte Hornets, from a famous basketball family",
+        "Wears #1, known for flashy passes and his famous family"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Pascal Siakam",
+      "team": "IND",
+      "position": "PF",
+      "clues": [
+        "From Cameroon; didn't start playing basketball until age 17",
+        "Won the 2019 NBA Championship with Toronto and was Most Improved Player in 2019",
+        "Developed from bench player to All-Star with his spin move",
+        "Selected 27th overall in 2016 out of New Mexico State",
+        "Power forward for the Indiana Pacers, traded from Toronto in 2024",
+        "Wears #43, nicknamed 'Spicy P'"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Domantas Sabonis",
+      "team": "SAC",
+      "position": "C",
+      "clues": [
+        "His father is a Hall of Famer considered one of the best European players ever",
+        "3-time All-Star who leads the league in rebounds",
+        "Led the Kings to end their playoff drought in 2023",
+        "Selected 11th overall in 2016, traded from OKC to Indiana then to Sacramento",
+        "Center for the Sacramento Kings, elite passing big man",
+        "Wears #10, known for his court vision and rebounding"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Jaren Jackson Jr.",
+      "team": "MEM",
+      "position": "PF",
+      "clues": [
+        "His father played 12 seasons in the NBA for multiple teams",
+        "Won Defensive Player of the Year in 2023",
+        "Holds the record for most blocks in a single season (342 in 2022-23)",
+        "Selected 4th overall in 2018 out of Michigan State",
+        "Power forward for the Memphis Grizzlies, elite shot blocker",
+        "Wears #13, nicknamed 'JJJ' and 'Triple J'"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Chet Holmgren",
+      "team": "OKC",
+      "position": "C",
+      "clues": [
+        "From Minneapolis; won high school national championship at Minnehaha Academy",
+        "Named to All-Rookie First Team in 2024 after missing entire first year injured",
+        "One of the tallest players in the league at 7'1\" with guard-like skills",
+        "Selected 2nd overall in 2022 out of Gonzaga",
+        "Center for the Oklahoma City Thunder, unicorn-type player",
+        "Wears #7, known as 'Chet' with a unique skill set for his size"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Victor Wembanyama",
+      "team": "SAS",
+      "position": "C",
+      "clues": [
+        "From France; was playing professionally at age 15 for Nanterre",
+        "Won Rookie of the Year in 2024 with historic defensive numbers",
+        "Tallest player in the NBA at 7'4\" with a 8'0\" wingspan",
+        "Selected 1st overall in 2023, most hyped international prospect ever",
+        "Center for the San Antonio Spurs, generational prospect",
+        "Wears #1, nicknamed 'Wemby' and 'The Alien'"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Jrue Holiday",
+      "team": "BOS",
+      "position": "PG",
+      "clues": [
+        "His brother Justin plays in the NBA and brother Aaron played in the NFL",
+        "2021 NBA champion with Milwaukee, key player in the Finals",
+        "One of the best perimeter defenders in the league, multiple All-Defensive teams",
+        "Selected 17th overall in 2009 out of UCLA",
+        "Point guard for the Boston Celtics, traded from Portland in 2023",
+        "Wears #4, elite two-way guard known for his defense"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Derrick White",
+      "team": "BOS",
+      "position": "SG",
+      "clues": [
+        "Played at Division II Colorado-Colorado Springs before transferring to Colorado",
+        "2024 NBA champion with Boston, hit crucial shots in the Finals",
+        "Became a fan favorite for his clutch shooting and defense",
+        "Selected 29th overall in 2017 by San Antonio, traded to Boston in 2022",
+        "Guard for the Boston Celtics, elite 3-and-D player",
+        "Wears #9, known for his bald head and blocking shots at the guard position"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Kristaps Porzingis",
+      "team": "BOS",
+      "position": "C",
+      "clues": [
+        "From Latvia; was playing for Sevilla in Spain before being drafted",
+        "2024 NBA champion with Boston after injuries limited his career",
+        "One of the best shooting big men in league history at 7'3\"",
+        "Selected 4th overall in 2015 by New York, has played for 4 teams",
+        "Center for the Boston Celtics, spacing big man",
+        "Wears #8, nicknamed 'The Unicorn' and 'KP'"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Mikal Bridges",
+      "team": "NYK",
+      "position": "SF",
+      "clues": [
+        "Grew up in Philadelphia and played college ball at Villanova",
+        "Had an ironman streak of 335+ consecutive games played",
+        "Won a national championship at Villanova in 2018",
+        "Selected 10th overall in 2018, traded twice (to Brooklyn, then to New York)",
+        "Forward for the New York Knicks, elite 3-and-D wing",
+        "Wears #1, known for his defensive versatility"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Bradley Beal",
+      "team": "PHX",
+      "position": "SG",
+      "clues": [
+        "From St. Louis, Missouri; played one year at Florida",
+        "Led the league in scoring in 2021 with 31.3 points per game",
+        "Spent 11 seasons with Washington before requesting a trade",
+        "Selected 3rd overall in 2012 by the Washington Wizards",
+        "Shooting guard for the Phoenix Suns, traded in 2023",
+        "Wears #3, 3-time All-Star known for his scoring ability"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Fred VanVleet",
+      "team": "HOU",
+      "position": "PG",
+      "clues": [
+        "From Rockford, Illinois; went undrafted out of Wichita State",
+        "2019 NBA champion with Toronto, hit crucial 3s in the Finals",
+        "Became an All-Star despite being undrafted, signed max contract",
+        "Went undrafted in 2016, signed with Toronto as free agent",
+        "Point guard for the Houston Rockets, signed as free agent in 2023",
+        "Wears #5, nicknamed 'Steady Freddy'"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "OG Anunoby",
+      "team": "NYK",
+      "position": "SF",
+      "clues": [
+        "Born in London, England and moved to the US as a child",
+        "2019 NBA champion with Toronto, elite defensive player",
+        "Known as one of the best wing defenders in the league",
+        "Selected 23rd overall in 2017 out of Indiana",
+        "Forward for the New York Knicks, traded from Toronto in 2024",
+        "Wears #8, elite 3-and-D wing with stone-cold demeanor"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Lauri Markkanen",
+      "team": "UTA",
+      "position": "PF",
+      "clues": [
+        "From Finland; his father and grandfather both played professional basketball",
+        "Became the first Finnish All-Star in NBA history in 2023",
+        "Won Most Improved Player in 2023, averaging 25+ points",
+        "Selected 7th overall in 2017 by Chicago, traded to Cleveland then Utah",
+        "Power forward for the Utah Jazz, face of the franchise",
+        "Wears #23, 7'0\" stretch four with elite shooting"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Scottie Barnes",
+      "team": "TOR",
+      "position": "SF",
+      "clues": [
+        "From West Palm Beach, Florida; played one year at Florida State",
+        "Won Rookie of the Year in 2022, beating out Cade Cunningham and Evan Mobley",
+        "Unique playmaking ability for a forward, can play all five positions",
+        "Selected 4th overall in 2021 by Toronto",
+        "Forward for the Toronto Raptors, face of the franchise",
+        "Wears #4, known for his versatility and positive energy"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Evan Mobley",
+      "team": "CLE",
+      "position": "C",
+      "clues": [
+        "His brother Isaiah also plays in the NBA; both played at USC",
+        "Finished 2nd in Rookie of the Year voting in 2022",
+        "Elite defensive big man with guard-like mobility at 7'0\"",
+        "Selected 3rd overall in 2021 out of USC",
+        "Center for the Cleveland Cavaliers, defensive anchor",
+        "Wears #4, one of the best young big men in the league"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Cade Cunningham",
+      "team": "DET",
+      "position": "PG",
+      "clues": [
+        "From Arlington, Texas; led Oklahoma State to NCAA Tournament in 2021",
+        "Finished 3rd in Rookie of the Year voting in 2022",
+        "Tall point guard at 6'6\" with elite playmaking ability",
+        "Selected 1st overall in 2021 out of Oklahoma State",
+        "Point guard for the Detroit Pistons, face of the franchise",
+        "Wears #2, future All-Star building toward stardom"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Desmond Bane",
+      "team": "MEM",
+      "position": "SG",
+      "clues": [
+        "From Richmond, Indiana; played four years at TCU",
+        "Became one of the best 3-point shooters in the league",
+        "Key player in Memphis's rise to contention alongside Ja Morant",
+        "Selected 30th overall in 2020, late first-round steal",
+        "Shooting guard for the Memphis Grizzlies, elite shooter",
+        "Wears #22, one of the best values in recent draft history"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Anfernee Simons",
+      "team": "POR",
+      "position": "SG",
+      "clues": [
+        "Skipped college to play at IMG Academy, entered draft straight from prep school",
+        "Had a 45-point game in 2022, emerging as Portland's future star",
+        "Known for his explosive scoring and deep 3-point shooting",
+        "Selected 24th overall in 2018 by Portland",
+        "Shooting guard for the Portland Trail Blazers, face of the rebuild",
+        "Wears #1, nicknamed 'Ant'"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Austin Reaves",
+      "team": "LAL",
+      "position": "SG",
+      "clues": [
+        "From Newark, Arkansas; transferred from Wichita State to Oklahoma",
+        "Went undrafted and became a key starter for the Lakers",
+        "Known for clutch shooting and playmaking as an undrafted player",
+        "Went undrafted in 2021, signed with Lakers as free agent",
+        "Guard for the Los Angeles Lakers, fan favorite",
+        "Wears #15, nicknamed 'AR-15' and 'Hillbilly Kobe'"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Jalen Williams",
+      "team": "OKC",
+      "position": "SF",
+      "clues": [
+        "From Houston, Texas; played college basketball at Santa Clara",
+        "Emerged as a key piece of OKC's young core, potential All-Star",
+        "Versatile wing who can play multiple positions at 6'6\"",
+        "Selected 12th overall in 2022 out of Santa Clara",
+        "Forward for the Oklahoma City Thunder, two-way star",
+        "Wears #8, nicknamed 'J-Dub'"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Paolo Banchero",
+      "team": "ORL",
+      "position": "PF",
+      "clues": [
+        "From Seattle; his mother Rhonda played in the WNBA for the Seattle Storm",
+        "Won Rookie of the Year in 2023, beating out Keegan Murray",
+        "Led Duke to the Final Four in 2022 as a freshman",
+        "Selected 1st overall in 2022 out of Duke",
+        "Power forward for the Orlando Magic, franchise cornerstone",
+        "Wears #5, dubbed the next great big man scorer"
+      ]
+    }
+  ]
+}

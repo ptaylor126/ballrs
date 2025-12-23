@@ -1,0 +1,754 @@
+{
+  "players": [
+    {
+      "id": 1,
+      "name": "Erling Haaland",
+      "team": "MCI",
+      "position": "FWD",
+      "nationality": "Norway",
+      "clues": [
+        "His father played for Manchester City and was infamously tackled by Roy Keane in 2001",
+        "Won the Premier League Golden Boot and broke the scoring record with 36 goals in 2022-23",
+        "Signed a historic 10-year contract extension in January 2025",
+        "Joined Manchester City from Borussia Dortmund for £51 million in 2022",
+        "Norwegian striker for Manchester City, committed until 2034",
+        "Wears #9, nicknamed 'The Terminator' for his goal-scoring machine ability"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Mohamed Salah",
+      "team": "LIV",
+      "position": "FWD",
+      "nationality": "Egypt",
+      "clues": [
+        "Previously played for Chelsea but was sold after just 19 appearances",
+        "Won the PFA Player of the Year and Golden Boot with 32 goals in 2017-18",
+        "Has scored more Premier League opening-day goals than any other player",
+        "Signed a contract extension in April 2025 keeping him at the club until 2027",
+        "Egyptian forward for Liverpool, surpassed Andy Cole in all-time PL scoring",
+        "Wears #11, nicknamed 'The Egyptian King'"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Bukayo Saka",
+      "team": "ARS",
+      "position": "MID",
+      "nationality": "England",
+      "clues": [
+        "Joined Arsenal's academy at age 7 and made his debut at 17",
+        "Named Arsenal's Player of the Season three consecutive years (2021-2024)",
+        "Youngest player to reach 50 goal contributions for Arsenal in the Premier League",
+        "Product of the Hale End academy, never played for another professional club",
+        "English winger for Arsenal, key player in their title challenges",
+        "Wears #7, nicknamed 'Starboy'"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Cole Palmer",
+      "team": "CHE",
+      "position": "MID",
+      "nationality": "England",
+      "clues": [
+        "Scored four goals in one half against Brighton in 2024, a Premier League record",
+        "Won PFA Young Player of the Year in his first full Premier League season",
+        "Had more goal contributions than any other Premier League player in 2023-24",
+        "Transferred from Manchester City to Chelsea for £40 million in 2023",
+        "English midfielder for Chelsea, Stamford Bridge's main creative force",
+        "Wears #20, nicknamed 'Cold Palmer' for his ice-cold composure"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Bruno Fernandes",
+      "team": "MUN",
+      "position": "MID",
+      "nationality": "Portugal",
+      "clues": [
+        "Played in Italy for Udinese and Sampdoria before moving to Portugal",
+        "Won four consecutive Manchester United Player of the Year awards",
+        "Rejected a £100 million move to Al Hilal in summer 2025 to stay at United",
+        "Signed from Sporting CP for £47 million in January 2020",
+        "Portuguese midfielder and captain of Manchester United under Ruben Amorim",
+        "Wears #8, known for his passionate leadership and set-piece ability"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Florian Wirtz",
+      "team": "LIV",
+      "position": "MID",
+      "nationality": "Germany",
+      "clues": [
+        "Won the Bundesliga with Bayer Leverkusen unbeaten in 2023-24 season",
+        "Became Liverpool's record signing at £116 million in June 2025",
+        "Was the youngest player to score in the Bundesliga at 17 years old",
+        "Joined Liverpool from Bayer Leverkusen, sixth most expensive transfer ever",
+        "German attacking midfielder for Liverpool, creative playmaker",
+        "Wears #10, one of the brightest young talents in world football"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Virgil van Dijk",
+      "team": "LIV",
+      "position": "DEF",
+      "nationality": "Netherlands",
+      "clues": [
+        "Started his career at Groningen and was rejected by multiple clubs as a teenager",
+        "Finished 2nd in Ballon d'Or voting in 2019, highest ever for a defender",
+        "Was world record fee for a defender at £75 million when signed",
+        "Joined Liverpool from Southampton in January 2018",
+        "Dutch center-back and captain of Liverpool",
+        "Wears #4, transformed Liverpool's defense into title winners"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Martin Odegaard",
+      "team": "ARS",
+      "position": "MID",
+      "nationality": "Norway",
+      "clues": [
+        "Signed for Real Madrid at age 16, becoming their youngest ever player",
+        "Became Arsenal captain at age 23, the youngest in over a decade",
+        "Has the most chances created in the Premier League since 2021",
+        "Joined Arsenal permanently from Real Madrid for £30 million in 2021",
+        "Norwegian midfielder and captain of Arsenal",
+        "Wears #8, known for his exceptional vision and creativity"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Phil Foden",
+      "team": "MCI",
+      "position": "MID",
+      "nationality": "England",
+      "clues": [
+        "Joined Manchester City's academy at age 4 and is a lifelong supporter",
+        "Won PFA Player of the Year in 2024, the first City academy product to do so",
+        "Youngest English player to win a Premier League medal (2018-19)",
+        "Never played for another club, came through the City Football Academy",
+        "English midfielder for Manchester City, Stockport-born local hero",
+        "Wears #47, the number he was given in the academy"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Declan Rice",
+      "team": "ARS",
+      "position": "MID",
+      "nationality": "England",
+      "clues": [
+        "Was released by Chelsea's academy at age 14 before joining West Ham",
+        "Captained West Ham to their first European trophy in 58 years (Conference League 2023)",
+        "British record transfer fee of £105 million when he moved in 2023",
+        "Joined Arsenal from West Ham after 7 seasons at the London Stadium",
+        "English midfielder for Arsenal, defensive anchor of the team",
+        "Wears #41, switched from representing Ireland to England"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Alexander Isak",
+      "team": "LIV",
+      "position": "FWD",
+      "nationality": "Sweden",
+      "clues": [
+        "Was the youngest ever goalscorer for AIK Stockholm at 16 years old",
+        "Went on strike at Newcastle demanding a transfer in August 2025",
+        "Became a British record transfer at £125 million when signed",
+        "Joined Liverpool from Newcastle on Deadline Day 2025",
+        "Swedish striker for Liverpool, wears the famous #9 shirt",
+        "Tall and elegant forward, known for his knee-slide celebration"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Rodri",
+      "team": "MCI",
+      "position": "MID",
+      "nationality": "Spain",
+      "clues": [
+        "Came through the Atletico Madrid academy and played for Villarreal on loan",
+        "Won the 2024 Ballon d'Or, the first Premier League midfielder since 1979",
+        "Went 74 games unbeaten with Manchester City, a record run",
+        "Signed from Atletico Madrid for £62 million in 2019",
+        "Spanish midfielder for Manchester City, World Cup winner in 2010",
+        "Wears #16, considered the best defensive midfielder in the world"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "William Saliba",
+      "team": "ARS",
+      "position": "DEF",
+      "nationality": "France",
+      "clues": [
+        "Was loaned out three times before making his Arsenal debut",
+        "Named in PFA Team of the Year in 2022-23, his first full Arsenal season",
+        "Formed one of the best defensive partnerships in Europe with Gabriel",
+        "Signed from Saint-Etienne for £27 million in 2019 at age 18",
+        "French center-back for Arsenal, key to their title challenge",
+        "Wears #2, tall defender known for his composure"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Viktor Gyokeres",
+      "team": "ARS",
+      "position": "FWD",
+      "nationality": "Sweden",
+      "clues": [
+        "Scored an incredible 97 goals in 102 appearances for Sporting Lisbon",
+        "Was released by Brighton as a youngster before rebuilding his career in Sweden",
+        "Joined Arsenal in a £63 million deal in July 2025",
+        "Previously played in the Championship for Coventry City on loan",
+        "Swedish striker for Arsenal, signed to be their main goalscorer",
+        "Wears #9, powerful center-forward with clinical finishing"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Ollie Watkins",
+      "team": "AVL",
+      "position": "FWD",
+      "nationality": "England",
+      "clues": [
+        "Started his career at Exeter City in League Two before Brentford signed him",
+        "Scored the winner vs Netherlands to send England to Euro 2024 final",
+        "Led Aston Villa to Champions League qualification with 19 PL goals in 2023-24",
+        "Joined Aston Villa from Brentford for £28 million in 2020",
+        "English striker for Aston Villa, key to their European campaigns",
+        "Wears #11, known for his work rate and pressing"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Xavi Simons",
+      "team": "TOT",
+      "position": "MID",
+      "nationality": "Netherlands",
+      "clues": [
+        "Came through Barcelona's La Masia academy before joining PSG",
+        "Left RB Leipzig after they failed to qualify for Champions League",
+        "Joined Spurs for £51 million in August 2025, wearing Son's old #7",
+        "Previously played for PSG and was on loan at PSV and Leipzig",
+        "Dutch attacking midfielder for Tottenham under Thomas Frank",
+        "Wears #7, dynamic and creative playmaker"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Moises Caicedo",
+      "team": "CHE",
+      "position": "MID",
+      "nationality": "Ecuador",
+      "clues": [
+        "Started his career at Independiente del Valle in Ecuador",
+        "Chelsea and Liverpool had a bidding war for him in 2023",
+        "Scored a halfway line goal against Bournemouth in 2024",
+        "Joined Chelsea from Brighton for £115 million, then British record fee",
+        "Ecuadorian midfielder for Chelsea, powerful box-to-box player",
+        "Wears #25, nicknamed 'El Nino' in Ecuador"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "James Maddison",
+      "team": "TOT",
+      "position": "MID",
+      "nationality": "England",
+      "clues": [
+        "Released by Coventry at 15, then rebuilt his career at Norwich",
+        "Won FA Cup with Leicester City in 2021, their first ever",
+        "Known for his celebration where he pretends to be on the phone",
+        "Joined Spurs from Leicester City for £40 million in 2023",
+        "English midfielder for Tottenham, creative playmaker",
+        "Wears #10, set-piece specialist"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Jarrod Bowen",
+      "team": "WHU",
+      "position": "FWD",
+      "nationality": "England",
+      "clues": [
+        "Played non-league football for Hereford before joining Hull City",
+        "Scored in the Europa Conference League final win in 2023",
+        "Top scorer for West Ham in three consecutive seasons",
+        "Signed from Hull City for just £22 million in January 2020",
+        "English winger for West Ham United, first-choice right-winger",
+        "Wears #20, married to Dani Dyer"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Bernardo Silva",
+      "team": "MCI",
+      "position": "MID",
+      "nationality": "Portugal",
+      "clues": [
+        "Came through Benfica's academy and played for Monaco before City",
+        "Won PFA Player of the Year runner-up twice, voted by fellow players",
+        "Famous for his tireless work rate and ability to play multiple positions",
+        "Joined Manchester City from Monaco for £43 million in 2017",
+        "Portuguese midfielder for Manchester City, multiple Premier League winner",
+        "Wears #20, nicknamed 'The Magician'"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Eberechi Eze",
+      "team": "ARS",
+      "position": "MID",
+      "nationality": "England",
+      "clues": [
+        "Was released by multiple academies including Millwall and Arsenal as a youth",
+        "Scored the only goal in the 2025 FA Cup final for Crystal Palace",
+        "Arsenal hijacked his move to Tottenham in August 2025",
+        "Joined Arsenal from Crystal Palace for £67.5 million in 2025",
+        "English attacking midfielder for Arsenal, silky dribbler",
+        "Wears #10, known for beating multiple defenders"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Joao Pedro",
+      "team": "CHE",
+      "position": "FWD",
+      "nationality": "Brazil",
+      "clues": [
+        "Started his career at Fluminense before moving to Watford aged 18",
+        "Was Brighton's joint-top scorer with 19 goals in 2024-25",
+        "Joined Chelsea ahead of the 2025 FIFA Club World Cup",
+        "Signed from Brighton for £60 million in July 2025",
+        "Brazilian forward for Chelsea, dynamic attacker",
+        "Wears #9, known for his energy and work rate"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Bruno Guimaraes",
+      "team": "NEW",
+      "position": "MID",
+      "nationality": "Brazil",
+      "clues": [
+        "Was plucked from the Brazilian second division by Athletico Paranaense",
+        "Has a £100 million release clause that top clubs have monitored",
+        "Scored a 95th minute winner vs Arsenal at St James' Park in 2022",
+        "Joined Newcastle from Lyon for £35 million in January 2022",
+        "Brazilian midfielder for Newcastle United, fans' favorite",
+        "Wears #39, nicknamed 'Bruno G'"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Dominic Solanke",
+      "team": "TOT",
+      "position": "FWD",
+      "nationality": "England",
+      "clues": [
+        "Won the Golden Ball at the U20 World Cup in 2017 with England",
+        "Scored 19 Premier League goals for Bournemouth in 2023-24",
+        "Became one of England's most expensive strikers at £65 million",
+        "Joined Spurs from Bournemouth in 2024 after previously playing for Liverpool",
+        "English striker for Tottenham Hotspur under Thomas Frank",
+        "Wears #19, known for intelligent movement"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Ruben Dias",
+      "team": "MCI",
+      "position": "DEF",
+      "nationality": "Portugal",
+      "clues": [
+        "Came through Benfica's academy and captained Portugal at youth levels",
+        "Won FWA Footballer of the Year in his debut Premier League season (2020-21)",
+        "Forms one of the best defensive partnerships with John Stones",
+        "Joined Manchester City from Benfica for £65 million in 2020",
+        "Portuguese center-back for Manchester City, defensive leader",
+        "Wears #3, known for his commanding presence"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Martin Zubimendi",
+      "team": "ARS",
+      "position": "MID",
+      "nationality": "Spain",
+      "clues": [
+        "Spent his entire career at Real Sociedad before joining Arsenal",
+        "Turned down Liverpool in 2024, opting to stay at Sociedad another year",
+        "Made 236 appearances for Real Sociedad before his summer move",
+        "Joined Arsenal for £51 million in summer 2025, triggering his release clause",
+        "Spanish defensive midfielder for Arsenal, Euro 2024 winner",
+        "Wears #36, elegant passer and shield for the defense"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Kai Havertz",
+      "team": "ARS",
+      "position": "FWD",
+      "nationality": "Germany",
+      "clues": [
+        "Became the youngest player to reach 100 Bundesliga appearances at 20 years old",
+        "Scored the winning goal in the 2021 Champions League final for Chelsea",
+        "Converted to a striker role at Arsenal after playing as an attacking midfielder",
+        "Signed by Arsenal from Chelsea for £65 million in 2023",
+        "German forward for Arsenal, versatile attacker",
+        "Wears #29, known for his elegant playing style"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Enzo Fernandez",
+      "team": "CHE",
+      "position": "MID",
+      "nationality": "Argentina",
+      "clues": [
+        "Started at River Plate and was part of Argentina's 2022 World Cup squad",
+        "Won the Best Young Player award at the 2022 World Cup",
+        "Was a British record signing at £106 million in January 2023",
+        "Joined Chelsea from Benfica after just 6 months in Portugal",
+        "Argentine midfielder for Chelsea, World Cup winner",
+        "Wears #8, known for his passing and leadership"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Mohammed Kudus",
+      "team": "WHU",
+      "position": "MID",
+      "nationality": "Ghana",
+      "clues": [
+        "Grew up in Nima, one of the poorest areas of Accra, Ghana",
+        "Scored a stunning solo goal against Freiburg in Champions League for Ajax",
+        "Known for his quick feet and ability to beat players in tight spaces",
+        "Joined West Ham from Ajax for £38 million in 2023",
+        "Ghanaian midfielder for West Ham United, skilful winger",
+        "Wears #14, nicknamed 'Kudus the Wizard'"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Sandro Tonali",
+      "team": "NEW",
+      "position": "MID",
+      "nationality": "Italy",
+      "clues": [
+        "Compared to Andrea Pirlo as a youngster coming through Brescia",
+        "Won Serie A with AC Milan in 2022 before moving to England",
+        "Served a 10-month ban for betting offences in 2023-24",
+        "Joined Newcastle from AC Milan for £55 million in 2023",
+        "Italian midfielder for Newcastle United, elegant passer",
+        "Wears #8, known as 'The New Pirlo'"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Alexis Mac Allister",
+      "team": "LIV",
+      "position": "MID",
+      "nationality": "Argentina",
+      "clues": [
+        "His father Carlos and two brothers also played professional football",
+        "Started in the World Cup final and won it with Argentina in 2022",
+        "Scored 12 Premier League goals as a midfielder for Brighton in 2022-23",
+        "Joined Liverpool from Brighton for £35 million in 2023",
+        "Argentine midfielder for Liverpool, World Cup winner",
+        "Wears #10, cultured central midfielder"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Kaoru Mitoma",
+      "team": "BHA",
+      "position": "FWD",
+      "nationality": "Japan",
+      "clues": [
+        "Wrote a university thesis on dribbling while at Tsukuba University",
+        "Scored a controversial goal vs Liverpool where the ball may have crossed the line",
+        "Known for his exceptional close control and ability to dribble past defenders",
+        "Joined Brighton from Kawasaki Frontale via a loan at Union SG",
+        "Japanese winger for Brighton, fan favorite at the Amex",
+        "Wears #22, nicknamed 'The Professor' for his academic background"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Josko Gvardiol",
+      "team": "MCI",
+      "position": "DEF",
+      "nationality": "Croatia",
+      "clues": [
+        "Became the most expensive defender ever at £77 million when signed",
+        "Was one of the standout defenders at the 2022 World Cup aged just 20",
+        "Has been used as both a center-back and left-back at City",
+        "Joined Manchester City from RB Leipzig in 2023",
+        "Croatian defender for Manchester City, versatile ball-playing defender",
+        "Wears #24, helped Croatia to World Cup third place"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Lisandro Martinez",
+      "team": "MUN",
+      "position": "DEF",
+      "nationality": "Argentina",
+      "clues": [
+        "Nicknamed 'The Butcher' for his aggressive tackling style at Ajax",
+        "Won the World Cup with Argentina in 2022",
+        "At 5'9\", he's one of the shortest center-backs in the Premier League",
+        "Joined Manchester United from Ajax for £56 million in 2022",
+        "Argentine center-back for Manchester United, tough tackler",
+        "Wears #6, fan favorite at Old Trafford"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Emiliano Martinez",
+      "team": "AVL",
+      "position": "GK",
+      "nationality": "Argentina",
+      "clues": [
+        "Spent 10 years at Arsenal with multiple loan spells before his breakthrough",
+        "Won the Golden Glove at the 2022 World Cup, saving key penalties in the final",
+        "Famous for his penalty-saving mind games and controversial celebrations",
+        "Joined Aston Villa from Arsenal for £20 million in 2020",
+        "Argentine goalkeeper for Aston Villa, World Cup winner",
+        "Wears #1, nicknamed 'Dibu'"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Anthony Gordon",
+      "team": "NEW",
+      "position": "FWD",
+      "nationality": "England",
+      "clues": [
+        "Came through Everton's academy and is a lifelong Evertonian",
+        "Was subject of a £75 million bid from Liverpool in 2024",
+        "Has become one of the most consistent wingers in the Premier League",
+        "Joined Newcastle from Everton for £45 million in January 2023",
+        "English winger for Newcastle United, direct and pacey",
+        "Wears #10, made England squad for Euro 2024"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Noni Madueke",
+      "team": "ARS",
+      "position": "FWD",
+      "nationality": "England",
+      "clues": [
+        "Left England at 16 to join PSV Eindhoven's academy in the Netherlands",
+        "Chelsea signed him for £29 million from PSV in January 2023",
+        "Arsenal paid £52 million to sign him from London rivals in July 2025",
+        "Scored his first Arsenal goal in a Champions League win over Bayern Munich",
+        "English winger for Arsenal, quick and direct",
+        "Wears #11, known for his pace and dribbling"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Alejandro Garnacho",
+      "team": "CHE",
+      "position": "FWD",
+      "nationality": "Argentina",
+      "clues": [
+        "Born in Madrid but chose to represent Argentina internationally",
+        "Came through Manchester United's academy and was compared to Ronaldo",
+        "Left United after falling out of favour under manager Ruben Amorim",
+        "Joined Chelsea from Manchester United for £40 million in August 2025",
+        "Argentine winger for Chelsea, exciting young talent",
+        "Wears #17, turned down Bayern Munich and Saudi to join Chelsea"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Jordan Pickford",
+      "team": "EVE",
+      "position": "GK",
+      "nationality": "England",
+      "clues": [
+        "Grew up in Washington and was a Sunderland fan as a child",
+        "England's first-choice goalkeeper and penalty shootout hero at World Cup 2018",
+        "Famous for his saves vs Colombia in the 2018 World Cup shootout",
+        "Joined Everton from Sunderland for £25 million in 2017",
+        "English goalkeeper and captain of Everton, Three Lions number one",
+        "Wears #1, known for his commanding presence and distribution"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Gianluigi Donnarumma",
+      "team": "MCI",
+      "position": "GK",
+      "nationality": "Italy",
+      "clues": [
+        "Made his AC Milan debut at just 16 years old, the youngest ever",
+        "Won the Best Player award at Euro 2020 as Italy won the tournament",
+        "Replaced Ederson as Manchester City's number one goalkeeper",
+        "Joined City from PSG for £26 million in summer 2025",
+        "Italian goalkeeper for Manchester City, elite shot-stopper",
+        "Wears #1, one of the best goalkeepers in the world"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Antonee Robinson",
+      "team": "FUL",
+      "position": "DEF",
+      "nationality": "USA",
+      "clues": [
+        "Born in England but chose to represent the United States",
+        "Key player in USA's run to the Round of 16 at the 2022 World Cup",
+        "Known for his overlapping runs and engine to get up and down the pitch",
+        "Joined Fulham from Wigan for just £2 million in 2020",
+        "American left-back for Fulham, one of the best in the league",
+        "Wears #33, nicknamed 'Jedi'"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Pedro Porro",
+      "team": "TOT",
+      "position": "DEF",
+      "nationality": "Spain",
+      "clues": [
+        "Came through the Girona academy before joining Manchester City",
+        "Part of Spain's Euro 2024 winning squad",
+        "Known for his crossing ability and attacking threat from right-back",
+        "Joined Spurs from Sporting CP for £40 million in 2023",
+        "Spanish right-back for Tottenham Hotspur, attack-minded defender",
+        "Wears #23, former Man City youth player"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "David Raya",
+      "team": "ARS",
+      "position": "GK",
+      "nationality": "Spain",
+      "clues": [
+        "Started his career at Blackburn Rovers before dropping down to League One",
+        "Saved a penalty from Erling Haaland in a crucial game vs Man City",
+        "Became Arsenal's first choice ahead of Aaron Ramsdale",
+        "Joined Arsenal from Brentford permanently in 2024",
+        "Spanish goalkeeper for Arsenal, key to their defensive solidity",
+        "Wears #22, known for his sweeper-keeper style"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Matheus Cunha",
+      "team": "WOL",
+      "position": "FWD",
+      "nationality": "Brazil",
+      "clues": [
+        "Represented Brazil at the 2020 Tokyo Olympics",
+        "Wolves' top scorer and most important player",
+        "Known for his dribbling, creativity, and ability to play anywhere in attack",
+        "Joined Wolves from Atletico Madrid for £44 million in 2023",
+        "Brazilian forward for Wolves, their talisman",
+        "Wears #10, skilful attacker who carries the team"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Micky van de Ven",
+      "team": "TOT",
+      "position": "DEF",
+      "nationality": "Netherlands",
+      "clues": [
+        "Started his career at Volendam in the Netherlands before Wolfsburg",
+        "Made a famous length-of-the-pitch run vs Brentford in 2023",
+        "One of the fastest defenders in world football",
+        "Joined Spurs from Wolfsburg for £43 million in 2023",
+        "Dutch center-back for Tottenham, pacey ball-carrier",
+        "Wears #37, nicknamed 'The Flying Dutchman'"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Kobbie Mainoo",
+      "team": "MUN",
+      "position": "MID",
+      "nationality": "England",
+      "clues": [
+        "Born in Stockport and joined Man United's academy at age 9",
+        "Scored the winning goal in the 2024 FA Cup final against Man City",
+        "Broke into England squad aged 18, played at Euro 2024",
+        "Academy product who made his debut in 2023, never played elsewhere",
+        "English midfielder for Manchester United, breakthrough teenager",
+        "Wears #37, one of the most exciting young players in England"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Liam Delap",
+      "team": "CHE",
+      "position": "FWD",
+      "nationality": "England",
+      "clues": [
+        "His father was famous for his long throw-ins at Stoke City",
+        "Was Ipswich Town's top scorer with 12 goals in their 2024-25 PL season",
+        "Chelsea triggered his £30 million release clause in June 2025",
+        "Made his Chelsea debut at the FIFA Club World Cup, scoring vs Esperance",
+        "English striker for Chelsea, young target man",
+        "Wears #19, powerful center-forward with aerial ability"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Bryan Mbeumo",
+      "team": "BRE",
+      "position": "FWD",
+      "nationality": "Cameroon",
+      "clues": [
+        "Started his career at Troyes in France before moving to England",
+        "Became Brentford's top scorer after Ivan Toney's departure",
+        "Known for his pace, finishing, and ability to play across the front line",
+        "Joined Brentford from Troyes for just £5 million in 2019",
+        "Cameroonian winger for Brentford, key player in attack",
+        "Wears #19, has been linked with top six clubs"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Benjamin Sesko",
+      "team": "MUN",
+      "position": "FWD",
+      "nationality": "Slovenia",
+      "clues": [
+        "Came through Red Bull Salzburg's academy before joining RB Leipzig",
+        "Scored 18 Bundesliga goals for Leipzig in 2024-25 season",
+        "Joined Manchester United for £73.7 million in summer 2025",
+        "Previously turned down Arsenal and Chelsea before joining United",
+        "Slovenian striker for Manchester United, tall and powerful",
+        "Wears #9, known for his pace and finishing"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Cristian Romero",
+      "team": "TOT",
+      "position": "DEF",
+      "nationality": "Argentina",
+      "clues": [
+        "Named Serie A Defender of the Year in 2021 while at Atalanta",
+        "Won the World Cup with Argentina in 2022, starting in the final",
+        "Known for his aggressive defending and ball-winning ability",
+        "Joined Spurs from Atalanta initially on loan, made permanent for £42 million",
+        "Argentine center-back for Tottenham, World Cup winner",
+        "Wears #17, nicknamed 'Cuti'"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,504 @@
+{
+  "players": [
+    {
+      "id": 1,
+      "name": "Erling Haaland",
+      "team": "Manchester City",
+      "teamAbbr": "MCI",
+      "nationality": "Norway",
+      "position": "FWD",
+      "age": 24,
+      "jerseyNumber": 9
+    },
+    {
+      "id": 2,
+      "name": "Mohamed Salah",
+      "team": "Liverpool",
+      "teamAbbr": "LIV",
+      "nationality": "Egypt",
+      "position": "FWD",
+      "age": 32,
+      "jerseyNumber": 11
+    },
+    {
+      "id": 3,
+      "name": "Bukayo Saka",
+      "team": "Arsenal",
+      "teamAbbr": "ARS",
+      "nationality": "England",
+      "position": "MID",
+      "age": 23,
+      "jerseyNumber": 7
+    },
+    {
+      "id": 4,
+      "name": "Cole Palmer",
+      "team": "Chelsea",
+      "teamAbbr": "CHE",
+      "nationality": "England",
+      "position": "MID",
+      "age": 22,
+      "jerseyNumber": 20
+    },
+    {
+      "id": 5,
+      "name": "Bruno Fernandes",
+      "team": "Manchester United",
+      "teamAbbr": "MUN",
+      "nationality": "Portugal",
+      "position": "MID",
+      "age": 30,
+      "jerseyNumber": 8
+    },
+    {
+      "id": 6,
+      "name": "Xavi Simons",
+      "team": "Tottenham",
+      "teamAbbr": "TOT",
+      "nationality": "Netherlands",
+      "position": "MID",
+      "age": 22,
+      "jerseyNumber": 7
+    },
+    {
+      "id": 7,
+      "name": "Kevin De Bruyne",
+      "team": "Manchester City",
+      "teamAbbr": "MCI",
+      "nationality": "Belgium",
+      "position": "MID",
+      "age": 33,
+      "jerseyNumber": 17
+    },
+    {
+      "id": 8,
+      "name": "Virgil van Dijk",
+      "team": "Liverpool",
+      "teamAbbr": "LIV",
+      "nationality": "Netherlands",
+      "position": "DEF",
+      "age": 33,
+      "jerseyNumber": 4
+    },
+    {
+      "id": 9,
+      "name": "William Saliba",
+      "team": "Arsenal",
+      "teamAbbr": "ARS",
+      "nationality": "France",
+      "position": "DEF",
+      "age": 23,
+      "jerseyNumber": 2
+    },
+    {
+      "id": 10,
+      "name": "Declan Rice",
+      "team": "Arsenal",
+      "teamAbbr": "ARS",
+      "nationality": "England",
+      "position": "MID",
+      "age": 25,
+      "jerseyNumber": 41
+    },
+    {
+      "id": 11,
+      "name": "Martin Odegaard",
+      "team": "Arsenal",
+      "teamAbbr": "ARS",
+      "nationality": "Norway",
+      "position": "MID",
+      "age": 25,
+      "jerseyNumber": 8
+    },
+    {
+      "id": 12,
+      "name": "Phil Foden",
+      "team": "Manchester City",
+      "teamAbbr": "MCI",
+      "nationality": "England",
+      "position": "MID",
+      "age": 24,
+      "jerseyNumber": 47
+    },
+    {
+      "id": 13,
+      "name": "Rodri",
+      "team": "Manchester City",
+      "teamAbbr": "MCI",
+      "nationality": "Spain",
+      "position": "MID",
+      "age": 28,
+      "jerseyNumber": 16
+    },
+    {
+      "id": 14,
+      "name": "Alisson",
+      "team": "Liverpool",
+      "teamAbbr": "LIV",
+      "nationality": "Brazil",
+      "position": "GK",
+      "age": 32,
+      "jerseyNumber": 1
+    },
+    {
+      "id": 15,
+      "name": "Trent Alexander-Arnold",
+      "team": "Liverpool",
+      "teamAbbr": "LIV",
+      "nationality": "England",
+      "position": "DEF",
+      "age": 26,
+      "jerseyNumber": 66
+    },
+    {
+      "id": 16,
+      "name": "Marcus Rashford",
+      "team": "Manchester United",
+      "teamAbbr": "MUN",
+      "nationality": "England",
+      "position": "FWD",
+      "age": 27,
+      "jerseyNumber": 10
+    },
+    {
+      "id": 17,
+      "name": "Casemiro",
+      "team": "Manchester United",
+      "teamAbbr": "MUN",
+      "nationality": "Brazil",
+      "position": "MID",
+      "age": 32,
+      "jerseyNumber": 18
+    },
+    {
+      "id": 18,
+      "name": "Nicolas Jackson",
+      "team": "Chelsea",
+      "teamAbbr": "CHE",
+      "nationality": "Senegal",
+      "position": "FWD",
+      "age": 23,
+      "jerseyNumber": 15
+    },
+    {
+      "id": 19,
+      "name": "Enzo Fernandez",
+      "team": "Chelsea",
+      "teamAbbr": "CHE",
+      "nationality": "Argentina",
+      "position": "MID",
+      "age": 23,
+      "jerseyNumber": 8
+    },
+    {
+      "id": 20,
+      "name": "James Maddison",
+      "team": "Tottenham",
+      "teamAbbr": "TOT",
+      "nationality": "England",
+      "position": "MID",
+      "age": 28,
+      "jerseyNumber": 10
+    },
+    {
+      "id": 21,
+      "name": "Dominic Solanke",
+      "team": "Tottenham",
+      "teamAbbr": "TOT",
+      "nationality": "England",
+      "position": "FWD",
+      "age": 27,
+      "jerseyNumber": 19
+    },
+    {
+      "id": 22,
+      "name": "Ollie Watkins",
+      "team": "Aston Villa",
+      "teamAbbr": "AVL",
+      "nationality": "England",
+      "position": "FWD",
+      "age": 28,
+      "jerseyNumber": 11
+    },
+    {
+      "id": 23,
+      "name": "Amadou Onana",
+      "team": "Aston Villa",
+      "teamAbbr": "AVL",
+      "nationality": "Belgium",
+      "position": "MID",
+      "age": 23,
+      "jerseyNumber": 24
+    },
+    {
+      "id": 24,
+      "name": "Alexander Isak",
+      "team": "Liverpool",
+      "teamAbbr": "LIV",
+      "nationality": "Sweden",
+      "position": "FWD",
+      "age": 25,
+      "jerseyNumber": 14
+    },
+    {
+      "id": 25,
+      "name": "Bruno Guimaraes",
+      "team": "Newcastle",
+      "teamAbbr": "NEW",
+      "nationality": "Brazil",
+      "position": "MID",
+      "age": 27,
+      "jerseyNumber": 39
+    },
+    {
+      "id": 26,
+      "name": "Sandro Tonali",
+      "team": "Newcastle",
+      "teamAbbr": "NEW",
+      "nationality": "Italy",
+      "position": "MID",
+      "age": 24,
+      "jerseyNumber": 8
+    },
+    {
+      "id": 27,
+      "name": "Moises Caicedo",
+      "team": "Chelsea",
+      "teamAbbr": "CHE",
+      "nationality": "Ecuador",
+      "position": "MID",
+      "age": 23,
+      "jerseyNumber": 25
+    },
+    {
+      "id": 28,
+      "name": "Ruben Dias",
+      "team": "Manchester City",
+      "teamAbbr": "MCI",
+      "nationality": "Portugal",
+      "position": "DEF",
+      "age": 27,
+      "jerseyNumber": 3
+    },
+    {
+      "id": 29,
+      "name": "Gianluigi Donnarumma",
+      "team": "Manchester City",
+      "teamAbbr": "MCI",
+      "nationality": "Italy",
+      "position": "GK",
+      "age": 26,
+      "jerseyNumber": 1
+    },
+    {
+      "id": 30,
+      "name": "Gabriel Magalhaes",
+      "team": "Arsenal",
+      "teamAbbr": "ARS",
+      "nationality": "Brazil",
+      "position": "DEF",
+      "age": 26,
+      "jerseyNumber": 6
+    },
+    {
+      "id": 31,
+      "name": "David Raya",
+      "team": "Arsenal",
+      "teamAbbr": "ARS",
+      "nationality": "Spain",
+      "position": "GK",
+      "age": 29,
+      "jerseyNumber": 22
+    },
+    {
+      "id": 32,
+      "name": "Viktor Gyokeres",
+      "team": "Arsenal",
+      "teamAbbr": "ARS",
+      "nationality": "Sweden",
+      "position": "FWD",
+      "age": 26,
+      "jerseyNumber": 9
+    },
+    {
+      "id": 33,
+      "name": "Jarrod Bowen",
+      "team": "West Ham",
+      "teamAbbr": "WHU",
+      "nationality": "England",
+      "position": "FWD",
+      "age": 27,
+      "jerseyNumber": 20
+    },
+    {
+      "id": 34,
+      "name": "Mohammed Kudus",
+      "team": "West Ham",
+      "teamAbbr": "WHU",
+      "nationality": "Ghana",
+      "position": "MID",
+      "age": 24,
+      "jerseyNumber": 14
+    },
+    {
+      "id": 35,
+      "name": "Brennan Johnson",
+      "team": "Tottenham",
+      "teamAbbr": "TOT",
+      "nationality": "Wales",
+      "position": "FWD",
+      "age": 23,
+      "jerseyNumber": 22
+    },
+    {
+      "id": 36,
+      "name": "Eberechi Eze",
+      "team": "Crystal Palace",
+      "teamAbbr": "CRY",
+      "nationality": "England",
+      "position": "MID",
+      "age": 26,
+      "jerseyNumber": 10
+    },
+    {
+      "id": 37,
+      "name": "Jean-Philippe Mateta",
+      "team": "Crystal Palace",
+      "teamAbbr": "CRY",
+      "nationality": "France",
+      "position": "FWD",
+      "age": 27,
+      "jerseyNumber": 14
+    },
+    {
+      "id": 38,
+      "name": "Joao Pedro",
+      "team": "Brighton",
+      "teamAbbr": "BHA",
+      "nationality": "Brazil",
+      "position": "FWD",
+      "age": 23,
+      "jerseyNumber": 9
+    },
+    {
+      "id": 39,
+      "name": "Kaoru Mitoma",
+      "team": "Brighton",
+      "teamAbbr": "BHA",
+      "nationality": "Japan",
+      "position": "MID",
+      "age": 27,
+      "jerseyNumber": 22
+    },
+    {
+      "id": 40,
+      "name": "Matheus Cunha",
+      "team": "Wolves",
+      "teamAbbr": "WOL",
+      "nationality": "Brazil",
+      "position": "FWD",
+      "age": 25,
+      "jerseyNumber": 10
+    },
+    {
+      "id": 41,
+      "name": "Josko Gvardiol",
+      "team": "Manchester City",
+      "teamAbbr": "MCI",
+      "nationality": "Croatia",
+      "position": "DEF",
+      "age": 22,
+      "jerseyNumber": 24
+    },
+    {
+      "id": 42,
+      "name": "Morgan Gibbs-White",
+      "team": "Nottingham Forest",
+      "teamAbbr": "NFO",
+      "nationality": "England",
+      "position": "MID",
+      "age": 24,
+      "jerseyNumber": 10
+    },
+    {
+      "id": 43,
+      "name": "Chris Wood",
+      "team": "Nottingham Forest",
+      "teamAbbr": "NFO",
+      "nationality": "New Zealand",
+      "position": "FWD",
+      "age": 32,
+      "jerseyNumber": 11
+    },
+    {
+      "id": 44,
+      "name": "Antoine Semenyo",
+      "team": "Bournemouth",
+      "teamAbbr": "BOU",
+      "nationality": "Ghana",
+      "position": "FWD",
+      "age": 24,
+      "jerseyNumber": 24
+    },
+    {
+      "id": 45,
+      "name": "Antonee Robinson",
+      "team": "Fulham",
+      "teamAbbr": "FUL",
+      "nationality": "USA",
+      "position": "DEF",
+      "age": 27,
+      "jerseyNumber": 33
+    },
+    {
+      "id": 46,
+      "name": "Bryan Mbeumo",
+      "team": "Brentford",
+      "teamAbbr": "BRE",
+      "nationality": "Cameroon",
+      "position": "FWD",
+      "age": 25,
+      "jerseyNumber": 19
+    },
+    {
+      "id": 47,
+      "name": "Igor Thiago",
+      "team": "Brentford",
+      "teamAbbr": "BRE",
+      "nationality": "Brazil",
+      "position": "FWD",
+      "age": 23,
+      "jerseyNumber": 9
+    },
+    {
+      "id": 48,
+      "name": "Crysencio Summerville",
+      "team": "West Ham",
+      "teamAbbr": "WHU",
+      "nationality": "Netherlands",
+      "position": "MID",
+      "age": 23,
+      "jerseyNumber": 10
+    },
+    {
+      "id": 49,
+      "name": "Liam Delap",
+      "team": "Ipswich",
+      "teamAbbr": "IPS",
+      "nationality": "England",
+      "position": "FWD",
+      "age": 21,
+      "jerseyNumber": 9
+    },
+    {
+      "id": 50,
+      "name": "Jordan Pickford",
+      "team": "Everton",
+      "teamAbbr": "EVE",
+      "nationality": "England",
+      "position": "GK",
+      "age": 30,
+      "jerseyNumber": 1
+    }
+  ]
+}

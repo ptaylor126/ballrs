@@ -1,0 +1,352 @@
+[
+  {
+    "id": "nfl_q1",
+    "question": "Which team has won the most Super Bowls?",
+    "options": ["Dallas Cowboys", "New England Patriots", "Pittsburgh Steelers", "San Francisco 49ers"],
+    "correctAnswer": "New England Patriots",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q2",
+    "question": "Who holds the NFL record for most career passing touchdowns?",
+    "options": ["Peyton Manning", "Brett Favre", "Tom Brady", "Drew Brees"],
+    "correctAnswer": "Tom Brady",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q3",
+    "question": "Which team won Super Bowl LIX in February 2025?",
+    "options": ["Kansas City Chiefs", "Philadelphia Eagles", "San Francisco 49ers", "Detroit Lions"],
+    "correctAnswer": "Philadelphia Eagles",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q4",
+    "question": "Who holds the single-season rushing record?",
+    "options": ["Barry Sanders", "Adrian Peterson", "Eric Dickerson", "Emmitt Smith"],
+    "correctAnswer": "Eric Dickerson",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q5",
+    "question": "Who won the 2024 NFL MVP award?",
+    "options": ["Patrick Mahomes", "Lamar Jackson", "Josh Allen", "Jalen Hurts"],
+    "correctAnswer": "Josh Allen",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q6",
+    "question": "Which player is nicknamed 'The Bus'?",
+    "options": ["Marshawn Lynch", "Jerome Bettis", "Eddie George", "Jamal Lewis"],
+    "correctAnswer": "Jerome Bettis",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q7",
+    "question": "What year was the first Super Bowl played?",
+    "options": ["1960", "1963", "1967", "1970"],
+    "correctAnswer": "1967",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q8",
+    "question": "Who holds the NFL record for most career receiving yards?",
+    "options": ["Randy Moss", "Terrell Owens", "Jerry Rice", "Larry Fitzgerald"],
+    "correctAnswer": "Jerry Rice",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q9",
+    "question": "Which team went 16-0 in the regular season in 2007?",
+    "options": ["Indianapolis Colts", "New England Patriots", "Pittsburgh Steelers", "Green Bay Packers"],
+    "correctAnswer": "New England Patriots",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q10",
+    "question": "Who is the NFL's all-time leading rusher?",
+    "options": ["Walter Payton", "Barry Sanders", "Emmitt Smith", "Adrian Peterson"],
+    "correctAnswer": "Emmitt Smith",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q11",
+    "question": "Which quarterback has the most Super Bowl wins?",
+    "options": ["Joe Montana", "Peyton Manning", "Tom Brady", "Terry Bradshaw"],
+    "correctAnswer": "Tom Brady",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q12",
+    "question": "How many Super Bowls has Tom Brady won?",
+    "options": ["5", "6", "7", "8"],
+    "correctAnswer": "7",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q13",
+    "question": "Which city are the Packers from?",
+    "options": ["Milwaukee", "Madison", "Green Bay", "Appleton"],
+    "correctAnswer": "Green Bay",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q14",
+    "question": "Who was the Super Bowl LVII MVP?",
+    "options": ["Patrick Mahomes", "Travis Kelce", "Jalen Hurts", "Nick Bosa"],
+    "correctAnswer": "Patrick Mahomes",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q15",
+    "question": "Which player has the most career sacks in NFL history?",
+    "options": ["Reggie White", "Bruce Smith", "Michael Strahan", "Von Miller"],
+    "correctAnswer": "Bruce Smith",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q16",
+    "question": "What is the name of the NFL championship trophy?",
+    "options": ["Commissioner's Trophy", "Larry O'Brien Trophy", "Vince Lombardi Trophy", "Stanley Cup"],
+    "correctAnswer": "Vince Lombardi Trophy",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q17",
+    "question": "Which team has never appeared in a Super Bowl?",
+    "options": ["Detroit Lions", "Cleveland Browns", "Jacksonville Jaguars", "All of the above"],
+    "correctAnswer": "All of the above",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q18",
+    "question": "Who holds the record for most receiving touchdowns in a season?",
+    "options": ["Jerry Rice", "Randy Moss", "Terrell Owens", "Calvin Johnson"],
+    "correctAnswer": "Randy Moss",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q19",
+    "question": "What is the nickname of the Dallas Cowboys?",
+    "options": ["The Big Blue", "America's Team", "The Silver Stars", "Lone Star Legion"],
+    "correctAnswer": "America's Team",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q20",
+    "question": "Who threw for 5,477 yards in a single season (record)?",
+    "options": ["Tom Brady", "Peyton Manning", "Drew Brees", "Dan Marino"],
+    "correctAnswer": "Peyton Manning",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q21",
+    "question": "Which player is known as 'The Minister of Defense'?",
+    "options": ["Lawrence Taylor", "Reggie White", "Ray Lewis", "J.J. Watt"],
+    "correctAnswer": "Reggie White",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q22",
+    "question": "How many teams are in the NFL?",
+    "options": ["28", "30", "32", "34"],
+    "correctAnswer": "32",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q23",
+    "question": "Which stadium is nicknamed 'The Frozen Tundra'?",
+    "options": ["Soldier Field", "Lambeau Field", "Gillette Stadium", "Highmark Stadium"],
+    "correctAnswer": "Lambeau Field",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q24",
+    "question": "Who was the first overall pick in the 2024 NFL Draft?",
+    "options": ["Caleb Williams", "Jayden Daniels", "Drake Maye", "Marvin Harrison Jr."],
+    "correctAnswer": "Caleb Williams",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q25",
+    "question": "Which team did Peyton Manning NOT play for?",
+    "options": ["Indianapolis Colts", "Denver Broncos", "New England Patriots", "None - he played for all"],
+    "correctAnswer": "New England Patriots",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q26",
+    "question": "Who holds the record for most interceptions in a career?",
+    "options": ["Rod Woodson", "Charles Woodson", "Paul Krause", "Deion Sanders"],
+    "correctAnswer": "Paul Krause",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q27",
+    "question": "What is the score of the biggest comeback in NFL playoff history?",
+    "options": ["28 points", "32 points", "35 points", "38 points"],
+    "correctAnswer": "32 points",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q28",
+    "question": "Which running back is nicknamed 'Sweetness'?",
+    "options": ["Emmitt Smith", "Barry Sanders", "Walter Payton", "O.J. Simpson"],
+    "correctAnswer": "Walter Payton",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q29",
+    "question": "Who caught the 'Immaculate Reception' in 1972?",
+    "options": ["Lynn Swann", "Franco Harris", "John Stallworth", "Terry Bradshaw"],
+    "correctAnswer": "Franco Harris",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q30",
+    "question": "Which team won Super Bowl LVIII in 2024?",
+    "options": ["San Francisco 49ers", "Kansas City Chiefs", "Philadelphia Eagles", "Detroit Lions"],
+    "correctAnswer": "Kansas City Chiefs",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q31",
+    "question": "Who is the highest-paid player in NFL history (as of 2025)?",
+    "options": ["Patrick Mahomes", "Joe Burrow", "Jalen Hurts", "Justin Herbert"],
+    "correctAnswer": "Joe Burrow",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q32",
+    "question": "What team does Patrick Mahomes play for?",
+    "options": ["Buffalo Bills", "Philadelphia Eagles", "Kansas City Chiefs", "Dallas Cowboys"],
+    "correctAnswer": "Kansas City Chiefs",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q33",
+    "question": "Which wide receiver has the most 1,000-yard receiving seasons?",
+    "options": ["Randy Moss", "Terrell Owens", "Jerry Rice", "Larry Fitzgerald"],
+    "correctAnswer": "Jerry Rice",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q34",
+    "question": "Who was the Super Bowl LIX MVP?",
+    "options": ["Jalen Hurts", "Saquon Barkley", "A.J. Brown", "DeVonta Smith"],
+    "correctAnswer": "Saquon Barkley",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q35",
+    "question": "Which team has the longest active playoff drought?",
+    "options": ["New York Jets", "Las Vegas Raiders", "New York Giants", "Chicago Bears"],
+    "correctAnswer": "New York Jets",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q36",
+    "question": "Who threw for 55 touchdowns in a single season (record)?",
+    "options": ["Tom Brady", "Peyton Manning", "Patrick Mahomes", "Dan Marino"],
+    "correctAnswer": "Peyton Manning",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q37",
+    "question": "What college did Aaron Rodgers attend?",
+    "options": ["Michigan", "USC", "California", "Oregon"],
+    "correctAnswer": "California",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q38",
+    "question": "Which team plays at SoFi Stadium?",
+    "options": ["Las Vegas Raiders", "San Francisco 49ers", "Los Angeles Rams", "Arizona Cardinals"],
+    "correctAnswer": "Los Angeles Rams",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q39",
+    "question": "Who has the most career touchdown receptions?",
+    "options": ["Randy Moss", "Jerry Rice", "Terrell Owens", "Antonio Gates"],
+    "correctAnswer": "Jerry Rice",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q40",
+    "question": "Which quarterback is known as 'Broadway Joe'?",
+    "options": ["Joe Montana", "Joe Namath", "Joe Flacco", "Joe Burrow"],
+    "correctAnswer": "Joe Namath",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q41",
+    "question": "What is the only team to go undefeated and win the Super Bowl?",
+    "options": ["1985 Chicago Bears", "1972 Miami Dolphins", "2007 New England Patriots", "1989 San Francisco 49ers"],
+    "correctAnswer": "1972 Miami Dolphins",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q42",
+    "question": "Which kicker holds the record for longest field goal?",
+    "options": ["Matt Prater", "Justin Tucker", "Sebastian Janikowski", "Tom Dempsey"],
+    "correctAnswer": "Justin Tucker",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q43",
+    "question": "How long was Justin Tucker's record field goal?",
+    "options": ["63 yards", "64 yards", "66 yards", "68 yards"],
+    "correctAnswer": "66 yards",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q44",
+    "question": "Which team is nicknamed 'The Steel Curtain'?",
+    "options": ["Chicago Bears", "Baltimore Ravens", "Pittsburgh Steelers", "Cleveland Browns"],
+    "correctAnswer": "Pittsburgh Steelers",
+    "difficulty": "medium"
+  },
+  {
+    "id": "nfl_q45",
+    "question": "Who caught the 'Helmet Catch' in Super Bowl XLII?",
+    "options": ["Plaxico Burress", "David Tyree", "Amani Toomer", "Steve Smith"],
+    "correctAnswer": "David Tyree",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q46",
+    "question": "What year did the Houston Texans join the NFL?",
+    "options": ["1999", "2000", "2002", "2004"],
+    "correctAnswer": "2002",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q47",
+    "question": "Who is the youngest quarterback to win a Super Bowl?",
+    "options": ["Patrick Mahomes", "Tom Brady", "Ben Roethlisberger", "Russell Wilson"],
+    "correctAnswer": "Ben Roethlisberger",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q48",
+    "question": "Which player has the most Pro Bowl selections?",
+    "options": ["Tom Brady", "Peyton Manning", "Jerry Rice", "Merlin Olsen"],
+    "correctAnswer": "Merlin Olsen",
+    "difficulty": "hard"
+  },
+  {
+    "id": "nfl_q49",
+    "question": "What is the name of the New England Patriots' stadium?",
+    "options": ["Foxborough Stadium", "Gillette Stadium", "Patriots Place", "TD Garden"],
+    "correctAnswer": "Gillette Stadium",
+    "difficulty": "easy"
+  },
+  {
+    "id": "nfl_q50",
+    "question": "Which team drafted Lamar Jackson?",
+    "options": ["Cleveland Browns", "Cincinnati Bengals", "Baltimore Ravens", "Pittsburgh Steelers"],
+    "correctAnswer": "Baltimore Ravens",
+    "difficulty": "easy"
+  }
+]

@@ -1,0 +1,6 @@
+2025-12-21 08:52:55.833 xcodebuild[40695:1129284] Writing error result bundle to /var/folders/3l/pqz0rjbx43b4f4wmdt3kvcdh0000gn/T/ResultBundle_2025-21-12_08-52-0055.xcresult
+xcodebuild: error: Unable to find a destination matching the provided destination specifier:
+		{ id:47E785FA-9673-41B1-8C7E-FBCE1EE9BA12 }
+
+	Ineligible destinations for the "ballrs" scheme:
+		{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device, error:iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components. }

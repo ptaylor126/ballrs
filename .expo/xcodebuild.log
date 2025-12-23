@@ -1,0 +1,3 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project /Users/paultaylor/Projects/ballrs/ios/ballrs.xcodeproj -configuration Debug -scheme ballrs -destination id=47E785FA-9673-41B1-8C7E-FBCE1EE9BA12
+
