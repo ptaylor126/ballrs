@@ -50,7 +50,8 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
               <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
                 <Image
                   source={tabIcons[tab.name]}
-                  style={[styles.icon, isActive && styles.iconActive]}
+                  style={[styles.icon, { tintColor: isActive ? '#FFFFFF' : '#1A1A1A' }]}
+                  resizeMode="contain"
                   accessible={false}
                 />
                 {showBadge && (
@@ -111,9 +112,6 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
-  },
-  iconActive: {
-    tintColor: '#FFFFFF',
   },
   badge: {
     position: 'absolute',
