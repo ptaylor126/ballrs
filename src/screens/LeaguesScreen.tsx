@@ -20,6 +20,21 @@ const ACCENT_COLOR = '#1ABC9C';
 
 // Icons
 const leaguesIcon = require('../../assets/images/icon-leagues.png');
+const fireIcon = require('../../assets/images/icon-fire.png');
+const trophyIcon = require('../../assets/images/icon-trophy.png');
+const goldIcon = require('../../assets/images/icon-gold.png');
+const silverIcon = require('../../assets/images/icon-silver.png');
+const bronzeIcon = require('../../assets/images/icon-bronze.png');
+
+// Sport icons
+const sportIcons: Record<string, any> = {
+  nba: require('../../assets/images/icon-basketball.png'),
+  pl: require('../../assets/images/icon-soccer.png'),
+  nfl: require('../../assets/images/icon-football.png'),
+  mlb: require('../../assets/images/icon-baseball.png'),
+};
+
+type SportFilter = 'all' | 'nba' | 'pl' | 'nfl' | 'mlb';
 import { useAuth } from '../contexts/AuthContext';
 import { colors, shadows, getSportColor, borders, borderRadius, typography, spacing } from '../lib/theme';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
@@ -46,9 +61,14 @@ interface LeaderboardEntry {
   id: string;
   username: string;
   total_solved: number;
+  nba_total_solved: number;
+  pl_total_solved: number;
+  nfl_total_solved: number;
+  mlb_total_solved: number;
   nba_best_streak: number;
   pl_best_streak: number;
   nfl_best_streak: number;
+  mlb_best_streak: number;
   rank: number;
 }
 
@@ -93,6 +113,7 @@ export default function LeaguesScreen({
 }: Props) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('leagues');
+  const [sportFilter, setSportFilter] = useState<SportFilter>('all');
   const [leagues, setLeagues] = useState<LeagueWithMemberCount[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -216,16 +237,44 @@ export default function LeaguesScreen({
     return { color: colors.textSecondary };
   };
 
+  const getSolvedCount = (entry: LeaderboardEntry) => {
+    switch (sportFilter) {
+      case 'nba': return entry.nba_total_solved || 0;
+      case 'pl': return entry.pl_total_solved || 0;
+      case 'nfl': return entry.nfl_total_solved || 0;
+      case 'mlb': return entry.mlb_total_solved || 0;
+      default: return entry.total_solved || 0;
+    }
+  };
+
   const getBestStreak = (entry: LeaderboardEntry) => {
-    return Math.max(entry.nba_best_streak || 0, entry.pl_best_streak || 0, entry.nfl_best_streak || 0);
+    switch (sportFilter) {
+      case 'nba': return entry.nba_best_streak || 0;
+      case 'pl': return entry.pl_best_streak || 0;
+      case 'nfl': return entry.nfl_best_streak || 0;
+      case 'mlb': return entry.mlb_best_streak || 0;
+      default: return Math.max(
+        entry.nba_best_streak || 0,
+        entry.pl_best_streak || 0,
+        entry.nfl_best_streak || 0,
+        entry.mlb_best_streak || 0
+      );
+    }
+  };
+
+  const getRankMedal = (rank: number) => {
+    if (rank === 1) return { icon: goldIcon };
+    if (rank === 2) return { icon: silverIcon };
+    if (rank === 3) return { icon: bronzeIcon };
+    return null;
   };
 
   const renderLeagueItem = ({ item }: { item: LeagueWithMemberCount }) => {
     const sportColor = getSportColor(item.sport as 'nba' | 'pl' | 'nfl');
     const status = getLeagueStatus(item);
-    const statusColor = getStatusColor(status);
     const countdown = getLeagueCountdown(item);
     const isCompleted = status === 'completed';
+    const isPending = status === 'pending';
 
     return (
       <TouchableOpacity
@@ -235,49 +284,64 @@ export default function LeaguesScreen({
         ]}
         onPress={() => onViewLeague(item)}
       >
-        <View style={styles.leagueHeader}>
-          <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
-            <Text style={styles.sportBadgeText}>{item.sport.toUpperCase()}</Text>
-          </View>
-          <View style={styles.leagueInfo}>
-            <Text style={[styles.leagueName, isCompleted && styles.completedText]}>
-              {item.name}
-            </Text>
-            <Text style={[styles.leagueSport, { color: sportColor }]}>
-              {getSportLabel(item.sport)}
-            </Text>
-          </View>
-          <View style={styles.badgeContainer}>
-            {item.is_creator && (
-              <View style={styles.creatorBadge}>
-                <Text style={styles.creatorBadgeText}>Creator</Text>
-              </View>
-            )}
-            <View style={[styles.statusBadge, { backgroundColor: `${statusColor}15`, borderColor: statusColor }]}>
-              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-              <Text style={[styles.statusBadgeText, { color: statusColor }]}>
-                {getStatusLabel(status)}
-              </Text>
+        {/* Top row: Sport icon + League name + Creator badge */}
+        <View style={styles.leagueTopRow}>
+          <Image
+            source={sportIcons[item.sport]}
+            style={styles.sportIcon}
+            resizeMode="contain"
+          />
+          <Text style={[styles.leagueName, isCompleted && styles.completedText]} numberOfLines={1}>
+            {item.name}
+          </Text>
+          {item.is_creator && (
+            <View style={styles.creatorBadge}>
+              <Text style={styles.creatorBadgeText}>CREATOR</Text>
             </View>
-          </View>
+          )}
         </View>
 
-        <View style={styles.countdownRow}>
-          <Text style={[styles.countdownText, { color: statusColor }]}>
+        {/* Second row: Sport name */}
+        <Text style={styles.leagueSportText}>
+          {getSportLabel(item.sport)}
+        </Text>
+
+        {/* Third row: Status badge + countdown */}
+        <View style={styles.statusRow}>
+          <View style={[
+            styles.statusBadge,
+            isPending && styles.statusBadgePending,
+            status === 'active' && styles.statusBadgeActive,
+            isCompleted && styles.statusBadgeCompleted,
+          ]}>
+            <Text style={[
+              styles.statusBadgeText,
+              isPending && styles.statusBadgeTextPending,
+              status === 'active' && styles.statusBadgeTextActive,
+              isCompleted && styles.statusBadgeTextCompleted,
+            ]}>
+              {getStatusLabel(status)}
+            </Text>
+          </View>
+          <Text style={styles.countdownText}>
             {countdown.text}
           </Text>
         </View>
 
+        {/* Bottom row: Member count + Delete */}
         <View style={styles.leagueFooter}>
           <Text style={styles.memberCount}>
             {item.member_count}/50 members
           </Text>
           {!isCompleted && (
             <TouchableOpacity
-              style={styles.leaveButton}
-              onPress={() => handleLeaveLeague(item)}
+              style={styles.deleteButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleLeaveLeague(item);
+              }}
             >
-              <Text style={styles.leaveButtonText}>
+              <Text style={styles.deleteButtonText}>
                 {item.is_creator ? 'Delete' : 'Leave'}
               </Text>
             </TouchableOpacity>
@@ -289,13 +353,18 @@ export default function LeaguesScreen({
 
   const renderLeaderboardItem = ({ item }: { item: LeaderboardEntry }) => {
     const isCurrentUser = user?.id === item.id;
+    const medal = getRankMedal(item.rank);
 
     return (
-      <View style={[styles.leaderboardRow, isCurrentUser && styles.highlightedRow]}>
+      <View style={[styles.leaderboardRow, isCurrentUser && styles.currentUserRow]}>
         <View style={styles.rankContainer}>
-          <Text style={[styles.rank, getRankStyle(item.rank)]}>
-            {item.rank}
-          </Text>
+          {medal ? (
+            <Image source={medal.icon} style={styles.medalIcon} />
+          ) : (
+            <Text style={styles.rank}>
+              {item.rank}
+            </Text>
+          )}
         </View>
         <View style={styles.userAvatar}>
           <Text style={styles.userAvatarText}>
@@ -308,31 +377,53 @@ export default function LeaguesScreen({
             {isCurrentUser && ' (You)'}
           </Text>
         </View>
-        <View style={styles.statsContainer}>
-          <Text style={styles.statValue}>{item.total_solved}</Text>
-          <Text style={styles.statLabel}>solved</Text>
+        <View style={styles.statValueContainer}>
+          <Text style={styles.statValueOnly}>{getSolvedCount(item)}</Text>
         </View>
-        <View style={styles.statsContainer}>
-          <Text style={styles.statValue}>{getBestStreak(item)}</Text>
-          <Text style={styles.statLabel}>streak</Text>
+        <View style={styles.statValueContainer}>
+          <Text style={styles.statValueOnly}>{getBestStreak(item)}</Text>
         </View>
       </View>
     );
   };
+
+  const renderSportFilterTabs = () => (
+    <View style={styles.sportFilterContainer}>
+      {(['all', 'nba', 'pl', 'nfl', 'mlb'] as SportFilter[]).map((filter) => (
+        <TouchableOpacity
+          key={filter}
+          style={[
+            styles.sportFilterTab,
+            sportFilter === filter && styles.sportFilterTabActive,
+          ]}
+          onPress={() => setSportFilter(filter)}
+        >
+          <Text
+            style={[
+              styles.sportFilterText,
+              sportFilter === filter && styles.sportFilterTextActive,
+            ]}
+          >
+            {filter === 'all' ? 'ALL' : filter === 'pl' ? 'EPL' : filter.toUpperCase()}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
 
   const renderLeaderboardHeader = () => (
     <View style={styles.leaderboardHeaderRow}>
       <View style={styles.rankContainer}>
         <Text style={styles.leaderboardHeaderText}>#</Text>
       </View>
-      <View style={styles.userInfo}>
-        <Text style={styles.leaderboardHeaderText}>Player</Text>
+      <View style={styles.playerHeaderContainer}>
+        <Text style={styles.leaderboardHeaderText}>PLAYER</Text>
       </View>
-      <View style={styles.statsContainer}>
-        <Text style={styles.leaderboardHeaderText}>Total</Text>
+      <View style={styles.headerIconContainer}>
+        <Image source={trophyIcon} style={styles.headerIconTrophy} />
       </View>
-      <View style={styles.statsContainer}>
-        <Text style={styles.leaderboardHeaderText}>Best</Text>
+      <View style={styles.headerIconContainer}>
+        <Image source={fireIcon} style={styles.headerIconFire} />
       </View>
     </View>
   );
@@ -387,6 +478,7 @@ export default function LeaguesScreen({
 
   const renderGlobalContent = () => (
     <>
+      {renderSportFilterTabs()}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -409,9 +501,9 @@ export default function LeaguesScreen({
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Image source={leaguesIcon} style={styles.emptyIcon} />
-                <Text style={styles.emptyText}>No players yet</Text>
+                <Text style={styles.emptyText}>No rankings yet</Text>
                 <Text style={styles.emptySubtext}>
-                  Be the first to solve a puzzle!
+                  Be the first to climb the ranks!
                 </Text>
               </View>
             }
@@ -436,7 +528,7 @@ export default function LeaguesScreen({
       {/* Tabs */}
       <View
         style={styles.tabContainer}
-        onLayout={(e: LayoutChangeEvent) => setTabWidth(e.nativeEvent.layout.width / 2)}
+        onLayout={(e: LayoutChangeEvent) => setTabWidth((e.nativeEvent.layout.width - 10) / 2)}
       >
         <Animated.View
           style={[
@@ -501,13 +593,26 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   backButton: {
-    paddingVertical: spacing.sm,
+    alignSelf: 'flex-start',
+    backgroundColor: '#F2C94C',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
     marginBottom: spacing.sm,
   },
   backButtonText: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    fontFamily: 'DMSans_600SemiBold',
+    color: '#1A1A1A',
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   title: {
     ...typography.header,
@@ -526,24 +631,25 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginVertical: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: '#000000',
-    padding: 4,
+    padding: 3,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
     position: 'relative',
+    overflow: 'hidden',
   },
   tabIndicator: {
     position: 'absolute',
-    top: 4,
-    left: 4,
-    bottom: 4,
+    top: 3,
+    left: 3,
+    bottom: 3,
     backgroundColor: ACCENT_COLOR,
-    borderRadius: 12,
+    borderRadius: 10,
   },
   tab: {
     flex: 1,
@@ -564,7 +670,8 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.lg + 2, // Extra space for shadow offset
     paddingVertical: spacing.sm,
     gap: 12,
   },
@@ -573,6 +680,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
@@ -585,19 +693,21 @@ const styles = StyleSheet.create({
     backgroundColor: ACCENT_COLOR,
   },
   joinLeagueButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
   },
   actionButtonText: {
     fontSize: 14,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
     textTransform: 'uppercase',
+    lineHeight: 18,
   },
   joinLeagueButtonText: {
     fontSize: 14,
     fontFamily: 'DMSans_900Black',
-    color: ACCENT_COLOR,
+    color: '#1A1A1A',
     textTransform: 'uppercase',
+    lineHeight: 18,
   },
   loadingContainer: {
     flex: 1,
@@ -607,6 +717,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: spacing.lg,
     paddingTop: spacing.sm,
+    paddingRight: spacing.lg + 2, // Extra space for shadow offset
   },
   leagueCard: {
     backgroundColor: '#FFFFFF',
@@ -621,74 +732,77 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 2,
   },
-  leagueHeader: {
+  leagueTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    gap: 10,
   },
-  sportBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#000000',
-    marginRight: 12,
-  },
-  sportBadgeText: {
-    fontSize: 11,
-    fontFamily: 'DMSans_900Black',
-    color: '#FFFFFF',
-  },
-  leagueInfo: {
-    flex: 1,
+  sportIcon: {
+    width: 32,
+    height: 32,
   },
   leagueName: {
-    ...typography.h3,
+    flex: 1,
+    fontSize: 18,
+    fontFamily: 'DMSans_900Black',
     color: colors.text,
-  },
-  leagueSport: {
-    ...typography.bodySmall,
-    marginTop: 2,
-  },
-  badgeContainer: {
-    alignItems: 'flex-end',
-    gap: spacing.xs,
   },
   creatorBadge: {
     backgroundColor: colors.pl,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   creatorBadgeText: {
-    ...typography.button,
     fontSize: 10,
+    fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  statusBadge: {
+  leagueSportText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    marginTop: 4,
+    marginLeft: 42, // Align with text after icon
+  },
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    borderWidth: 1,
-    gap: spacing.xs,
+    gap: 10,
+    marginTop: 12,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusBadgePending: {
+    backgroundColor: '#F2C94C',
+  },
+  statusBadgeActive: {
+    backgroundColor: colors.success,
+  },
+  statusBadgeCompleted: {
+    backgroundColor: '#E5E5E5',
   },
   statusBadgeText: {
-    fontSize: 10,
-    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 11,
+    fontFamily: 'DMSans_700Bold',
   },
-  countdownRow: {
-    paddingBottom: spacing.sm,
+  statusBadgeTextPending: {
+    color: '#1A1A1A',
+  },
+  statusBadgeTextActive: {
+    color: '#FFFFFF',
+  },
+  statusBadgeTextCompleted: {
+    color: '#888888',
   },
   countdownText: {
-    ...typography.bodySmall,
-    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    fontFamily: 'DMSans_500Medium',
+    color: '#666666',
   },
   completedCard: {
     opacity: 0.7,
@@ -700,26 +814,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-    paddingTop: spacing.sm,
+    borderTopColor: '#E5E5E5',
   },
   memberCount: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
+    fontSize: 13,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888888',
   },
-  leaveButton: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+  deleteButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
-  leaveButtonText: {
-    ...typography.button,
-    color: colors.textSecondary,
+  deleteButtonText: {
     fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#E53935',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -751,11 +863,38 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
+  // Sport filter tabs
+  sportFilterContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    gap: 6,
+  },
+  sportFilterTab: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  sportFilterTabActive: {
+    backgroundColor: '#F2C94C',
+  },
+  sportFilterText: {
+    fontSize: 11,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  sportFilterTextActive: {
+    color: '#1A1A1A',
+  },
   // Leaderboard styles
   leaderboardHeaderRow: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     backgroundColor: '#FFFFFF',
     marginHorizontal: spacing.lg,
     borderTopLeftRadius: 8,
@@ -771,11 +910,27 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   leaderboardHeaderText: {
-    fontSize: 12,
-    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 10,
+    fontFamily: 'DMSans_700Bold',
     color: '#888888',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
+  },
+  playerHeaderContainer: {
+    flex: 1,
+    marginLeft: 44,
+  },
+  headerIconContainer: {
+    width: 44,
+    alignItems: 'center',
+  },
+  headerIconTrophy: {
+    width: 18,
+    height: 18,
+  },
+  headerIconFire: {
+    width: 14,
+    height: 18,
   },
   leaderboardListContent: {
     paddingBottom: spacing.lg,
@@ -783,8 +938,8 @@ const styles = StyleSheet.create({
   leaderboardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E0',
     backgroundColor: '#FFFFFF',
@@ -794,27 +949,34 @@ const styles = StyleSheet.create({
     borderLeftColor: '#000000',
     borderRightColor: '#000000',
   },
-  highlightedRow: {
-    backgroundColor: '#F5F2EB',
+  currentUserRow: {
+    backgroundColor: '#E0F7F4',
   },
   rankContainer: {
-    width: 36,
+    width: 28,
+    alignItems: 'center',
   },
   rank: {
-    fontSize: 16,
-    fontFamily: 'DMSans_900Black',
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+  },
+  medalIcon: {
+    width: 22,
+    height: 22,
   },
   userAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: ACCENT_COLOR,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginLeft: 8,
+    marginRight: 10,
   },
   userAvatarText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#FFFFFF',
     fontFamily: 'DMSans_700Bold',
   },
@@ -822,26 +984,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   username: {
-    ...typography.body,
+    fontSize: 14,
+    fontFamily: 'DMSans_600SemiBold',
     color: colors.text,
   },
   highlightedText: {
     color: ACCENT_COLOR,
     fontFamily: 'DMSans_700Bold',
   },
-  statsContainer: {
-    width: 55,
+  statValueContainer: {
+    width: 44,
     alignItems: 'center',
   },
-  statValue: {
-    ...typography.statSmall,
-    fontSize: 16,
+  statValueOnly: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
     color: colors.text,
-  },
-  statLabel: {
-    ...typography.label,
-    fontSize: 10,
-    color: colors.textSecondary,
-    marginTop: 2,
   },
 });

@@ -6,7 +6,7 @@ export interface Duel {
   player1_id: string;
   player2_id: string | null;
   sport: 'nba' | 'pl' | 'nfl' | 'mlb';
-  mystery_player_id: string; // Used as question_id for trivia
+  mystery_player_id: string; // Used as question_id for trivia (comma-separated for multi-question)
   player1_guesses: number;
   player2_guesses: number;
   player1_answer: string | null;
@@ -18,7 +18,15 @@ export interface Duel {
   invite_code: string | null;
   created_at: string;
   round_start_time: string | null; // When the round started (for timer sync)
+  question_count: number; // Number of questions in the duel (1, 3, 7, or 10)
+  current_round: number; // Current round number (1-indexed)
+  player1_score: number; // Player 1's score (correct answers)
+  player2_score: number; // Player 2's score (correct answers)
+  player1_total_time: number; // Player 1's total answer time across all rounds
+  player2_total_time: number; // Player 2's total answer time across all rounds
 }
+
+export type QuestionCategory = 'records' | 'history' | 'current' | 'awards' | 'transfers' | 'moments' | 'team';
 
 export interface TriviaQuestion {
   id: string;
@@ -26,6 +34,8 @@ export interface TriviaQuestion {
   options: string[];
   correctAnswer: string;
   difficulty: 'easy' | 'medium' | 'hard';
+  category: QuestionCategory;
+  team?: string; // Optional team association (e.g., "Lakers", "Man Utd")
 }
 
 // Generate a random 6-character alphanumeric code
@@ -61,7 +71,7 @@ export async function findWaitingDuel(sport: 'nba' | 'pl' | 'nfl' | 'mlb', exclu
   return data;
 }
 
-// Create a new duel
+// Create a new duel (Quick Duel - always 1 question)
 export async function createDuel(
   userId: string,
   sport: 'nba' | 'pl' | 'nfl' | 'mlb',
@@ -74,6 +84,12 @@ export async function createDuel(
       sport,
       mystery_player_id: mysteryPlayerId,
       status: 'waiting',
+      question_count: 1,
+      current_round: 1,
+      player1_score: 0,
+      player2_score: 0,
+      player1_total_time: 0,
+      player2_total_time: 0,
     })
     .select()
     .single();
@@ -90,7 +106,8 @@ export async function createDuel(
 export async function createInviteDuel(
   userId: string,
   sport: 'nba' | 'pl' | 'nfl' | 'mlb',
-  mysteryPlayerId: string
+  mysteryPlayerId: string,
+  questionCount: number = 1
 ): Promise<Duel | null> {
   // Try up to 5 times to generate a unique code
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -104,6 +121,12 @@ export async function createInviteDuel(
         mystery_player_id: mysteryPlayerId,
         status: 'invite',
         invite_code: inviteCode,
+        question_count: questionCount,
+        current_round: 1,
+        player1_score: 0,
+        player2_score: 0,
+        player1_total_time: 0,
+        player2_total_time: 0,
       })
       .select()
       .single();
@@ -607,4 +630,105 @@ export function determineWinner(
 
   // Exact same time (very rare)
   return { winnerId: null, reason: 'tie_same_time' };
+}
+
+// Advance to next round in a multi-question duel
+export async function advanceToNextRound(
+  duelId: string,
+  newQuestionId: string,
+  p1Correct: boolean,
+  p2Correct: boolean,
+  p1AnswerTime: number,
+  p2AnswerTime: number
+): Promise<Duel | null> {
+  // First get current duel state
+  const { data: currentDuel, error: fetchError } = await supabase
+    .from('duels')
+    .select('*')
+    .eq('id', duelId)
+    .single();
+
+  if (fetchError || !currentDuel) {
+    console.error('Error fetching duel for round advance:', fetchError);
+    return null;
+  }
+
+  // Calculate new scores and total times
+  const newPlayer1Score = currentDuel.player1_score + (p1Correct ? 1 : 0);
+  const newPlayer2Score = currentDuel.player2_score + (p2Correct ? 1 : 0);
+  const newPlayer1TotalTime = currentDuel.player1_total_time + p1AnswerTime;
+  const newPlayer2TotalTime = currentDuel.player2_total_time + p2AnswerTime;
+
+  // Append new question ID to the list (comma-separated)
+  const questionIds = currentDuel.mystery_player_id + ',' + newQuestionId;
+
+  const { data, error } = await supabase
+    .from('duels')
+    .update({
+      mystery_player_id: questionIds,
+      current_round: currentDuel.current_round + 1,
+      player1_score: newPlayer1Score,
+      player2_score: newPlayer2Score,
+      player1_total_time: newPlayer1TotalTime,
+      player2_total_time: newPlayer2TotalTime,
+      player1_answer: null,
+      player2_answer: null,
+      player1_answer_time: null,
+      player2_answer_time: null,
+      round_start_time: null,
+    })
+    .eq('id', duelId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error advancing to next round:', error);
+    return null;
+  }
+
+  return data;
+}
+
+// Determine final winner for multi-question duel based on score, then total time as tiebreaker
+export function determineFinalWinner(
+  duel: Duel
+): { winnerId: string | null; reason: string } {
+  const p1Score = duel.player1_score;
+  const p2Score = duel.player2_score;
+
+  // Player 1 has more correct answers
+  if (p1Score > p2Score) {
+    return { winnerId: duel.player1_id, reason: 'p1_higher_score' };
+  }
+
+  // Player 2 has more correct answers
+  if (p2Score > p1Score) {
+    return { winnerId: duel.player2_id, reason: 'p2_higher_score' };
+  }
+
+  // Same score - use total time as tiebreaker
+  const p1TotalTime = duel.player1_total_time;
+  const p2TotalTime = duel.player2_total_time;
+
+  if (p1TotalTime < p2TotalTime) {
+    return { winnerId: duel.player1_id, reason: 'p1_faster_total' };
+  } else if (p2TotalTime < p1TotalTime) {
+    return { winnerId: duel.player2_id, reason: 'p2_faster_total' };
+  }
+
+  // Exact same total time (very rare)
+  return { winnerId: null, reason: 'tie_same_total' };
+}
+
+// Get question IDs for a multi-question duel (returns array of IDs)
+export function getQuestionIds(duel: Duel): string[] {
+  return duel.mystery_player_id.split(',');
+}
+
+// Get current question ID for a multi-question duel
+export function getCurrentQuestionId(duel: Duel): string {
+  const questionIds = getQuestionIds(duel);
+  // current_round is 1-indexed, so we need index = current_round - 1
+  const index = Math.min(duel.current_round - 1, questionIds.length - 1);
+  return questionIds[index];
 }

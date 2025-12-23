@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,6 +32,12 @@ import {
   areFriends,
 } from '../lib/friendsService';
 import { getProfile } from '../lib/profilesService';
+import { soundService } from '../lib/soundService';
+
+// Icons
+const fireIcon = require('../../assets/images/icon-fire.png');
+const lightningIcon = require('../../assets/images/icon-lightning.png');
+const trophyIcon = require('../../assets/images/icon-trophy.png');
 
 // Get level title based on level number
 function getLevelTitle(level: number): string {
@@ -48,9 +55,10 @@ interface Props {
   onLogout: () => void;
   onNavigateToAchievements: () => void;
   onNavigateToCustomize: () => void;
+  onReplayOnboarding?: () => void;
 }
 
-export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievements, onNavigateToCustomize }: Props) {
+export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievements, onNavigateToCustomize, onReplayOnboarding }: Props) {
   const { user, signOut } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -71,6 +79,21 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
   const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [searching, setSearching] = useState(false);
   const [addingFriend, setAddingFriend] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  // Initialize sound setting
+  useEffect(() => {
+    soundService.initialize().then(() => {
+      setSoundEnabled(soundService.isEnabled());
+    });
+  }, []);
+
+  const handleSoundToggle = async () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    await soundService.setEnabled(newValue);
+  };
 
   const loadProfileData = useCallback(async () => {
     if (!user) return;
@@ -233,20 +256,6 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
               <Text style={styles.customizeButtonText}>Customize</Text>
             </AnimatedButton>
 
-            <View style={[styles.infoCard, shadows.card]}>
-              <Text style={styles.label}>Email</Text>
-              <Text style={styles.value}>{user?.email || 'Not available'}</Text>
-            </View>
-
-            <View style={[styles.infoCard, shadows.card]}>
-              <Text style={styles.label}>Account Created</Text>
-              <Text style={styles.value}>
-                {user?.created_at
-                  ? new Date(user.created_at).toLocaleDateString()
-                  : 'Not available'}
-              </Text>
-            </View>
-
             {/* XP Section */}
             {!loadingStats && (
               <View style={[styles.xpCard, shadows.card]}>
@@ -284,7 +293,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
               onPress={onNavigateToAchievements}
             >
               <View style={styles.achievementsIconCircle}>
-                <Text style={styles.achievementsIcon}>A</Text>
+                <Image source={trophyIcon} style={styles.achievementsTrophyIcon} />
               </View>
               <View style={styles.achievementsButtonContent}>
                 <Text style={styles.achievementsButtonTitle}>Achievements</Text>
@@ -299,91 +308,119 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
             {loadingStats ? (
               <ActivityIndicator color={colors.primary} style={styles.statsLoader} />
             ) : (
-              <>
-                {/* NBA Stats */}
-                <View style={[styles.statsCard, shadows.card]}>
-                  <View style={[styles.sportBadge, { backgroundColor: getSportColor('nba') }]}>
-                    <Text style={styles.sportBadgeText}>NBA</Text>
+              <View style={styles.statsTable}>
+                {/* Header Row */}
+                <View style={styles.statsHeaderRow}>
+                  <View style={styles.statsSportCol}>
+                    <Text style={styles.statsHeaderText}>SPORT</Text>
                   </View>
-                  <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.nba_total_solved ?? 0}</Text>
-                      <Text style={styles.statLabel}>Solved</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.nba_current_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Current</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.nba_best_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Best</Text>
-                    </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsHeaderText}>SOLVED</Text>
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Image source={fireIcon} style={styles.statsHeaderIcon} />
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Image source={lightningIcon} style={styles.statsHeaderIconLightning} />
                   </View>
                 </View>
 
-                {/* Premier League Stats */}
-                <View style={[styles.statsCard, shadows.card]}>
-                  <View style={[styles.sportBadge, { backgroundColor: getSportColor('pl') }]}>
-                    <Text style={styles.sportBadgeText}>PL</Text>
-                  </View>
-                  <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.pl_total_solved ?? 0}</Text>
-                      <Text style={styles.statLabel}>Solved</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.pl_current_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Current</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.pl_best_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Best</Text>
+                {/* NBA Row */}
+                <View style={styles.statsDataRow}>
+                  <View style={styles.statsSportCol}>
+                    <View style={[styles.statsSportBadge, { backgroundColor: getSportColor('nba') }]}>
+                      <Text style={styles.statsSportBadgeText}>NBA</Text>
                     </View>
                   </View>
-                </View>
-
-                {/* NFL Stats */}
-                <View style={[styles.statsCard, shadows.card]}>
-                  <View style={[styles.sportBadge, { backgroundColor: getSportColor('nfl') }]}>
-                    <Text style={styles.sportBadgeText}>NFL</Text>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.nba_total_solved ?? 0}</Text>
                   </View>
-                  <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.nfl_total_solved ?? 0}</Text>
-                      <Text style={styles.statLabel}>Solved</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.nfl_current_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Current</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.nfl_best_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Best</Text>
-                    </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.nba_play_streak ?? 0}</Text>
+                    {(stats?.nba_best_play_streak ?? 0) > (stats?.nba_play_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.nba_best_play_streak})</Text>
+                    )}
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.nba_win_streak ?? 0}</Text>
+                    {(stats?.nba_best_win_streak ?? 0) > (stats?.nba_win_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.nba_best_win_streak})</Text>
+                    )}
                   </View>
                 </View>
 
-                {/* MLB Stats */}
-                <View style={[styles.statsCard, shadows.card]}>
-                  <View style={[styles.sportBadge, { backgroundColor: getSportColor('mlb') }]}>
-                    <Text style={styles.sportBadgeText}>MLB</Text>
+                {/* EPL Row */}
+                <View style={styles.statsDataRow}>
+                  <View style={styles.statsSportCol}>
+                    <View style={[styles.statsSportBadge, { backgroundColor: getSportColor('pl') }]}>
+                      <Text style={styles.statsSportBadgeText}>EPL</Text>
+                    </View>
                   </View>
-                  <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.mlb_total_solved ?? 0}</Text>
-                      <Text style={styles.statLabel}>Solved</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.mlb_current_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Current</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{stats?.mlb_best_streak ?? 0}</Text>
-                      <Text style={styles.statLabel}>Best</Text>
-                    </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.pl_total_solved ?? 0}</Text>
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.pl_play_streak ?? 0}</Text>
+                    {(stats?.pl_best_play_streak ?? 0) > (stats?.pl_play_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.pl_best_play_streak})</Text>
+                    )}
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.pl_win_streak ?? 0}</Text>
+                    {(stats?.pl_best_win_streak ?? 0) > (stats?.pl_win_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.pl_best_win_streak})</Text>
+                    )}
                   </View>
                 </View>
-              </>
+
+                {/* NFL Row */}
+                <View style={styles.statsDataRow}>
+                  <View style={styles.statsSportCol}>
+                    <View style={[styles.statsSportBadge, { backgroundColor: getSportColor('nfl') }]}>
+                      <Text style={styles.statsSportBadgeText}>NFL</Text>
+                    </View>
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.nfl_total_solved ?? 0}</Text>
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.nfl_play_streak ?? 0}</Text>
+                    {(stats?.nfl_best_play_streak ?? 0) > (stats?.nfl_play_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.nfl_best_play_streak})</Text>
+                    )}
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.nfl_win_streak ?? 0}</Text>
+                    {(stats?.nfl_best_win_streak ?? 0) > (stats?.nfl_win_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.nfl_best_win_streak})</Text>
+                    )}
+                  </View>
+                </View>
+
+                {/* MLB Row */}
+                <View style={[styles.statsDataRow, styles.statsDataRowLast]}>
+                  <View style={styles.statsSportCol}>
+                    <View style={[styles.statsSportBadge, { backgroundColor: getSportColor('mlb') }]}>
+                      <Text style={styles.statsSportBadgeText}>MLB</Text>
+                    </View>
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.mlb_total_solved ?? 0}</Text>
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.mlb_play_streak ?? 0}</Text>
+                    {(stats?.mlb_best_play_streak ?? 0) > (stats?.mlb_play_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.mlb_best_play_streak})</Text>
+                    )}
+                  </View>
+                  <View style={styles.statsNumCol}>
+                    <Text style={styles.statsNumValue}>{stats?.mlb_win_streak ?? 0}</Text>
+                    {(stats?.mlb_best_win_streak ?? 0) > (stats?.mlb_win_streak ?? 0) && (
+                      <Text style={styles.statsBestText}>({stats?.mlb_best_win_streak})</Text>
+                    )}
+                  </View>
+                </View>
+              </View>
             )}
 
             {/* Friends Section */}
@@ -391,11 +428,13 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
 
             <View style={styles.searchContainer}>
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, searchFocused && styles.searchInputFocused]}
                 placeholder="Search by username..."
                 placeholderTextColor={colors.textTertiary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -464,6 +503,50 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
               </View>
             )}
 
+            {/* Settings Section */}
+            <Text style={styles.sectionTitle}>Settings</Text>
+
+            <View style={[styles.settingsCard, shadows.card]}>
+              <View style={styles.settingRow}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>Sound Effects</Text>
+                  <Text style={styles.settingDescription}>Play sounds during duels</Text>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    soundEnabled && styles.toggleButtonActive,
+                  ]}
+                  onPress={handleSoundToggle}
+                >
+                  <View style={[
+                    styles.toggleKnob,
+                    soundEnabled && styles.toggleKnobActive,
+                  ]} />
+                </TouchableOpacity>
+              </View>
+
+              {onReplayOnboarding && (
+                <>
+                  <View style={styles.settingDivider} />
+                  <TouchableOpacity style={styles.settingRow} onPress={onReplayOnboarding}>
+                    <View style={styles.settingInfo}>
+                      <Text style={styles.settingLabel}>Replay Intro</Text>
+                      <Text style={styles.settingDescription}>See the onboarding screens again</Text>
+                    </View>
+                    <Text style={styles.settingArrow}>→</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            {/* Member Info */}
+            <Text style={styles.memberInfo}>
+              Member since {user?.created_at
+                ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : 'N/A'}
+            </Text>
+
             {/* Log Out Button */}
             <AnimatedButton
               style={[styles.logoutButton, loggingOut && styles.buttonDisabled]}
@@ -490,23 +573,40 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: spacing.lg,
   },
   scrollView: {
     flex: 1,
+    paddingHorizontal: 20,
   },
   backButton: {
-    paddingVertical: spacing.sm,
+    alignSelf: 'flex-start',
+    backgroundColor: '#F2C94C',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    marginLeft: 20,
+    marginTop: spacing.md,
     marginBottom: spacing.md,
   },
   backButtonText: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    fontFamily: 'DMSans_600SemiBold',
+    color: '#1A1A1A',
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   profileSection: {
     alignItems: 'center',
+    paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
+    paddingRight: 2, // Extra space for shadow offset
   },
   avatar: {
     width: 100,
@@ -540,38 +640,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.button,
-    backgroundColor: colors.surface,
-    borderWidth: borders.button,
-    borderColor: colors.border,
+    backgroundColor: '#F2C94C',
+    borderWidth: 2,
+    borderColor: '#000000',
     marginBottom: spacing.md,
-    ...shadows.cardSmall,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   customizeButtonText: {
-    ...typography.button,
-    color: colors.text,
+    fontFamily: 'DMSans_900Black',
+    fontSize: 14,
+    color: '#1A1A1A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   title: {
     ...typography.header,
     color: colors.text,
     marginBottom: spacing.lg,
   },
-  infoCard: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  label: {
-    ...typography.label,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  value: {
-    ...typography.body,
-    color: colors.text,
+  memberInfo: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: spacing.xl,
   },
   sectionTitle: {
     ...typography.h2,
@@ -644,61 +740,109 @@ const styles = StyleSheet.create({
   statsLoader: {
     marginTop: spacing.lg,
   },
-  statsCard: {
+  // Stats Table Styles
+  statsTable: {
     width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    marginBottom: spacing.sm,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
-  sportBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    alignSelf: 'center',
-    marginBottom: spacing.md,
+  statsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E0',
   },
-  sportBadgeText: {
-    ...typography.button,
+  statsHeaderText: {
+    fontSize: 10,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+    letterSpacing: 0.5,
+  },
+  statsHeaderIcon: {
+    width: 14,
+    height: 18,
+  },
+  statsHeaderIconLightning: {
+    width: 11,
+    height: 18,
+  },
+  statsDataRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E0',
+  },
+  statsDataRowLast: {
+    borderBottomWidth: 0,
+  },
+  statsSportCol: {
+    width: 70,
+  },
+  statsNumCol: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  statsSportBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statsSportBadgeText: {
+    fontSize: 11,
+    fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  statsNumValue: {
+    fontSize: 18,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
   },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    ...typography.stat,
-    color: colors.text,
-  },
-  statLabel: {
-    ...typography.label,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
+  statsBestText: {
+    fontSize: 11,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
   },
   logoutButton: {
     width: '100%',
-    backgroundColor: colors.error,
-    borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    paddingVertical: spacing.md,
+    backgroundColor: '#E53935',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    paddingVertical: 14,
     alignItems: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.md,
     marginBottom: spacing.lg,
-    ...shadows.cardSmall,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   buttonDisabled: {
     opacity: 0.7,
   },
   logoutButtonText: {
-    ...typography.button,
+    fontFamily: 'DMSans_900Black',
+    fontSize: 14,
     color: '#FFFFFF',
-    fontSize: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   searchContainer: {
     width: '100%',
@@ -715,6 +859,9 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     ...typography.body,
     color: colors.text,
+  },
+  searchInputFocused: {
+    borderColor: '#1ABC9C',
   },
   searchSpinner: {
     position: 'absolute',
@@ -759,16 +906,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
+    borderRadius: borderRadius.button,
     borderWidth: borders.button,
     borderColor: colors.border,
     minWidth: 60,
     alignItems: 'center',
+    ...shadows.cardSmall,
   },
   addButtonText: {
     ...typography.button,
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 11,
   },
   friendsLoader: {
     marginTop: spacing.lg,
@@ -809,7 +957,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.success,
+    backgroundColor: '#1A1A1A',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.sm,
@@ -825,26 +973,27 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   removeButton: {
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
+    borderRadius: borderRadius.button,
     borderWidth: borders.button,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    ...shadows.cardSmall,
   },
   removeButtonText: {
     ...typography.button,
-    color: colors.textSecondary,
-    fontSize: 12,
+    color: colors.error,
+    fontSize: 11,
   },
   achievementsButton: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: '#F2C94C',
     borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
+    borderWidth: 2,
+    borderColor: '#000000',
     padding: spacing.md,
     marginTop: spacing.md,
   },
@@ -852,17 +1001,16 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.warning,
-    borderWidth: borders.button,
-    borderColor: colors.border,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
   },
-  achievementsIcon: {
-    fontSize: 20,
-    fontFamily: 'DMSans_900Black',
-    color: '#FFFFFF',
+  achievementsTrophyIcon: {
+    width: 24,
+    height: 24,
   },
   achievementsButtonContent: {
     flex: 1,
@@ -873,10 +1021,70 @@ const styles = StyleSheet.create({
   },
   achievementsButtonSubtitle: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
+    color: '#1A1A1A',
     marginTop: 2,
   },
   achievementsButtonArrow: {
+    fontSize: 20,
+    color: '#1A1A1A',
+    fontFamily: 'DMSans_700Bold',
+  },
+  settingsCard: {
+    width: '100%',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    padding: spacing.md,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  settingInfo: {
+    flex: 1,
+  },
+  settingLabel: {
+    ...typography.body,
+    color: colors.text,
+    fontFamily: 'DMSans_700Bold',
+  },
+  settingDescription: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  toggleButton: {
+    width: 52,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.borderLight,
+    borderWidth: 2,
+    borderColor: colors.border,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleButtonActive: {
+    backgroundColor: colors.success,
+  },
+  toggleKnob: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  toggleKnobActive: {
+    alignSelf: 'flex-end',
+  },
+  settingDivider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.md,
+  },
+  settingArrow: {
     fontSize: 20,
     color: colors.textTertiary,
     fontFamily: 'DMSans_700Bold',

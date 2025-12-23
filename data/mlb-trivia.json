@@ -4,349 +4,1779 @@
     "question": "Who holds the MLB single-season home run record with 73?",
     "options": ["Mark McGwire", "Sammy Sosa", "Barry Bonds", "Babe Ruth"],
     "correctAnswer": "Barry Bonds",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Giants"
   },
   {
     "id": "mlb_q2",
     "question": "Which team won the 2024 World Series?",
     "options": ["New York Yankees", "Los Angeles Dodgers", "Philadelphia Phillies", "San Diego Padres"],
     "correctAnswer": "Los Angeles Dodgers",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Dodgers"
   },
   {
     "id": "mlb_q3",
     "question": "Who was the 2024 AL Cy Young Award winner?",
     "options": ["Gerrit Cole", "Tarik Skubal", "Corbin Burnes", "Cole Ragans"],
     "correctAnswer": "Tarik Skubal",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Tigers"
   },
   {
     "id": "mlb_q4",
     "question": "Which player set the AL single-season home run record with 62 in 2022?",
     "options": ["Shohei Ohtani", "Aaron Judge", "Kyle Schwarber", "Pete Alonso"],
     "correctAnswer": "Aaron Judge",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q5",
     "question": "Who was the 2024 World Series MVP?",
     "options": ["Mookie Betts", "Shohei Ohtani", "Freddie Freeman", "Walker Buehler"],
     "correctAnswer": "Freddie Freeman",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Dodgers"
   },
   {
     "id": "mlb_q6",
     "question": "Which player signed a record $700 million contract with the Dodgers?",
     "options": ["Mookie Betts", "Freddie Freeman", "Juan Soto", "Shohei Ohtani"],
     "correctAnswer": "Shohei Ohtani",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Dodgers"
   },
   {
     "id": "mlb_q7",
     "question": "Who holds the career home run record with 762?",
     "options": ["Hank Aaron", "Babe Ruth", "Barry Bonds", "Alex Rodriguez"],
     "correctAnswer": "Barry Bonds",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Giants"
   },
   {
     "id": "mlb_q8",
     "question": "Who was the first player to hit 40 home runs and steal 70 bases in a season?",
     "options": ["Rickey Henderson", "Ronald Acuña Jr.", "Trea Turner", "Bobby Bonds"],
     "correctAnswer": "Ronald Acuña Jr.",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Braves"
   },
   {
     "id": "mlb_q9",
     "question": "Which team has won the most World Series titles?",
     "options": ["St. Louis Cardinals", "Boston Red Sox", "Los Angeles Dodgers", "New York Yankees"],
     "correctAnswer": "New York Yankees",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q10",
     "question": "Who won back-to-back AL MVP awards in 2021 and 2023?",
     "options": ["Mike Trout", "Aaron Judge", "Shohei Ohtani", "Mookie Betts"],
     "correctAnswer": "Shohei Ohtani",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Angels"
   },
   {
     "id": "mlb_q11",
     "question": "Which stadium is known as 'The Friendly Confines'?",
     "options": ["Fenway Park", "Yankee Stadium", "Wrigley Field", "Dodger Stadium"],
     "correctAnswer": "Wrigley Field",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Cubs"
   },
   {
     "id": "mlb_q12",
     "question": "Who was the 2024 NL Cy Young Award winner?",
     "options": ["Zack Wheeler", "Chris Sale", "Spencer Strider", "Corbin Burnes"],
     "correctAnswer": "Chris Sale",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Braves"
   },
   {
     "id": "mlb_q13",
     "question": "Which player signed a record $765 million contract with the Mets?",
     "options": ["Shohei Ohtani", "Juan Soto", "Mookie Betts", "Francisco Lindor"],
     "correctAnswer": "Juan Soto",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Mets"
   },
   {
     "id": "mlb_q14",
     "question": "Who holds the career strikeout record for pitchers?",
     "options": ["Roger Clemens", "Randy Johnson", "Nolan Ryan", "Steve Carlton"],
     "correctAnswer": "Nolan Ryan",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records"
   },
   {
     "id": "mlb_q15",
     "question": "Which team won the first World Series in 1903?",
     "options": ["Pittsburgh Pirates", "Boston Americans", "Chicago Cubs", "New York Giants"],
     "correctAnswer": "Boston Americans",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Red Sox"
   },
   {
     "id": "mlb_q16",
     "question": "Who was the 2024 NL Rookie of the Year?",
     "options": ["Jackson Merrill", "Paul Skenes", "Masyn Winn", "Jackson Chourio"],
     "correctAnswer": "Paul Skenes",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Pirates"
   },
   {
     "id": "mlb_q17",
     "question": "Which pitcher has the most career wins?",
     "options": ["Walter Johnson", "Cy Young", "Grover Alexander", "Warren Spahn"],
     "correctAnswer": "Cy Young",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records"
   },
   {
     "id": "mlb_q18",
     "question": "Who hit 'The Shot Heard Round the World' in 1951?",
     "options": ["Willie Mays", "Bobby Thomson", "Jackie Robinson", "Duke Snider"],
     "correctAnswer": "Bobby Thomson",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Giants"
   },
   {
     "id": "mlb_q19",
     "question": "Which player has the longest consecutive games played streak?",
     "options": ["Lou Gehrig", "Cal Ripken Jr.", "Pete Rose", "Steve Garvey"],
     "correctAnswer": "Cal Ripken Jr.",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Orioles"
   },
   {
     "id": "mlb_q20",
     "question": "Who was the last player to hit .400 in a season?",
     "options": ["Tony Gwynn", "Ted Williams", "Rod Carew", "George Brett"],
     "correctAnswer": "Ted Williams",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Red Sox"
   },
   {
     "id": "mlb_q21",
     "question": "Which team broke the 'Curse of the Bambino' in 2004?",
     "options": ["Chicago Cubs", "Cleveland Indians", "Boston Red Sox", "Chicago White Sox"],
     "correctAnswer": "Boston Red Sox",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Red Sox"
   },
   {
     "id": "mlb_q22",
     "question": "Who holds the record for most career stolen bases?",
     "options": ["Lou Brock", "Tim Raines", "Rickey Henderson", "Ty Cobb"],
     "correctAnswer": "Rickey Henderson",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records"
   },
   {
     "id": "mlb_q23",
     "question": "Which team won the 2023 World Series?",
     "options": ["Arizona Diamondbacks", "Philadelphia Phillies", "Houston Astros", "Texas Rangers"],
     "correctAnswer": "Texas Rangers",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Rangers"
   },
   {
     "id": "mlb_q24",
     "question": "Who was the 2023 World Series MVP?",
     "options": ["Marcus Semien", "Corey Seager", "Adolis García", "Nathan Eovaldi"],
     "correctAnswer": "Corey Seager",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Rangers"
   },
   {
     "id": "mlb_q25",
     "question": "Which stadium has the 'Green Monster'?",
     "options": ["Wrigley Field", "Yankee Stadium", "Fenway Park", "Camden Yards"],
     "correctAnswer": "Fenway Park",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Red Sox"
   },
   {
     "id": "mlb_q26",
     "question": "Who holds the single-season stolen base record with 130?",
     "options": ["Lou Brock", "Vince Coleman", "Rickey Henderson", "Tim Raines"],
     "correctAnswer": "Rickey Henderson",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records"
   },
   {
     "id": "mlb_q27",
     "question": "Which pitcher threw the only perfect game in World Series history?",
     "options": ["Sandy Koufax", "Bob Gibson", "Don Larsen", "Whitey Ford"],
     "correctAnswer": "Don Larsen",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q28",
     "question": "Who hit 755 career home runs, second most all-time?",
     "options": ["Babe Ruth", "Willie Mays", "Hank Aaron", "Alex Rodriguez"],
     "correctAnswer": "Hank Aaron",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Braves"
   },
   {
     "id": "mlb_q29",
     "question": "Which team ended a 108-year championship drought in 2016?",
     "options": ["Cleveland Indians", "Chicago Cubs", "Boston Red Sox", "Chicago White Sox"],
     "correctAnswer": "Chicago Cubs",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Cubs"
   },
   {
     "id": "mlb_q30",
     "question": "Which player is known as 'The Sultan of Swat'?",
     "options": ["Lou Gehrig", "Babe Ruth", "Ty Cobb", "Joe DiMaggio"],
     "correctAnswer": "Babe Ruth",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q31",
     "question": "Which pitcher has won the most Cy Young Awards?",
     "options": ["Randy Johnson", "Greg Maddux", "Roger Clemens", "Steve Carlton"],
     "correctAnswer": "Roger Clemens",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards"
   },
   {
     "id": "mlb_q32",
     "question": "Who broke baseball's color barrier in 1947?",
     "options": ["Satchel Paige", "Willie Mays", "Jackie Robinson", "Larry Doby"],
     "correctAnswer": "Jackie Robinson",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Dodgers"
   },
   {
     "id": "mlb_q33",
     "question": "Which team plays at Oracle Park?",
     "options": ["Oakland Athletics", "Los Angeles Dodgers", "San Diego Padres", "San Francisco Giants"],
     "correctAnswer": "San Francisco Giants",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Giants"
   },
   {
     "id": "mlb_q34",
     "question": "Who holds the record for most hits in a career?",
     "options": ["Ty Cobb", "Hank Aaron", "Pete Rose", "Stan Musial"],
     "correctAnswer": "Pete Rose",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Reds"
   },
   {
     "id": "mlb_q35",
     "question": "Who was the 2022 AL Rookie of the Year?",
     "options": ["Adley Rutschman", "Bobby Witt Jr.", "Julio Rodríguez", "Jeremy Peña"],
     "correctAnswer": "Julio Rodríguez",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Mariners"
   },
   {
     "id": "mlb_q36",
     "question": "Who threw seven no-hitters, the most in MLB history?",
     "options": ["Sandy Koufax", "Bob Feller", "Nolan Ryan", "Randy Johnson"],
     "correctAnswer": "Nolan Ryan",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records"
   },
   {
     "id": "mlb_q37",
     "question": "Which stadium opened in 1912 and is the oldest in MLB?",
     "options": ["Wrigley Field", "Yankee Stadium", "Fenway Park", "Dodger Stadium"],
     "correctAnswer": "Fenway Park",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Red Sox"
   },
   {
     "id": "mlb_q38",
     "question": "Who was the first overall pick in the 2023 MLB Draft?",
     "options": ["Dylan Crews", "Paul Skenes", "Wyatt Langford", "Max Clark"],
     "correctAnswer": "Paul Skenes",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Pirates"
   },
   {
     "id": "mlb_q39",
     "question": "Which player hit 60 home runs in 1927?",
     "options": ["Lou Gehrig", "Jimmie Foxx", "Babe Ruth", "Hack Wilson"],
     "correctAnswer": "Babe Ruth",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q40",
     "question": "Who won the 2023 NL MVP?",
     "options": ["Mookie Betts", "Freddie Freeman", "Ronald Acuña Jr.", "Matt Olson"],
     "correctAnswer": "Ronald Acuña Jr.",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Braves"
   },
   {
     "id": "mlb_q41",
     "question": "Which team plays at Truist Park?",
     "options": ["Miami Marlins", "Washington Nationals", "Atlanta Braves", "Tampa Bay Rays"],
     "correctAnswer": "Atlanta Braves",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Braves"
   },
   {
     "id": "mlb_q42",
     "question": "Who holds the record for most RBIs in a season with 191?",
     "options": ["Lou Gehrig", "Hank Greenberg", "Hack Wilson", "Jimmie Foxx"],
     "correctAnswer": "Hack Wilson",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Cubs"
   },
   {
     "id": "mlb_q43",
     "question": "Which player is nicknamed 'El Niño'?",
     "options": ["Vladimir Guerrero Jr.", "Juan Soto", "Fernando Tatis Jr.", "Ronald Acuña Jr."],
     "correctAnswer": "Fernando Tatis Jr.",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "current",
+    "team": "Padres"
   },
   {
     "id": "mlb_q44",
     "question": "Who was the first Japanese position player to win MVP?",
     "options": ["Hideki Matsui", "Ichiro Suzuki", "Shohei Ohtani", "Kazuo Matsui"],
     "correctAnswer": "Ichiro Suzuki",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Mariners"
   },
   {
     "id": "mlb_q45",
     "question": "Which team won the 2022 World Series?",
     "options": ["Philadelphia Phillies", "Los Angeles Dodgers", "Houston Astros", "New York Yankees"],
     "correctAnswer": "Houston Astros",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Astros"
   },
   {
     "id": "mlb_q46",
     "question": "How many games did Joe DiMaggio's famous hitting streak last?",
     "options": ["44", "56", "61", "50"],
     "correctAnswer": "56",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q47",
     "question": "Which pitcher holds the record for most career saves?",
     "options": ["Trevor Hoffman", "Mariano Rivera", "Lee Smith", "Dennis Eckersley"],
     "correctAnswer": "Mariano Rivera",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q48",
     "question": "Who was the 2024 AL Rookie of the Year?",
     "options": ["Colton Cowser", "Austin Wells", "Luis Gil", "Yoshinobu Yamamoto"],
     "correctAnswer": "Luis Gil",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Yankees"
   },
   {
     "id": "mlb_q49",
     "question": "Which team has the longest current World Series drought?",
     "options": ["Seattle Mariners", "Cleveland Guardians", "San Diego Padres", "Milwaukee Brewers"],
     "correctAnswer": "Cleveland Guardians",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Guardians"
   },
   {
     "id": "mlb_q50",
     "question": "Who holds the record for most Gold Glove Awards?",
     "options": ["Ozzie Smith", "Roberto Clemente", "Greg Maddux", "Brooks Robinson"],
     "correctAnswer": "Greg Maddux",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Braves"
+  },
+  {
+    "id": "mlb_q51",
+    "question": "Which team won the 2021 World Series?",
+    "options": ["Houston Astros", "Los Angeles Dodgers", "Atlanta Braves", "Boston Red Sox"],
+    "correctAnswer": "Atlanta Braves",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Braves"
+  },
+  {
+    "id": "mlb_q52",
+    "question": "Who won three consecutive NL MVP awards from 1942-1944?",
+    "options": ["Ted Williams", "Joe DiMaggio", "Stan Musial", "Bob Elliott"],
+    "correctAnswer": "Stan Musial",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Cardinals"
+  },
+  {
+    "id": "mlb_q53",
+    "question": "Which team plays at Petco Park?",
+    "options": ["Los Angeles Angels", "San Diego Padres", "Arizona Diamondbacks", "Colorado Rockies"],
+    "correctAnswer": "San Diego Padres",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Padres"
+  },
+  {
+    "id": "mlb_q54",
+    "question": "Who hit the 'walk-off' home run to win Game 7 of the 2001 World Series?",
+    "options": ["Curt Schilling", "Randy Johnson", "Luis Gonzalez", "Matt Williams"],
+    "correctAnswer": "Luis Gonzalez",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Diamondbacks"
+  },
+  {
+    "id": "mlb_q55",
+    "question": "Which pitcher won 27 games in a season in 1968?",
+    "options": ["Bob Gibson", "Denny McLain", "Juan Marichal", "Tom Seaver"],
+    "correctAnswer": "Denny McLain",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Tigers"
+  },
+  {
+    "id": "mlb_q56",
+    "question": "Who was the 2020 World Series MVP?",
+    "options": ["Mookie Betts", "Clayton Kershaw", "Corey Seager", "Justin Turner"],
+    "correctAnswer": "Corey Seager",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Dodgers"
+  },
+  {
+    "id": "mlb_q57",
+    "question": "Which team won back-to-back World Series in 1992 and 1993?",
+    "options": ["Atlanta Braves", "Toronto Blue Jays", "Oakland Athletics", "Minnesota Twins"],
+    "correctAnswer": "Toronto Blue Jays",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Blue Jays"
+  },
+  {
+    "id": "mlb_q58",
+    "question": "Who holds the record for most career walks?",
+    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Rickey Henderson"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q59",
+    "question": "Which player hit a walk-off home run in Game 6 of the 2011 World Series?",
+    "options": ["Albert Pujols", "David Freese", "Matt Holliday", "Lance Berkman"],
+    "correctAnswer": "David Freese",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Cardinals"
+  },
+  {
+    "id": "mlb_q60",
+    "question": "Who was the first player to hit 500 career home runs?",
+    "options": ["Babe Ruth", "Jimmie Foxx", "Mel Ott", "Ted Williams"],
+    "correctAnswer": "Babe Ruth",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q61",
+    "question": "Which team plays at Citizens Bank Park?",
+    "options": ["Pittsburgh Pirates", "Philadelphia Phillies", "Baltimore Orioles", "Washington Nationals"],
+    "correctAnswer": "Philadelphia Phillies",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Phillies"
+  },
+  {
+    "id": "mlb_q62",
+    "question": "Who won the 2019 World Series MVP?",
+    "options": ["Juan Soto", "Max Scherzer", "Stephen Strasburg", "Anthony Rendon"],
+    "correctAnswer": "Stephen Strasburg",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Nationals"
+  },
+  {
+    "id": "mlb_q63",
+    "question": "Which pitcher has the lowest career ERA (minimum 1000 innings)?",
+    "options": ["Walter Johnson", "Christy Mathewson", "Ed Walsh", "Addie Joss"],
+    "correctAnswer": "Ed Walsh",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q64",
+    "question": "Who hit the 'Homer in the Gloamin'' in 1938?",
+    "options": ["Gabby Hartnett", "Billy Herman", "Stan Hack", "Phil Cavarretta"],
+    "correctAnswer": "Gabby Hartnett",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Cubs"
+  },
+  {
+    "id": "mlb_q65",
+    "question": "Which team won the 2019 World Series?",
+    "options": ["Houston Astros", "Los Angeles Dodgers", "Washington Nationals", "New York Yankees"],
+    "correctAnswer": "Washington Nationals",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Nationals"
+  },
+  {
+    "id": "mlb_q66",
+    "question": "Who holds the record for most career games played?",
+    "options": ["Cal Ripken Jr.", "Pete Rose", "Carl Yastrzemski", "Hank Aaron"],
+    "correctAnswer": "Pete Rose",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Reds"
+  },
+  {
+    "id": "mlb_q67",
+    "question": "Which team plays at T-Mobile Park?",
+    "options": ["Seattle Mariners", "Oakland Athletics", "San Francisco Giants", "Los Angeles Angels"],
+    "correctAnswer": "Seattle Mariners",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Mariners"
+  },
+  {
+    "id": "mlb_q68",
+    "question": "Who was the 2018 AL MVP?",
+    "options": ["Mike Trout", "Jose Altuve", "Mookie Betts", "J.D. Martinez"],
+    "correctAnswer": "Mookie Betts",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q69",
+    "question": "Which pitcher threw a perfect game in 2012 for the Giants?",
+    "options": ["Tim Lincecum", "Matt Cain", "Madison Bumgarner", "Barry Zito"],
+    "correctAnswer": "Matt Cain",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q70",
+    "question": "Who holds the record for most strikeouts in a single game with 20?",
+    "options": ["Nolan Ryan", "Roger Clemens", "Kerry Wood", "Max Scherzer"],
+    "correctAnswer": "Roger Clemens",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q71",
+    "question": "Which team won the 2018 World Series?",
+    "options": ["Los Angeles Dodgers", "Houston Astros", "Boston Red Sox", "New York Yankees"],
+    "correctAnswer": "Boston Red Sox",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q72",
+    "question": "Who was the 2017 NL MVP?",
+    "options": ["Kris Bryant", "Giancarlo Stanton", "Joey Votto", "Paul Goldschmidt"],
+    "correctAnswer": "Giancarlo Stanton",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Marlins"
+  },
+  {
+    "id": "mlb_q73",
+    "question": "Which team plays at Coors Field?",
+    "options": ["Arizona Diamondbacks", "Colorado Rockies", "San Diego Padres", "Los Angeles Dodgers"],
+    "correctAnswer": "Colorado Rockies",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Rockies"
+  },
+  {
+    "id": "mlb_q74",
+    "question": "Who caught the final out of the 1954 World Series with 'The Catch'?",
+    "options": ["Duke Snider", "Mickey Mantle", "Willie Mays", "Jackie Robinson"],
+    "correctAnswer": "Willie Mays",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q75",
+    "question": "Which pitcher has the most career shutouts?",
+    "options": ["Nolan Ryan", "Walter Johnson", "Grover Alexander", "Cy Young"],
+    "correctAnswer": "Walter Johnson",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q76",
+    "question": "Who won the 2016 World Series MVP?",
+    "options": ["Kris Bryant", "Anthony Rizzo", "Ben Zobrist", "Jake Arrieta"],
+    "correctAnswer": "Ben Zobrist",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Cubs"
+  },
+  {
+    "id": "mlb_q77",
+    "question": "Which team won the 2017 World Series?",
+    "options": ["Los Angeles Dodgers", "Houston Astros", "New York Yankees", "Cleveland Indians"],
+    "correctAnswer": "Houston Astros",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Astros"
+  },
+  {
+    "id": "mlb_q78",
+    "question": "Who holds the record for most consecutive hitless innings pitched?",
+    "options": ["Nolan Ryan", "Orel Hershiser", "Don Drysdale", "Bob Gibson"],
+    "correctAnswer": "Orel Hershiser",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Dodgers"
+  },
+  {
+    "id": "mlb_q79",
+    "question": "Which team plays at Yankee Stadium?",
+    "options": ["New York Mets", "New York Yankees", "Boston Red Sox", "Philadelphia Phillies"],
+    "correctAnswer": "New York Yankees",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q80",
+    "question": "Who hit the first World Series walk-off home run in Game 7?",
+    "options": ["Bill Mazeroski", "Kirk Gibson", "Joe Carter", "Carlton Fisk"],
+    "correctAnswer": "Bill Mazeroski",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Pirates"
+  },
+  {
+    "id": "mlb_q81",
+    "question": "Who was the 2015 NL Cy Young Award winner?",
+    "options": ["Clayton Kershaw", "Zack Greinke", "Jake Arrieta", "Max Scherzer"],
+    "correctAnswer": "Jake Arrieta",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Cubs"
+  },
+  {
+    "id": "mlb_q82",
+    "question": "Which team won their first World Series in 2001?",
+    "options": ["Tampa Bay Rays", "Arizona Diamondbacks", "Colorado Rockies", "Seattle Mariners"],
+    "correctAnswer": "Arizona Diamondbacks",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Diamondbacks"
+  },
+  {
+    "id": "mlb_q83",
+    "question": "Who holds the record for most career doubles?",
+    "options": ["Tris Speaker", "Pete Rose", "Stan Musial", "Craig Biggio"],
+    "correctAnswer": "Tris Speaker",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q84",
+    "question": "Which team plays at Minute Maid Park?",
+    "options": ["Texas Rangers", "Houston Astros", "Atlanta Braves", "Tampa Bay Rays"],
+    "correctAnswer": "Houston Astros",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Astros"
+  },
+  {
+    "id": "mlb_q85",
+    "question": "Who hit 'The Homer' off Mitch Williams in the 1993 World Series?",
+    "options": ["Paul Molitor", "Roberto Alomar", "Joe Carter", "John Olerud"],
+    "correctAnswer": "Joe Carter",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Blue Jays"
+  },
+  {
+    "id": "mlb_q86",
+    "question": "Who was the 2014 AL MVP?",
+    "options": ["Miguel Cabrera", "Mike Trout", "Felix Hernandez", "Robinson Cano"],
+    "correctAnswer": "Mike Trout",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Angels"
+  },
+  {
+    "id": "mlb_q87",
+    "question": "Which team won the 2015 World Series?",
+    "options": ["New York Mets", "Kansas City Royals", "Toronto Blue Jays", "Chicago Cubs"],
+    "correctAnswer": "Kansas City Royals",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Royals"
+  },
+  {
+    "id": "mlb_q88",
+    "question": "Who holds the record for most triples in a career?",
+    "options": ["Ty Cobb", "Sam Crawford", "Honus Wagner", "Tris Speaker"],
+    "correctAnswer": "Sam Crawford",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q89",
+    "question": "Which team plays at Busch Stadium?",
+    "options": ["Kansas City Royals", "Milwaukee Brewers", "St. Louis Cardinals", "Cincinnati Reds"],
+    "correctAnswer": "St. Louis Cardinals",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Cardinals"
+  },
+  {
+    "id": "mlb_q90",
+    "question": "Who threw a no-hitter in his MLB debut in 1953?",
+    "options": ["Don Larsen", "Bobo Holloman", "Bob Feller", "Nolan Ryan"],
+    "correctAnswer": "Bobo Holloman",
+    "difficulty": "hard",
+    "category": "moments"
+  },
+  {
+    "id": "mlb_q91",
+    "question": "Who was the 2013 AL MVP?",
+    "options": ["Chris Davis", "Miguel Cabrera", "Mike Trout", "Robinson Cano"],
+    "correctAnswer": "Miguel Cabrera",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Tigers"
+  },
+  {
+    "id": "mlb_q92",
+    "question": "Which team won the 2014 World Series?",
+    "options": ["Kansas City Royals", "San Francisco Giants", "St. Louis Cardinals", "Oakland Athletics"],
+    "correctAnswer": "San Francisco Giants",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q93",
+    "question": "Who holds the record for highest career batting average?",
+    "options": ["Ted Williams", "Ty Cobb", "Rogers Hornsby", "Joe Jackson"],
+    "correctAnswer": "Ty Cobb",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q94",
+    "question": "Which team plays at American Family Field?",
+    "options": ["Minnesota Twins", "Milwaukee Brewers", "Chicago White Sox", "Detroit Tigers"],
+    "correctAnswer": "Milwaukee Brewers",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Brewers"
+  },
+  {
+    "id": "mlb_q95",
+    "question": "Who hit a home run in his final career at-bat in 1960?",
+    "options": ["Mickey Mantle", "Ted Williams", "Stan Musial", "Willie Mays"],
+    "correctAnswer": "Ted Williams",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q96",
+    "question": "Who was the 2012 NL MVP?",
+    "options": ["Ryan Braun", "Andrew McCutchen", "Buster Posey", "Joey Votto"],
+    "correctAnswer": "Buster Posey",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q97",
+    "question": "Which team won the 2013 World Series?",
+    "options": ["St. Louis Cardinals", "Detroit Tigers", "Boston Red Sox", "Los Angeles Dodgers"],
+    "correctAnswer": "Boston Red Sox",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q98",
+    "question": "Who holds the record for most grand slams in a career?",
+    "options": ["Manny Ramirez", "Eddie Murray", "Lou Gehrig", "Alex Rodriguez"],
+    "correctAnswer": "Alex Rodriguez",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q99",
+    "question": "Which team plays at Tropicana Field?",
+    "options": ["Miami Marlins", "Tampa Bay Rays", "Atlanta Braves", "Washington Nationals"],
+    "correctAnswer": "Tampa Bay Rays",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Rays"
+  },
+  {
+    "id": "mlb_q100",
+    "question": "Who caught the final out of the 2004 World Series?",
+    "options": ["Jason Varitek", "Doug Mientkiewicz", "Kevin Millar", "David Ortiz"],
+    "correctAnswer": "Doug Mientkiewicz",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q101",
+    "question": "Who was the 2011 AL Cy Young Award winner?",
+    "options": ["CC Sabathia", "Justin Verlander", "Felix Hernandez", "Jered Weaver"],
+    "correctAnswer": "Justin Verlander",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Tigers"
+  },
+  {
+    "id": "mlb_q102",
+    "question": "Which team won the 2012 World Series?",
+    "options": ["Detroit Tigers", "San Francisco Giants", "St. Louis Cardinals", "Texas Rangers"],
+    "correctAnswer": "San Francisco Giants",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q103",
+    "question": "Who holds the record for most innings pitched in a career?",
+    "options": ["Nolan Ryan", "Cy Young", "Pud Galvin", "Walter Johnson"],
+    "correctAnswer": "Cy Young",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q104",
+    "question": "Which team plays at Globe Life Field?",
+    "options": ["Houston Astros", "Texas Rangers", "Arizona Diamondbacks", "Colorado Rockies"],
+    "correctAnswer": "Texas Rangers",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Rangers"
+  },
+  {
+    "id": "mlb_q105",
+    "question": "Who hit the famous 'Pine Tar' home run in 1983?",
+    "options": ["Don Mattingly", "George Brett", "Wade Boggs", "Robin Yount"],
+    "correctAnswer": "George Brett",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Royals"
+  },
+  {
+    "id": "mlb_q106",
+    "question": "Who was the 2010 NL MVP?",
+    "options": ["Albert Pujols", "Joey Votto", "Ryan Howard", "Troy Tulowitzki"],
+    "correctAnswer": "Joey Votto",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Reds"
+  },
+  {
+    "id": "mlb_q107",
+    "question": "Which team won the 2011 World Series?",
+    "options": ["Texas Rangers", "St. Louis Cardinals", "Milwaukee Brewers", "Philadelphia Phillies"],
+    "correctAnswer": "St. Louis Cardinals",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Cardinals"
+  },
+  {
+    "id": "mlb_q108",
+    "question": "Who holds the record for most home runs in a single postseason?",
+    "options": ["Barry Bonds", "Nelson Cruz", "Carlos Beltran", "Randy Arozarena"],
+    "correctAnswer": "Randy Arozarena",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Rays"
+  },
+  {
+    "id": "mlb_q109",
+    "question": "Which team plays at Kauffman Stadium?",
+    "options": ["St. Louis Cardinals", "Kansas City Royals", "Minnesota Twins", "Chicago White Sox"],
+    "correctAnswer": "Kansas City Royals",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Royals"
+  },
+  {
+    "id": "mlb_q110",
+    "question": "Who made 'The Catch' in Game 1 of the 2001 World Series?",
+    "options": ["Bernie Williams", "Derek Jeter", "Paul O'Neill", "Shane Spencer"],
+    "correctAnswer": "Derek Jeter",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q111",
+    "question": "Who was the 2009 AL MVP?",
+    "options": ["Derek Jeter", "Mark Teixeira", "Joe Mauer", "Evan Longoria"],
+    "correctAnswer": "Joe Mauer",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Twins"
+  },
+  {
+    "id": "mlb_q112",
+    "question": "Which team won the 2010 World Series?",
+    "options": ["Texas Rangers", "Philadelphia Phillies", "San Francisco Giants", "New York Yankees"],
+    "correctAnswer": "San Francisco Giants",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q113",
+    "question": "Who holds the record for most consecutive games with a hit to start a career?",
+    "options": ["Joe DiMaggio", "Ichiro Suzuki", "Benito Santiago", "Willie Mays"],
+    "correctAnswer": "Benito Santiago",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q114",
+    "question": "Which team plays at Target Field?",
+    "options": ["Minnesota Twins", "Kansas City Royals", "Chicago White Sox", "Detroit Tigers"],
+    "correctAnswer": "Minnesota Twins",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Twins"
+  },
+  {
+    "id": "mlb_q115",
+    "question": "Who hit the famous 'World Series earthquake' home run in 1989?",
+    "options": ["Jose Canseco", "Mark McGwire", "Dave Stewart", "Rickey Henderson"],
+    "correctAnswer": "Jose Canseco",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Athletics"
+  },
+  {
+    "id": "mlb_q116",
+    "question": "Who was the 2008 NL Cy Young Award winner?",
+    "options": ["CC Sabathia", "Tim Lincecum", "Brandon Webb", "Johan Santana"],
+    "correctAnswer": "Tim Lincecum",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q117",
+    "question": "Which team won the 2009 World Series?",
+    "options": ["Philadelphia Phillies", "Los Angeles Dodgers", "New York Yankees", "Los Angeles Angels"],
+    "correctAnswer": "New York Yankees",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q118",
+    "question": "Who holds the rookie record for most home runs?",
+    "options": ["Mark McGwire", "Aaron Judge", "Pete Alonso", "Cody Bellinger"],
+    "correctAnswer": "Aaron Judge",
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q119",
+    "question": "Which team plays at Nationals Park?",
+    "options": ["Baltimore Orioles", "Philadelphia Phillies", "Washington Nationals", "New York Mets"],
+    "correctAnswer": "Washington Nationals",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Nationals"
+  },
+  {
+    "id": "mlb_q120",
+    "question": "Who caught Derek Jeter's walk-off hit in his final Yankee Stadium at-bat?",
+    "options": ["Jose Pirela", "Stephen Drew", "Brendan Ryan", "Nobody - it was a single"],
+    "correctAnswer": "Nobody - it was a single",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q121",
+    "question": "Who was the 2007 AL MVP?",
+    "options": ["Alex Rodriguez", "Vladimir Guerrero", "Magglio Ordonez", "David Ortiz"],
+    "correctAnswer": "Alex Rodriguez",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q122",
+    "question": "Which team won the 2008 World Series?",
+    "options": ["Tampa Bay Rays", "Boston Red Sox", "Philadelphia Phillies", "Los Angeles Dodgers"],
+    "correctAnswer": "Philadelphia Phillies",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Phillies"
+  },
+  {
+    "id": "mlb_q123",
+    "question": "Who holds the record for most career at-bats?",
+    "options": ["Pete Rose", "Hank Aaron", "Carl Yastrzemski", "Cal Ripken Jr."],
+    "correctAnswer": "Pete Rose",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Reds"
+  },
+  {
+    "id": "mlb_q124",
+    "question": "Which team plays at Chase Field?",
+    "options": ["Colorado Rockies", "Arizona Diamondbacks", "San Diego Padres", "Los Angeles Dodgers"],
+    "correctAnswer": "Arizona Diamondbacks",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Diamondbacks"
+  },
+  {
+    "id": "mlb_q125",
+    "question": "Who threw a no-hitter on the last day of the 1991 season?",
+    "options": ["Bret Saberhagen", "Nolan Ryan", "Tom Glavine", "Roger Clemens"],
+    "correctAnswer": "Bret Saberhagen",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Royals"
+  },
+  {
+    "id": "mlb_q126",
+    "question": "Who was the 2006 NL MVP?",
+    "options": ["Albert Pujols", "Ryan Howard", "Carlos Beltran", "Chase Utley"],
+    "correctAnswer": "Ryan Howard",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Phillies"
+  },
+  {
+    "id": "mlb_q127",
+    "question": "Which team won the 2007 World Series?",
+    "options": ["Colorado Rockies", "Cleveland Indians", "Boston Red Sox", "Arizona Diamondbacks"],
+    "correctAnswer": "Boston Red Sox",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q128",
+    "question": "Who holds the record for most career sacrifice flies?",
+    "options": ["Hank Aaron", "Eddie Murray", "Cal Ripken Jr.", "Robin Yount"],
+    "correctAnswer": "Eddie Murray",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q129",
+    "question": "Which team plays at loanDepot park?",
+    "options": ["Tampa Bay Rays", "Miami Marlins", "Atlanta Braves", "Washington Nationals"],
+    "correctAnswer": "Miami Marlins",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Marlins"
+  },
+  {
+    "id": "mlb_q130",
+    "question": "Who hit 'The Grand Slam Single' in the 1999 NLCS?",
+    "options": ["Robin Ventura", "John Olerud", "Mike Piazza", "Edgardo Alfonzo"],
+    "correctAnswer": "Robin Ventura",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Mets"
+  },
+  {
+    "id": "mlb_q131",
+    "question": "Who was the 2005 AL Cy Young Award winner?",
+    "options": ["Johan Santana", "Bartolo Colon", "Mariano Rivera", "Mark Buehrle"],
+    "correctAnswer": "Bartolo Colon",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Angels"
+  },
+  {
+    "id": "mlb_q132",
+    "question": "Which team won the 2006 World Series?",
+    "options": ["Detroit Tigers", "New York Mets", "St. Louis Cardinals", "Oakland Athletics"],
+    "correctAnswer": "St. Louis Cardinals",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Cardinals"
+  },
+  {
+    "id": "mlb_q133",
+    "question": "Who holds the record for most career extra-base hits?",
+    "options": ["Barry Bonds", "Hank Aaron", "Babe Ruth", "Stan Musial"],
+    "correctAnswer": "Hank Aaron",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Braves"
+  },
+  {
+    "id": "mlb_q134",
+    "question": "Which team plays at Citi Field?",
+    "options": ["New York Yankees", "New York Mets", "Brooklyn Nets", "Philadelphia Phillies"],
+    "correctAnswer": "New York Mets",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Mets"
+  },
+  {
+    "id": "mlb_q135",
+    "question": "Who caught Carlton Fisk's famous 1975 World Series home run?",
+    "options": ["Nobody - it was fair", "Johnny Bench", "Tony Perez", "Dave Concepcion"],
+    "correctAnswer": "Nobody - it was fair",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q136",
+    "question": "Who was the 2004 NL MVP?",
+    "options": ["Albert Pujols", "Adrian Beltre", "Barry Bonds", "Scott Rolen"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q137",
+    "question": "Which team won the 2005 World Series?",
+    "options": ["Houston Astros", "St. Louis Cardinals", "Chicago White Sox", "Los Angeles Angels"],
+    "correctAnswer": "Chicago White Sox",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "White Sox"
+  },
+  {
+    "id": "mlb_q138",
+    "question": "Who holds the record for most career total bases?",
+    "options": ["Babe Ruth", "Barry Bonds", "Hank Aaron", "Stan Musial"],
+    "correctAnswer": "Hank Aaron",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Braves"
+  },
+  {
+    "id": "mlb_q139",
+    "question": "Which team plays at Camden Yards?",
+    "options": ["Washington Nationals", "Philadelphia Phillies", "Baltimore Orioles", "Pittsburgh Pirates"],
+    "correctAnswer": "Baltimore Orioles",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Orioles"
+  },
+  {
+    "id": "mlb_q140",
+    "question": "Who scored the winning run in Game 7 of the 1991 World Series?",
+    "options": ["Kirby Puckett", "Dan Gladden", "Kent Hrbek", "Chuck Knoblauch"],
+    "correctAnswer": "Dan Gladden",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Twins"
+  },
+  {
+    "id": "mlb_q141",
+    "question": "Who was the 2003 AL MVP?",
+    "options": ["Alex Rodriguez", "Carlos Delgado", "Jorge Posada", "Hideki Matsui"],
+    "correctAnswer": "Alex Rodriguez",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Rangers"
+  },
+  {
+    "id": "mlb_q142",
+    "question": "Which team won the 2003 World Series?",
+    "options": ["New York Yankees", "Chicago Cubs", "Florida Marlins", "Boston Red Sox"],
+    "correctAnswer": "Florida Marlins",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Marlins"
+  },
+  {
+    "id": "mlb_q143",
+    "question": "Who holds the record for most career runs scored?",
+    "options": ["Ty Cobb", "Babe Ruth", "Hank Aaron", "Rickey Henderson"],
+    "correctAnswer": "Rickey Henderson",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q144",
+    "question": "Which team plays at Dodger Stadium?",
+    "options": ["Los Angeles Angels", "San Diego Padres", "Los Angeles Dodgers", "San Francisco Giants"],
+    "correctAnswer": "Los Angeles Dodgers",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Dodgers"
+  },
+  {
+    "id": "mlb_q145",
+    "question": "Who threw the final pitch of the 2001 World Series?",
+    "options": ["Curt Schilling", "Randy Johnson", "Mariano Rivera", "Byung-Hyun Kim"],
+    "correctAnswer": "Mariano Rivera",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q146",
+    "question": "Who was the 2002 NL MVP?",
+    "options": ["Barry Bonds", "Albert Pujols", "Sammy Sosa", "Lance Berkman"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q147",
+    "question": "Which team won the 2002 World Series?",
+    "options": ["San Francisco Giants", "Anaheim Angels", "St. Louis Cardinals", "Arizona Diamondbacks"],
+    "correctAnswer": "Anaheim Angels",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Angels"
+  },
+  {
+    "id": "mlb_q148",
+    "question": "Who holds the record for most career intentional walks?",
+    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Hank Aaron"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q149",
+    "question": "Which team plays at PNC Park?",
+    "options": ["Cincinnati Reds", "Cleveland Guardians", "Pittsburgh Pirates", "Detroit Tigers"],
+    "correctAnswer": "Pittsburgh Pirates",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Pirates"
+  },
+  {
+    "id": "mlb_q150",
+    "question": "Who made the error that let the winning run score in Game 6 of the 1986 World Series?",
+    "options": ["Bill Buckner", "Rich Gedman", "Calvin Schiraldi", "Dave Stapleton"],
+    "correctAnswer": "Bill Buckner",
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Red Sox"
+  },
+  {
+    "id": "mlb_q151",
+    "question": "Who was the 2001 AL Cy Young Award winner?",
+    "options": ["Pedro Martinez", "Roger Clemens", "Mark Mulder", "Freddy Garcia"],
+    "correctAnswer": "Roger Clemens",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q152",
+    "question": "Which team won the 2000 World Series?",
+    "options": ["New York Mets", "Atlanta Braves", "New York Yankees", "St. Louis Cardinals"],
+    "correctAnswer": "New York Yankees",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q153",
+    "question": "Who holds the record for most seasons with 30+ home runs?",
+    "options": ["Babe Ruth", "Hank Aaron", "Barry Bonds", "Alex Rodriguez"],
+    "correctAnswer": "Hank Aaron",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Braves"
+  },
+  {
+    "id": "mlb_q154",
+    "question": "Which team plays at Great American Ball Park?",
+    "options": ["Cleveland Guardians", "Cincinnati Reds", "Pittsburgh Pirates", "St. Louis Cardinals"],
+    "correctAnswer": "Cincinnati Reds",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Reds"
+  },
+  {
+    "id": "mlb_q155",
+    "question": "Who hit the walk-off home run in Game 7 of the 2019 NLCS?",
+    "options": ["Bryce Harper", "Howie Kendrick", "Juan Soto", "Anthony Rendon"],
+    "correctAnswer": "Howie Kendrick",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Nationals"
+  },
+  {
+    "id": "mlb_q156",
+    "question": "Who was the 1999 NL MVP?",
+    "options": ["Sammy Sosa", "Mark McGwire", "Jeff Bagwell", "Chipper Jones"],
+    "correctAnswer": "Chipper Jones",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Braves"
+  },
+  {
+    "id": "mlb_q157",
+    "question": "Which team won the 1999 World Series?",
+    "options": ["Atlanta Braves", "Boston Red Sox", "New York Yankees", "Cleveland Indians"],
+    "correctAnswer": "New York Yankees",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q158",
+    "question": "Who holds the record for most career hit by pitches?",
+    "options": ["Craig Biggio", "Don Baylor", "Jason Kendall", "Chase Utley"],
+    "correctAnswer": "Craig Biggio",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Astros"
+  },
+  {
+    "id": "mlb_q159",
+    "question": "Which team plays at Guaranteed Rate Field?",
+    "options": ["Chicago Cubs", "Chicago White Sox", "Detroit Tigers", "Milwaukee Brewers"],
+    "correctAnswer": "Chicago White Sox",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "White Sox"
+  },
+  {
+    "id": "mlb_q160",
+    "question": "Who hit the 'Bartman Ball' in the 2003 NLCS?",
+    "options": ["Moises Alou", "The ball was hit by Miguel Cabrera", "The ball was hit by Ivan Rodriguez", "The ball was hit by Luis Castillo"],
+    "correctAnswer": "The ball was hit by Luis Castillo",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Marlins"
+  },
+  {
+    "id": "mlb_q161",
+    "question": "Who was the 1998 AL MVP?",
+    "options": ["Mo Vaughn", "Juan Gonzalez", "Ken Griffey Jr.", "Alex Rodriguez"],
+    "correctAnswer": "Juan Gonzalez",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Rangers"
+  },
+  {
+    "id": "mlb_q162",
+    "question": "Which team won the 1998 World Series?",
+    "options": ["San Diego Padres", "Atlanta Braves", "Cleveland Indians", "New York Yankees"],
+    "correctAnswer": "New York Yankees",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q163",
+    "question": "Who holds the record for most career pinch hits?",
+    "options": ["Manny Mota", "Lenny Harris", "Dave Hansen", "Matt Stairs"],
+    "correctAnswer": "Lenny Harris",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q164",
+    "question": "Which team plays at Comerica Park?",
+    "options": ["Cleveland Guardians", "Cincinnati Reds", "Detroit Tigers", "Minnesota Twins"],
+    "correctAnswer": "Detroit Tigers",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Tigers"
+  },
+  {
+    "id": "mlb_q165",
+    "question": "Who caught the final out of the 2016 World Series?",
+    "options": ["Anthony Rizzo", "Kris Bryant", "Addison Russell", "Javier Baez"],
+    "correctAnswer": "Anthony Rizzo",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Cubs"
+  },
+  {
+    "id": "mlb_q166",
+    "question": "Who was the 1997 NL Cy Young Award winner?",
+    "options": ["Greg Maddux", "John Smoltz", "Pedro Martinez", "Curt Schilling"],
+    "correctAnswer": "Pedro Martinez",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Expos"
+  },
+  {
+    "id": "mlb_q167",
+    "question": "Which team won the 1997 World Series?",
+    "options": ["Cleveland Indians", "Atlanta Braves", "Baltimore Orioles", "Florida Marlins"],
+    "correctAnswer": "Florida Marlins",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Marlins"
+  },
+  {
+    "id": "mlb_q168",
+    "question": "Who holds the record for most career leadoff home runs?",
+    "options": ["Alfonso Soriano", "Craig Biggio", "Rickey Henderson", "Jimmy Rollins"],
+    "correctAnswer": "Rickey Henderson",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "mlb_q169",
+    "question": "Which team plays at Angel Stadium?",
+    "options": ["Los Angeles Dodgers", "San Diego Padres", "Los Angeles Angels", "Oakland Athletics"],
+    "correctAnswer": "Los Angeles Angels",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Angels"
+  },
+  {
+    "id": "mlb_q170",
+    "question": "Who threw the first pitch of the 2001 World Series at Yankee Stadium after 9/11?",
+    "options": ["George W. Bush", "Derek Jeter", "Rudy Giuliani", "Mike Mussina"],
+    "correctAnswer": "George W. Bush",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q171",
+    "question": "Who was the 1996 AL MVP?",
+    "options": ["Mo Vaughn", "Alex Rodriguez", "Juan Gonzalez", "Albert Belle"],
+    "correctAnswer": "Juan Gonzalez",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Rangers"
+  },
+  {
+    "id": "mlb_q172",
+    "question": "Which team won the 1996 World Series?",
+    "options": ["Atlanta Braves", "Cleveland Indians", "New York Yankees", "St. Louis Cardinals"],
+    "correctAnswer": "New York Yankees",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q173",
+    "question": "Who holds the record for most career putouts by an outfielder?",
+    "options": ["Tris Speaker", "Willie Mays", "Ty Cobb", "Max Carey"],
+    "correctAnswer": "Willie Mays",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q174",
+    "question": "Which team plays at Progressive Field?",
+    "options": ["Detroit Tigers", "Cincinnati Reds", "Cleveland Guardians", "Pittsburgh Pirates"],
+    "correctAnswer": "Cleveland Guardians",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Guardians"
+  },
+  {
+    "id": "mlb_q175",
+    "question": "Who threw out the ceremonial first pitch at the first game back at Yankee Stadium after 9/11?",
+    "options": ["Rudy Giuliani", "Joe Torre", "Derek Jeter", "George Pataki"],
+    "correctAnswer": "Rudy Giuliani",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Yankees"
+  },
+  {
+    "id": "mlb_q176",
+    "question": "Who was the 1995 NL MVP?",
+    "options": ["Barry Bonds", "Barry Larkin", "Greg Maddux", "Dante Bichette"],
+    "correctAnswer": "Barry Larkin",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Reds"
+  },
+  {
+    "id": "mlb_q177",
+    "question": "Which team won the 1995 World Series?",
+    "options": ["Cleveland Indians", "Cincinnati Reds", "Seattle Mariners", "Atlanta Braves"],
+    "correctAnswer": "Atlanta Braves",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Braves"
+  },
+  {
+    "id": "mlb_q178",
+    "question": "Who holds the record for most home runs in a single month?",
+    "options": ["Babe Ruth", "Rudy York", "Barry Bonds", "Sammy Sosa"],
+    "correctAnswer": "Sammy Sosa",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Cubs"
+  },
+  {
+    "id": "mlb_q179",
+    "question": "Which team has never appeared in a World Series?",
+    "options": ["Texas Rangers", "Tampa Bay Rays", "Seattle Mariners", "Milwaukee Brewers"],
+    "correctAnswer": "Seattle Mariners",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Mariners"
+  },
+  {
+    "id": "mlb_q180",
+    "question": "Who hit 'The Double' in Game 5 of the 1995 ALDS?",
+    "options": ["Ken Griffey Jr.", "Edgar Martinez", "Jay Buhner", "Alex Rodriguez"],
+    "correctAnswer": "Edgar Martinez",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Mariners"
+  },
+  {
+    "id": "mlb_q181",
+    "question": "Who was the 1994 AL MVP?",
+    "options": ["Ken Griffey Jr.", "Frank Thomas", "Albert Belle", "Paul Molitor"],
+    "correctAnswer": "Frank Thomas",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "White Sox"
+  },
+  {
+    "id": "mlb_q182",
+    "question": "Which team won the 1993 World Series?",
+    "options": ["Philadelphia Phillies", "Atlanta Braves", "Chicago White Sox", "Toronto Blue Jays"],
+    "correctAnswer": "Toronto Blue Jays",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Blue Jays"
+  },
+  {
+    "id": "mlb_q183",
+    "question": "Who holds the record for most walks in a single season?",
+    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Mickey Mantle"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q184",
+    "question": "Which franchise has the most World Series losses?",
+    "options": ["Brooklyn/Los Angeles Dodgers", "New York Giants/San Francisco Giants", "New York Yankees", "St. Louis Cardinals"],
+    "correctAnswer": "Brooklyn/Los Angeles Dodgers",
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Dodgers"
+  },
+  {
+    "id": "mlb_q185",
+    "question": "Who scored the winning run in the bottom of the 9th of Game 7 of the 1960 World Series?",
+    "options": ["Roberto Clemente", "Bill Mazeroski", "Dick Groat", "Bill Mazeroski hit a homer - no one scored before him"],
+    "correctAnswer": "Bill Mazeroski hit a homer - no one scored before him",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Pirates"
+  },
+  {
+    "id": "mlb_q186",
+    "question": "Who was the 1992 NL Cy Young Award winner?",
+    "options": ["Tom Glavine", "Greg Maddux", "John Smoltz", "Dennis Martinez"],
+    "correctAnswer": "Greg Maddux",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Cubs"
+  },
+  {
+    "id": "mlb_q187",
+    "question": "Which team won the 1992 World Series?",
+    "options": ["Atlanta Braves", "Pittsburgh Pirates", "Oakland Athletics", "Toronto Blue Jays"],
+    "correctAnswer": "Toronto Blue Jays",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Blue Jays"
+  },
+  {
+    "id": "mlb_q188",
+    "question": "Who holds the record for highest single-season on-base percentage?",
+    "options": ["Ted Williams", "Babe Ruth", "Barry Bonds", "Mickey Mantle"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q189",
+    "question": "Which team won the most games in a single season with 116?",
+    "options": ["1906 Cubs", "2001 Mariners", "1998 Yankees", "1909 Pirates"],
+    "correctAnswer": "2001 Mariners",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Mariners"
+  },
+  {
+    "id": "mlb_q190",
+    "question": "Who threw a no-hitter in the 2010 playoffs?",
+    "options": ["Tim Lincecum", "Roy Halladay", "Cliff Lee", "Cole Hamels"],
+    "correctAnswer": "Roy Halladay",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Phillies"
+  },
+  {
+    "id": "mlb_q191",
+    "question": "Who was the 1991 AL MVP?",
+    "options": ["Rickey Henderson", "Cal Ripken Jr.", "Cecil Fielder", "Jose Canseco"],
+    "correctAnswer": "Cal Ripken Jr.",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Orioles"
+  },
+  {
+    "id": "mlb_q192",
+    "question": "Which team won the 1991 World Series?",
+    "options": ["Atlanta Braves", "Pittsburgh Pirates", "Toronto Blue Jays", "Minnesota Twins"],
+    "correctAnswer": "Minnesota Twins",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Twins"
+  },
+  {
+    "id": "mlb_q193",
+    "question": "Who holds the record for highest single-season slugging percentage?",
+    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Lou Gehrig"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Giants"
+  },
+  {
+    "id": "mlb_q194",
+    "question": "Which player hit in 44 consecutive games before DiMaggio's 56-game streak?",
+    "options": ["Ty Cobb", "George Sisler", "Pete Rose", "Willie Keeler"],
+    "correctAnswer": "Willie Keeler",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "mlb_q195",
+    "question": "Who was the winning pitcher in Game 7 of the 1991 World Series?",
+    "options": ["John Smoltz", "Tom Glavine", "Jack Morris", "Steve Avery"],
+    "correctAnswer": "Jack Morris",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Twins"
+  },
+  {
+    "id": "mlb_q196",
+    "question": "Who was the 1990 NL MVP?",
+    "options": ["Barry Bonds", "Bobby Bonilla", "Ryne Sandberg", "Darryl Strawberry"],
+    "correctAnswer": "Barry Bonds",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Pirates"
+  },
+  {
+    "id": "mlb_q197",
+    "question": "Which team won the 1990 World Series?",
+    "options": ["Oakland Athletics", "Boston Red Sox", "Pittsburgh Pirates", "Cincinnati Reds"],
+    "correctAnswer": "Cincinnati Reds",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Reds"
+  },
+  {
+    "id": "mlb_q198",
+    "question": "Who holds the record for most consecutive scoreless innings pitched?",
+    "options": ["Don Drysdale", "Orel Hershiser", "Bob Gibson", "Scoreless innings are tracked differently"],
+    "correctAnswer": "Orel Hershiser",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Dodgers"
+  },
+  {
+    "id": "mlb_q199",
+    "question": "Who was the first designated hitter to be inducted into the Hall of Fame primarily as a DH?",
+    "options": ["Edgar Martinez", "David Ortiz", "Frank Thomas", "Harold Baines"],
+    "correctAnswer": "Edgar Martinez",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Mariners"
+  },
+  {
+    "id": "mlb_q200",
+    "question": "Which pitcher threw a perfect game on Father's Day 1964?",
+    "options": ["Sandy Koufax", "Jim Bunning", "Don Drysdale", "Bob Gibson"],
+    "correctAnswer": "Jim Bunning",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Phillies"
   }
 ]

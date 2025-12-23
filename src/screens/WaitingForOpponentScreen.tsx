@@ -24,7 +24,7 @@ const sportIcons: Record<Sport, any> = {
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
-  pl: 'Premier League',
+  pl: 'EPL',
   nfl: 'NFL',
   mlb: 'MLB',
 };
@@ -93,10 +93,11 @@ export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOppo
           <Image source={sportIcons[sport as Sport]} style={styles.sportIcon} />
         </Animated.View>
 
-        <Text style={styles.title}>Trivia Duel</Text>
         <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
+          <Image source={sportIcons[sport as Sport]} style={styles.sportBadgeIcon} resizeMode="contain" />
           <Text style={styles.sportBadgeText}>{sportNames[sport as Sport]}</Text>
         </View>
+        <Text style={styles.title}>Trivia Duel</Text>
 
         <View style={styles.waitingContainer}>
           <ActivityIndicator size="large" color={sportColor} />
@@ -110,7 +111,7 @@ export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOppo
           <Text style={styles.infoTitle}>How it works</Text>
           <Text style={styles.infoText}>
             • Both players answer the same trivia question{'\n'}
-            • You have 15 seconds to answer{'\n'}
+            • You have 10 seconds to answer{'\n'}
             • Correct answer + fastest time wins{'\n'}
             • Winner earns 75 XP, loser earns 25 XP
           </Text>
@@ -159,23 +160,30 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
-    marginBottom: 12,
+    marginTop: 12,
+    marginBottom: 32,
   },
   sportBadge: {
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
-    marginBottom: 40,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
   },
+  sportBadgeIcon: {
+    width: 20,
+    height: 20,
+  },
   sportBadgeText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
   },
@@ -223,7 +231,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   cancelButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 16,
@@ -237,7 +245,9 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#1A1A1A',
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

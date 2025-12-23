@@ -25,13 +25,14 @@ const sportIcons: Record<Sport, any> = {
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
-  pl: 'Premier League',
+  pl: 'EPL',
   nfl: 'NFL',
   mlb: 'MLB',
 };
 
 interface Props {
   sport: 'nba' | 'pl' | 'nfl' | 'mlb';
+  questionCount?: number;
   onCancel: () => void;
   onDuelCreated: (duel: Duel, challengedFriendId?: string) => void;
   getRandomQuestionId: (sport: 'nba' | 'pl' | 'nfl' | 'mlb') => string;
@@ -39,6 +40,7 @@ interface Props {
 
 export default function ChallengeSetupScreen({
   sport,
+  questionCount = 1,
   onCancel,
   onDuelCreated,
   getRandomQuestionId,
@@ -67,7 +69,7 @@ export default function ChallengeSetupScreen({
 
     setCreatingDuel(true);
     const questionId = getRandomQuestionId(sport);
-    const duel = await createInviteDuel(user.id, sport, questionId);
+    const duel = await createInviteDuel(user.id, sport, questionId, questionCount);
 
     if (duel) {
       // Send challenge notification to friend via realtime
@@ -84,7 +86,7 @@ export default function ChallengeSetupScreen({
 
     setCreatingDuel(true);
     const questionId = getRandomQuestionId(sport);
-    const duel = await createInviteDuel(user.id, sport, questionId);
+    const duel = await createInviteDuel(user.id, sport, questionId, questionCount);
 
     if (duel) {
       onDuelCreated(duel);
@@ -123,12 +125,12 @@ export default function ChallengeSetupScreen({
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Challenge Friend</Text>
-
-        <View style={styles.sportLabelContainer}>
-          <Image source={sportIcons[sport as Sport]} style={[styles.sportIcon, { tintColor: sportColor }]} />
-          <Text style={[styles.sportLabel, { color: sportColor }]}>{sportNames[sport as Sport]}</Text>
+        <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
+          <Image source={sportIcons[sport as Sport]} style={styles.sportBadgeIcon} resizeMode="contain" />
+          <Text style={styles.sportBadgeText}>{sportNames[sport as Sport]}</Text>
         </View>
+
+        <Text style={styles.title}>Challenge Friend</Text>
       </View>
 
       <View style={styles.content}>
@@ -196,10 +198,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     top: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
@@ -210,29 +212,42 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: '#1A1A1A',
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 24,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
     textAlign: 'center',
-    marginTop: 48,
+    marginTop: 8,
   },
-  sportLabelContainer: {
+  sportBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    gap: 6,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    marginTop: 72,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
-  sportIcon: {
+  sportBadgeIcon: {
     width: 20,
     height: 20,
   },
-  sportLabel: {
-    fontSize: 16,
+  sportBadgeText: {
+    fontSize: 14,
     fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,

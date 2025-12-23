@@ -5,6 +5,7 @@
       "name": "Patrick Mahomes",
       "team": "KC",
       "position": "QB",
+      "jerseyNumber": 15,
       "clues": [
         "His father Pat Mahomes pitched 11 seasons in MLB for six different teams",
         "3-time Super Bowl champion, though lost Super Bowl LIX 40-22 to the Eagles",
@@ -19,6 +20,7 @@
       "name": "Josh Allen",
       "team": "BUF",
       "position": "QB",
+      "jerseyNumber": 17,
       "clues": [
         "Grew up on a cotton farm in Firebaugh, California, population 8,000",
         "Won the 2024 NFL MVP award, beating out Lamar Jackson",
@@ -33,6 +35,7 @@
       "name": "Lamar Jackson",
       "team": "BAL",
       "position": "QB",
+      "jerseyNumber": 8,
       "clues": [
         "Won the Heisman Trophy at Louisville in 2016, becoming the youngest winner at 19",
         "2-time NFL MVP, finished second to Josh Allen in 2024 voting",
@@ -47,6 +50,7 @@
       "name": "Ja'Marr Chase",
       "team": "CIN",
       "position": "WR",
+      "jerseyNumber": 1,
       "clues": [
         "Sat out the 2020 college season to prepare for the NFL Draft",
         "Won the 2024 receiving triple crown - most receptions, yards, and TDs",
@@ -61,6 +65,7 @@
       "name": "Tyreek Hill",
       "team": "MIA",
       "position": "WR",
+      "jerseyNumber": 10,
       "clues": [
         "Transferred from Oklahoma State to West Alabama, a Division II school",
         "Won Super Bowl LIV with the Chiefs, catching a touchdown in the comeback",
@@ -75,6 +80,7 @@
       "name": "Travis Kelce",
       "team": "KC",
       "position": "TE",
+      "jerseyNumber": 87,
       "clues": [
         "His brother Jason retired as the Philadelphia Eagles center in 2024",
         "Holds the record for most receiving yards by a tight end in a single season",
@@ -89,6 +95,7 @@
       "name": "Micah Parsons",
       "team": "DAL",
       "position": "LB",
+      "jerseyNumber": 11,
       "clues": [
         "Originally recruited as a running back before switching to linebacker at Penn State",
         "Won the 2021 Defensive Rookie of the Year with 13 sacks in his first season",
@@ -103,6 +110,7 @@
       "name": "T.J. Watt",
       "team": "PIT",
       "position": "LB",
+      "jerseyNumber": 90,
       "clues": [
         "Youngest of three NFL brothers, including a three-time Defensive Player of the Year",
         "Won 2021 Defensive Player of the Year, tying the single-season sack record with 22.5",
@@ -117,6 +125,7 @@
       "name": "Justin Jefferson",
       "team": "MIN",
       "position": "WR",
+      "jerseyNumber": 18,
       "clues": [
         "His brothers Jordan and Rickey Jefferson both played college football at LSU",
         "Won Offensive Player of the Year and was MVP runner-up",
@@ -131,6 +140,7 @@
       "name": "Derrick Henry",
       "team": "BAL",
       "position": "RB",
+      "jerseyNumber": 22,
       "clues": [
         "Set the national high school record with 12,124 career rushing yards",
         "Won the 2015 Heisman Trophy at Alabama, rushing for 2,219 yards",
@@ -145,6 +155,7 @@
       "name": "Saquon Barkley",
       "team": "PHI",
       "position": "RB",
+      "jerseyNumber": 26,
       "clues": [
         "Born in the Bronx and became a star at Penn State",
         "Super Bowl LIX champion with the Eagles, defeating the Chiefs 40-22",
@@ -159,6 +170,7 @@
       "name": "Jalen Hurts",
       "team": "PHI",
       "position": "QB",
+      "jerseyNumber": 1,
       "clues": [
         "Transferred from Alabama to Oklahoma after losing his starting job to Tua",
         "Super Bowl LIX champion and MVP, leading the Eagles to a 40-22 victory",
@@ -173,6 +185,7 @@
       "name": "Joe Burrow",
       "team": "CIN",
       "position": "QB",
+      "jerseyNumber": 9,
       "clues": [
         "His father Jimmy was a longtime college coach and former CFL player",
         "Won the Heisman Trophy and national championship at LSU in 2019",
@@ -187,6 +200,7 @@
       "name": "CeeDee Lamb",
       "team": "DAL",
       "position": "WR",
+      "jerseyNumber": 88,
       "clues": [
         "Grew up in Opelousas, Louisiana and starred at Oklahoma",
         "Led the NFL in receptions with 135 in the 2023 season",
@@ -201,6 +215,7 @@
       "name": "Nick Bosa",
       "team": "SF",
       "position": "DE",
+      "jerseyNumber": 97,
       "clues": [
         "His father John and brother Joey also played in the NFL",
         "Won Defensive Player of the Year in 2022 with 18.5 sacks",
@@ -215,6 +230,7 @@
       "name": "Myles Garrett",
       "team": "CLE",
       "position": "DE",
+      "jerseyNumber": 95,
       "clues": [
         "Wrote poetry in college at Texas A&M and is known for his dinosaur obsession",
         "Won Defensive Player of the Year in 2023",
@@ -229,6 +245,7 @@
       "name": "C.J. Stroud",
       "team": "HOU",
       "position": "QB",
+      "jerseyNumber": 7,
       "clues": [
         "Lost his father to gun violence when he was young, wears his memory proudly",
         "Won Offensive Rookie of the Year in 2023 with record-breaking numbers",
@@ -243,6 +260,7 @@
       "name": "Amon-Ra St. Brown",
       "team": "DET",
       "position": "WR",
+      "jerseyNumber": 14,
       "clues": [
         "His father was a two-time Mr. Universe bodybuilder from Germany",
         "Named after the Egyptian sun god Ra, all his brothers have Egyptian names",
@@ -257,6 +275,7 @@
       "name": "Aaron Rodgers",
       "team": "PIT",
       "position": "QB",
+      "jerseyNumber": 8,
       "clues": [
         "Hosted Jeopardy! during his offseason and is interested in alternative medicine",
         "4-time NFL MVP, won Super Bowl XLV with the Packers",
@@ -271,6 +290,7 @@
       "name": "DK Metcalf",
       "team": "PIT",
       "position": "WR",
+      "jerseyNumber": 14,
       "clues": [
         "Ran a 4.33 40-yard dash at 228 pounds at the NFL Combine",
         "Famous for chasing down Budda Baker on a 90-yard interception return",
@@ -285,6 +305,7 @@
       "name": "Sauce Gardner",
       "team": "NYJ",
       "position": "CB",
+      "jerseyNumber": 1,
       "clues": [
         "Nicknamed 'Sauce' since childhood, real first name is Ahmad",
         "Won Defensive Rookie of the Year in 2022, didn't allow a TD all season",
@@ -299,6 +320,7 @@
       "name": "Garrett Wilson",
       "team": "NYJ",
       "position": "WR",
+      "jerseyNumber": 5,
       "clues": [
         "His father played basketball at George Mason University",
         "Won Offensive Rookie of the Year in 2022 with 1,103 receiving yards",
@@ -313,6 +335,7 @@
       "name": "Chris Jones",
       "team": "KC",
       "position": "DT",
+      "jerseyNumber": 95,
       "clues": [
         "Played basketball at Mississippi State before focusing on football",
         "3-time Super Bowl champion with the Kansas City Chiefs",
@@ -327,6 +350,7 @@
       "name": "Davante Adams",
       "team": "LAR",
       "position": "WR",
+      "jerseyNumber": 17,
       "clues": [
         "Played at Fresno State where he caught passes from Derek Carr",
         "Has the most receiving touchdowns (17) in a single season since 2020",
@@ -341,6 +365,7 @@
       "name": "Breece Hall",
       "team": "NYJ",
       "position": "RB",
+      "jerseyNumber": 20,
       "clues": [
         "From Wichita, Kansas and set records at Iowa State",
         "Tore his ACL as a rookie but came back to be one of the top RBs",
@@ -355,6 +380,7 @@
       "name": "Bijan Robinson",
       "team": "ATL",
       "position": "RB",
+      "jerseyNumber": 7,
       "clues": [
         "His first name means 'Hero' in Persian",
         "Was considered the best running back prospect since Saquon Barkley",
@@ -369,6 +395,7 @@
       "name": "A.J. Brown",
       "team": "PHI",
       "position": "WR",
+      "jerseyNumber": 11,
       "clues": [
         "From Starkville, Mississippi and starred at Ole Miss",
         "Super Bowl LIX champion with the Philadelphia Eagles",
@@ -383,6 +410,7 @@
       "name": "Jared Goff",
       "team": "DET",
       "position": "QB",
+      "jerseyNumber": 16,
       "clues": [
         "His father Jerry Goff played as a catcher in MLB",
         "Led the Lions to consecutive NFC Championship games",
@@ -397,6 +425,7 @@
       "name": "Fred Warner",
       "team": "SF",
       "position": "LB",
+      "jerseyNumber": 54,
       "clues": [
         "From San Marcos, California and played at BYU",
         "5-time Pro Bowl selection, one of the best coverage linebackers",
@@ -411,6 +440,7 @@
       "name": "Roquan Smith",
       "team": "BAL",
       "position": "LB",
+      "jerseyNumber": 0,
       "clues": [
         "From Montezuma, Georgia and was a star at the University of Georgia",
         "Led the NFL in tackles in 2022 after being traded mid-season",
@@ -425,6 +455,7 @@
       "name": "Maxx Crosby",
       "team": "LV",
       "position": "DE",
+      "jerseyNumber": 98,
       "clues": [
         "Overcame alcohol addiction early in his career, now advocates for sobriety",
         "4-time Pro Bowl selection, known for his relentless motor",
@@ -439,6 +470,7 @@
       "name": "Patrick Surtain II",
       "team": "DEN",
       "position": "CB",
+      "jerseyNumber": 2,
       "clues": [
         "His father was a 3-time Pro Bowl cornerback who played for the Dolphins and Chiefs",
         "Won Defensive Player of the Year in 2024",
@@ -453,6 +485,7 @@
       "name": "George Kittle",
       "team": "SF",
       "position": "TE",
+      "jerseyNumber": 85,
       "clues": [
         "His father Bruce played offensive line in the NFL for seven seasons",
         "Set the single-season receiving yards record for tight ends in 2018 with 1,377",
@@ -467,6 +500,7 @@
       "name": "Justin Herbert",
       "team": "LAC",
       "position": "QB",
+      "jerseyNumber": 10,
       "clues": [
         "From Eugene, Oregon and turned down an offer to play for the Ducks baseball team",
         "Set the rookie record for touchdown passes with 31 in 2020",
@@ -481,6 +515,7 @@
       "name": "Jayden Daniels",
       "team": "WAS",
       "position": "QB",
+      "jerseyNumber": 5,
       "clues": [
         "Won the Heisman Trophy at LSU in 2023 with historic numbers",
         "Won Offensive Rookie of the Year in 2024",
@@ -495,6 +530,7 @@
       "name": "Puka Nacua",
       "team": "LAR",
       "position": "WR",
+      "jerseyNumber": 17,
       "clues": [
         "From Provo, Utah and comes from a large athletic family",
         "Set the NFL rookie records for receptions (105) and receiving yards (1,486)",
@@ -509,6 +545,7 @@
       "name": "Cam Ward",
       "team": "TEN",
       "position": "QB",
+      "jerseyNumber": 1,
       "clues": [
         "Transferred to Miami after playing at Washington State and Incarnate Word",
         "Led Miami to an undefeated regular season in 2024",
@@ -523,6 +560,7 @@
       "name": "Shedeur Sanders",
       "team": "CLE",
       "position": "QB",
+      "jerseyNumber": 2,
       "clues": [
         "Son of a two-sport Hall of Famer who won Super Bowls with two different teams",
         "Followed his father from Jackson State to Colorado",
@@ -537,6 +575,7 @@
       "name": "Tetairoa McMillan",
       "team": "CAR",
       "position": "WR",
+      "jerseyNumber": 0,
       "clues": [
         "From Anaheim Hills, California and starred at Arizona",
         "Leading candidate for Offensive Rookie of the Year in 2025",
@@ -551,6 +590,7 @@
       "name": "Carson Schwesinger",
       "team": "LAR",
       "position": "LB",
+      "jerseyNumber": 53,
       "clues": [
         "From Los Alamitos, California and starred at UCLA",
         "Leading candidate for Defensive Rookie of the Year in 2025",
@@ -565,6 +605,7 @@
       "name": "Jahmyr Gibbs",
       "team": "DET",
       "position": "RB",
+      "jerseyNumber": 26,
       "clues": [
         "From Dalton, Georgia and played at Georgia Tech before transferring to Alabama",
         "Forms a dynamic duo with David Montgomery in Detroit's backfield",
@@ -579,6 +620,7 @@
       "name": "Trey McBride",
       "team": "ARI",
       "position": "TE",
+      "jerseyNumber": 85,
       "clues": [
         "From Fort Morgan, Colorado and starred at Colorado State",
         "Emerging as one of the best young tight ends in the NFL",
@@ -593,6 +635,7 @@
       "name": "Tua Tagovailoa",
       "team": "MIA",
       "position": "QB",
+      "jerseyNumber": 1,
       "clues": [
         "From Ewa Beach, Hawaii and led Alabama to a national championship",
         "Has battled multiple concussions throughout his NFL career",
@@ -607,6 +650,7 @@
       "name": "Deebo Samuel",
       "team": "WAS",
       "position": "WR",
+      "jerseyNumber": 1,
       "clues": [
         "From Inman, South Carolina and starred at South Carolina",
         "Pioneered the 'wide back' role, taking handoffs as a receiver",
@@ -621,6 +665,7 @@
       "name": "Quinnen Williams",
       "team": "NYJ",
       "position": "DT",
+      "jerseyNumber": 95,
       "clues": [
         "From Birmingham, Alabama and dominated at the University of Alabama",
         "One of the highest-paid defensive tackles in NFL history",
@@ -635,6 +680,7 @@
       "name": "Sam LaPorta",
       "team": "DET",
       "position": "TE",
+      "jerseyNumber": 87,
       "clues": [
         "From Highland, Illinois and starred at the University of Iowa",
         "Set the rookie record for receptions by a tight end with 86 in 2023",
@@ -649,6 +695,7 @@
       "name": "Nico Collins",
       "team": "HOU",
       "position": "WR",
+      "jerseyNumber": 12,
       "clues": [
         "From Birmingham, Alabama and played at Michigan",
         "Emerged as one of the best deep threats in the NFL",
@@ -663,6 +710,7 @@
       "name": "Jordan Love",
       "team": "GB",
       "position": "QB",
+      "jerseyNumber": 10,
       "clues": [
         "From Bakersfield, California and played at Utah State",
         "Took over as Packers starter after Aaron Rodgers was traded",
@@ -677,6 +725,7 @@
       "name": "Aidan Hutchinson",
       "team": "DET",
       "position": "DE",
+      "jerseyNumber": 97,
       "clues": [
         "His father Chris played linebacker at Michigan and in the NFL",
         "Finished 2nd in Defensive Player of the Year voting in 2023",
@@ -691,6 +740,7 @@
       "name": "Brock Purdy",
       "team": "SF",
       "position": "QB",
+      "jerseyNumber": 13,
       "clues": [
         "From Queen Creek, Arizona and starred at Iowa State",
         "Selected with the final pick of the 2022 Draft, 'Mr. Irrelevant'",

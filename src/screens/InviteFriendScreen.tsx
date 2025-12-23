@@ -26,7 +26,7 @@ const sportIcons: Record<Sport, any> = {
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
-  pl: 'Premier League',
+  pl: 'EPL',
   nfl: 'NFL',
   mlb: 'MLB',
 };
@@ -108,8 +108,11 @@ export default function InviteFriendScreen({ duel, sport, onCancel, onOpponentJo
           <Image source={sportIcons[sport as Sport]} style={styles.sportIcon} />
         </Animated.View>
 
+        <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
+          <Image source={sportIcons[sport as Sport]} style={styles.sportBadgeIcon} resizeMode="contain" />
+          <Text style={styles.sportBadgeText}>{sportNames[sport as Sport]}</Text>
+        </View>
         <Text style={styles.title}>Challenge Friend</Text>
-        <Text style={[styles.sportLabel, { color: sportColor }]}>{sportNames[sport as Sport]}</Text>
 
         {/* Invite Code Section */}
         <View style={styles.codeSection}>
@@ -190,12 +193,32 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
-    marginBottom: 8,
-  },
-  sportLabel: {
-    fontSize: 16,
-    fontFamily: 'DMSans_900Black',
+    marginTop: 12,
     marginBottom: 32,
+  },
+  sportBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  sportBadgeIcon: {
+    width: 20,
+    height: 20,
+  },
+  sportBadgeText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
   },
   codeSection: {
     alignItems: 'center',
@@ -290,7 +313,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   cancelButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 16,
@@ -304,7 +327,9 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#1A1A1A',
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

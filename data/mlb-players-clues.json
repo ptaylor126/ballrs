@@ -5,6 +5,7 @@
       "name": "Shohei Ohtani",
       "team": "LAD",
       "position": "DH",
+      "jerseyNumber": 17,
       "clues": [
         "This player was the first pick in the 2012 NPB draft by the Hokkaido Nippon-Ham Fighters",
         "He won back-to-back AL MVP awards in 2021 and 2023 as a two-way player",
@@ -19,6 +20,7 @@
       "name": "Aaron Judge",
       "team": "NYY",
       "position": "OF",
+      "jerseyNumber": 99,
       "clues": [
         "He was adopted as an infant and raised in Linden, California",
         "He set the AL single-season home run record with 62 in 2022",
@@ -33,6 +35,7 @@
       "name": "Mookie Betts",
       "team": "LAD",
       "position": "SS",
+      "jerseyNumber": 50,
       "clues": [
         "He's an accomplished bowler who has competed in PBA events with a 300 game to his credit",
         "He won both an MVP award and a World Series with the Red Sox in 2018",
@@ -47,6 +50,7 @@
       "name": "Ronald Acuña Jr.",
       "team": "ATL",
       "position": "OF",
+      "jerseyNumber": 13,
       "clues": [
         "His father and uncles all played professional baseball in Venezuela",
         "He won NL MVP in 2023, becoming the first player with 40 HR and 70 SB in a season",
@@ -61,6 +65,7 @@
       "name": "Mike Trout",
       "team": "LAA",
       "position": "CF",
+      "jerseyNumber": 27,
       "clues": [
         "He grew up in Millville, New Jersey, where his high school jersey was retired",
         "He's a three-time AL MVP (2014, 2016, 2019) and 11-time All-Star",
@@ -75,6 +80,7 @@
       "name": "Freddie Freeman",
       "team": "LAD",
       "position": "1B",
+      "jerseyNumber": 5,
       "clues": [
         "He was born in Fountain Valley, California but moved to Canada at age 10",
         "He won the 2020 NL MVP and was the 2021 World Series champion with Atlanta",
@@ -89,6 +95,7 @@
       "name": "Juan Soto",
       "team": "NYM",
       "position": "OF",
+      "jerseyNumber": 22,
       "clues": [
         "He was discovered by scout Oz Ocampo while playing in the Dominican Republic at age 15",
         "He was the youngest player to hit a home run in a World Series game at 20 years old",
@@ -103,6 +110,7 @@
       "name": "Corey Seager",
       "team": "TEX",
       "position": "SS",
+      "jerseyNumber": 5,
       "clues": [
         "His brother Kyle is a former MLB third baseman who played for the Mariners",
         "He won World Series MVP in 2020 with the Dodgers, hitting .400 with 2 HR",
@@ -117,6 +125,7 @@
       "name": "Trea Turner",
       "team": "PHI",
       "position": "SS",
+      "jerseyNumber": 7,
       "clues": [
         "He attended NC State and was drafted in the first round by the Padres in 2014",
         "He led the NL in stolen bases three times and batting average once",
@@ -131,6 +140,7 @@
       "name": "Manny Machado",
       "team": "SDP",
       "position": "3B",
+      "jerseyNumber": 13,
       "clues": [
         "He was born in Miami and attended Brito High School, a powerhouse for Latin talent",
         "He finished second in MVP voting twice (2018, 2020) but has never won",
@@ -145,6 +155,7 @@
       "name": "Gerrit Cole",
       "team": "NYY",
       "position": "P",
+      "jerseyNumber": 45,
       "clues": [
         "He attended UCLA, where he was teammates with Trevor Bauer",
         "He won the 2023 AL Cy Young Award with a 15-4 record and 2.63 ERA",
@@ -159,6 +170,7 @@
       "name": "Max Scherzer",
       "team": "TEX",
       "position": "P",
+      "jerseyNumber": 31,
       "clues": [
         "He has heterochromia - one blue eye and one brown eye",
         "He's a three-time Cy Young Award winner (2013, 2016, 2017)",
@@ -173,6 +185,7 @@
       "name": "Bryce Harper",
       "team": "PHI",
       "position": "1B",
+      "jerseyNumber": 3,
       "clues": [
         "He appeared on the cover of Sports Illustrated at 16, dubbed 'The Chosen One'",
         "He's a two-time NL MVP (2015, 2021) and was the 2012 NL Rookie of the Year",
@@ -187,6 +200,7 @@
       "name": "Pete Alonso",
       "team": "NYM",
       "position": "1B",
+      "jerseyNumber": 20,
       "clues": [
         "He played college baseball at the University of Florida",
         "He's a three-time Home Run Derby champion (2019, 2021, 2024)",
@@ -201,6 +215,7 @@
       "name": "Vladimir Guerrero Jr.",
       "team": "TOR",
       "position": "1B",
+      "jerseyNumber": 27,
       "clues": [
         "His father is a Hall of Famer who hit 449 career home runs",
         "He finished second in AL MVP voting in 2021 with 48 HR and a .311 average",
@@ -215,6 +230,7 @@
       "name": "Fernando Tatis Jr.",
       "team": "SDP",
       "position": "OF",
+      "jerseyNumber": 23,
       "clues": [
         "His father hit two grand slams in a single inning for the Cardinals in 1999",
         "He led the NL in home runs in 2021 with 42 despite missing time",
@@ -229,6 +245,7 @@
       "name": "Bo Bichette",
       "team": "TOR",
       "position": "SS",
+      "jerseyNumber": 11,
       "clues": [
         "His father was a four-time All-Star outfielder in the 1990s who played for the Rockies",
         "He had a 26-game hitting streak as a rookie in 2019",
@@ -243,6 +260,7 @@
       "name": "Marcus Semien",
       "team": "TEX",
       "position": "2B",
+      "jerseyNumber": 2,
       "clues": [
         "He played college baseball at Cal and was drafted by the White Sox in 2011",
         "He finished third in AL MVP voting in 2019 with 33 HR and 43 doubles",
@@ -257,6 +275,7 @@
       "name": "Corbin Carroll",
       "team": "ARI",
       "position": "OF",
+      "jerseyNumber": 7,
       "clues": [
         "He was born in Seattle and attended Lakeside School, the same school Bill Gates attended",
         "He won both NL Rookie of the Year and a Silver Slugger in 2023",
@@ -271,6 +290,7 @@
       "name": "Julio Rodríguez",
       "team": "SEA",
       "position": "CF",
+      "jerseyNumber": 44,
       "clues": [
         "He was born in the Dominican Republic and signed with Seattle at age 16",
         "He won the 2022 AL Rookie of the Year and Home Run Derby",
@@ -285,6 +305,7 @@
       "name": "Spencer Strider",
       "team": "ATL",
       "position": "P",
+      "jerseyNumber": 99,
       "clues": [
         "He played college baseball at Clemson and was a fourth-round pick in 2020",
         "He set the record for strikeouts in a pitcher's first 100 innings with 154",
@@ -299,6 +320,7 @@
       "name": "Zack Wheeler",
       "team": "PHI",
       "position": "P",
+      "jerseyNumber": 45,
       "clues": [
         "He attended East Paulding High School in Dallas, Georgia",
         "He finished second in NL Cy Young voting in 2021 with 247 strikeouts",
@@ -313,6 +335,7 @@
       "name": "Yordan Alvarez",
       "team": "HOU",
       "position": "DH",
+      "jerseyNumber": 44,
       "clues": [
         "He was born in Cuba and signed with the Dodgers before being traded to Houston",
         "He won the 2019 AL Rookie of the Year in only 87 games",
@@ -327,6 +350,7 @@
       "name": "Matt Olson",
       "team": "ATL",
       "position": "1B",
+      "jerseyNumber": 28,
       "clues": [
         "He was born in Atlanta and returned to his hometown to play",
         "He hit 54 home runs in 2023, the most in Braves history",
@@ -341,6 +365,7 @@
       "name": "Jose Ramirez",
       "team": "CLE",
       "position": "3B",
+      "jerseyNumber": 11,
       "clues": [
         "He was signed as an international free agent from the Dominican Republic in 2009",
         "He's finished in the top 6 of MVP voting five times",
@@ -355,6 +380,7 @@
       "name": "Rafael Devers",
       "team": "BOS",
       "position": "3B",
+      "jerseyNumber": 11,
       "clues": [
         "He was signed out of the Dominican Republic at age 16",
         "He hit a grand slam in Game 4 of the 2021 ALCS at just 24 years old",
@@ -369,6 +395,7 @@
       "name": "Kyle Tucker",
       "team": "CHC",
       "position": "OF",
+      "jerseyNumber": 30,
       "clues": [
         "He was born in Tampa and attended Plant High School",
         "He hit for the cycle in the 2023 ALCS against the Rangers",
@@ -383,6 +410,7 @@
       "name": "Bobby Witt Jr.",
       "team": "KCR",
       "position": "SS",
+      "jerseyNumber": 7,
       "clues": [
         "His father pitched 16 seasons in the majors for five different teams",
         "He hit 30+ HR and stole 30+ bases in his second full season (2024)",
@@ -397,6 +425,7 @@
       "name": "Gunnar Henderson",
       "team": "BAL",
       "position": "SS",
+      "jerseyNumber": 2,
       "clues": [
         "He was born in Montgomery, Alabama and attended John Carroll Catholic High",
         "He finished second in AL Rookie of the Year voting in 2023",
@@ -411,6 +440,7 @@
       "name": "Adley Rutschman",
       "team": "BAL",
       "position": "C",
+      "jerseyNumber": 35,
       "clues": [
         "He played college baseball at Oregon State and won the Golden Spikes Award",
         "He finished second in 2022 AL Rookie of the Year voting",
@@ -425,6 +455,7 @@
       "name": "Elly De La Cruz",
       "team": "CIN",
       "position": "SS",
+      "jerseyNumber": 44,
       "clues": [
         "He was signed out of the Dominican Republic in 2018",
         "He stole 67 bases in 2024, leading the NL",
@@ -439,6 +470,7 @@
       "name": "Cody Bellinger",
       "team": "CHC",
       "position": "1B/OF",
+      "jerseyNumber": 24,
       "clues": [
         "His father played 11 seasons in the majors as an outfielder for the Yankees and others",
         "He won NL MVP and was the 2017 NL Rookie of the Year",
@@ -453,6 +485,7 @@
       "name": "Paul Skenes",
       "team": "PIT",
       "position": "P",
+      "jerseyNumber": 30,
       "clues": [
         "He played at Air Force before transferring to LSU",
         "He was named NL Rookie of the Year in 2024",
@@ -467,6 +500,7 @@
       "name": "Tarik Skubal",
       "team": "DET",
       "position": "P",
+      "jerseyNumber": 29,
       "clues": [
         "He played college baseball at Seattle University",
         "He won the 2024 AL Cy Young Award",
@@ -481,6 +515,7 @@
       "name": "Corbin Burnes",
       "team": "ARI",
       "position": "P",
+      "jerseyNumber": 39,
       "clues": [
         "He played college baseball at Saint Mary's",
         "He won the 2021 NL Cy Young Award with a 2.43 ERA",
@@ -495,6 +530,7 @@
       "name": "Yoshinobu Yamamoto",
       "team": "LAD",
       "position": "P",
+      "jerseyNumber": 18,
       "clues": [
         "He spent seven seasons with the Orix Buffaloes in Japan",
         "He won three consecutive NPB MVP awards from 2021-2023",
@@ -509,13 +545,14 @@
       "name": "Blake Snell",
       "team": "LAD",
       "position": "P",
+      "jerseyNumber": 7,
       "clues": [
         "He was born in Seattle and attended Shorewood High School",
         "He's won two Cy Young Awards (2018 AL, 2023 NL)",
         "He led the NL with a 2.25 ERA in 2023 despite only 32 starts",
         "He was drafted by the Rays in the first round in 2011",
         "He signed with the Dodgers as a free agent in spring 2024",
-        "This left-hander wears number 27"
+        "This left-hander wears number 7"
       ]
     },
     {
@@ -523,6 +560,7 @@
       "name": "Chris Sale",
       "team": "ATL",
       "position": "P",
+      "jerseyNumber": 51,
       "clues": [
         "He attended Florida Gulf Coast University and was a first-round pick in 2010",
         "He's a seven-time All-Star who has led the league in strikeouts twice",
@@ -537,6 +575,7 @@
       "name": "Tyler Glasnow",
       "team": "LAD",
       "position": "P",
+      "jerseyNumber": 31,
       "clues": [
         "He was born in Los Angeles and attended Hart High School in Santa Clarita",
         "He struck out 342 batters in 2024, leading the NL",
@@ -551,6 +590,7 @@
       "name": "Nolan Arenado",
       "team": "STL",
       "position": "3B",
+      "jerseyNumber": 28,
       "clues": [
         "He was born in Newport Beach, California and attended El Toro High School",
         "He's won 10 Gold Gloves at third base, tied for most at the position",
@@ -565,6 +605,7 @@
       "name": "Marcus Stroman",
       "team": "NYY",
       "position": "P",
+      "jerseyNumber": 0,
       "clues": [
         "He played college baseball at Duke and was drafted 22nd overall in 2012",
         "He led the AL in ground ball percentage for four consecutive seasons",
@@ -579,6 +620,7 @@
       "name": "Josh Hader",
       "team": "HOU",
       "position": "P",
+      "jerseyNumber": 71,
       "clues": [
         "He was originally drafted by the Orioles in 2012",
         "He's a four-time All-Star closer who struck out 17+ batters per 9 innings with Milwaukee",
@@ -593,6 +635,7 @@
       "name": "Emmanuel Clase",
       "team": "CLE",
       "position": "P",
+      "jerseyNumber": 48,
       "clues": [
         "He was signed as an international free agent from the Dominican Republic in 2015",
         "He saved 44 games in 2023, leading the American League",
@@ -607,6 +650,7 @@
       "name": "Willy Adames",
       "team": "SFG",
       "position": "SS",
+      "jerseyNumber": 11,
       "clues": [
         "He was originally signed by the Tigers out of the Dominican Republic",
         "He hit 32 home runs in 2024, the most by a Brewers shortstop",
@@ -621,6 +665,7 @@
       "name": "William Contreras",
       "team": "MIL",
       "position": "C",
+      "jerseyNumber": 24,
       "clues": [
         "His brother Willson is also a MLB catcher who plays for the Cardinals",
         "He was named to his second straight All-Star team in 2024",
@@ -635,6 +680,7 @@
       "name": "Ketel Marte",
       "team": "ARI",
       "position": "2B",
+      "jerseyNumber": 4,
       "clues": [
         "He was signed by the Mariners as an international free agent from the Dominican Republic",
         "He was the NLCS MVP in 2023 when Arizona reached the World Series",
@@ -649,6 +695,7 @@
       "name": "Ozzie Albies",
       "team": "ATL",
       "position": "2B",
+      "jerseyNumber": 1,
       "clues": [
         "He was signed by the Braves as an international free agent from Curacao",
         "He won a World Series ring with Atlanta in 2021",
@@ -663,6 +710,7 @@
       "name": "Luis Robert Jr.",
       "team": "CHW",
       "position": "CF",
+      "jerseyNumber": 88,
       "clues": [
         "He defected from Cuba in 2017 and was one of the most sought-after prospects",
         "He finished second in AL Rookie of the Year voting in 2020",
@@ -677,6 +725,7 @@
       "name": "Jackson Chourio",
       "team": "MIL",
       "position": "OF",
+      "jerseyNumber": 11,
       "clues": [
         "He was signed by the Brewers at age 16 from Venezuela",
         "He became the youngest Brewer ever to hit a home run in 2024 at 19",
@@ -691,6 +740,7 @@
       "name": "Jackson Holliday",
       "team": "BAL",
       "position": "2B",
+      "jerseyNumber": 7,
       "clues": [
         "His father was a seven-time All-Star and 2011 World Series champion with the Cardinals",
         "He won the Minor League Player of the Year award in 2023",

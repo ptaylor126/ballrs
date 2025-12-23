@@ -8,8 +8,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import {
   ProfileFrame,
   ProfileIcon,
@@ -37,6 +42,7 @@ const iconImages: Record<string, any> = {
   'profile': require('../../assets/images/icon-profile.png'),
   'home': require('../../assets/images/icon-home.png'),
   'leagues': require('../../assets/images/icon-leagues.png'),
+  'padlock': require('../../assets/images/icon-padlock.png'),
 };
 
 // Map icon_url (emoji or name) to image key
@@ -74,6 +80,11 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null);
   const [userLevel, setUserLevel] = useState(1);
   const [unlockedAchievementIds, setUnlockedAchievementIds] = useState<string[]>([]);
+  const [username, setUsername] = useState<string>('');
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -94,6 +105,17 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
       setSelectedFrameId(data.selectedFrameId);
       setUserLevel(data.userLevel);
       setUnlockedAchievementIds(data.unlockedAchievementIds);
+    }
+
+    // Fetch username from profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.username) {
+      setUsername(profile.username);
     }
 
     setLoading(false);
@@ -119,6 +141,65 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
       setSelectedIconId(icon.id);
     }
     setSaving(false);
+  }
+
+  function openUsernameModal() {
+    setNewUsername(username);
+    setUsernameError(null);
+    setShowUsernameModal(true);
+  }
+
+  async function handleSaveUsername() {
+    if (!user || !newUsername.trim()) return;
+
+    const trimmedUsername = newUsername.trim();
+
+    // Validate username
+    if (trimmedUsername.length < 3) {
+      setUsernameError('Username must be at least 3 characters');
+      return;
+    }
+    if (trimmedUsername.length > 20) {
+      setUsernameError('Username must be 20 characters or less');
+      return;
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
+      setUsernameError('Username can only contain letters, numbers, and underscores');
+      return;
+    }
+
+    setSavingUsername(true);
+    setUsernameError(null);
+
+    // Check if username is taken
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', trimmedUsername)
+      .neq('id', user.id)
+      .single();
+
+    if (existing) {
+      setUsernameError('Username is already taken');
+      setSavingUsername(false);
+      return;
+    }
+
+    // Update username
+    const { error } = await supabase
+      .from('profiles')
+      .update({ username: trimmedUsername })
+      .eq('id', user.id);
+
+    if (error) {
+      setUsernameError('Failed to update username');
+      setSavingUsername(false);
+      return;
+    }
+
+    setUsername(trimmedUsername);
+    setShowUsernameModal(false);
+    setSavingUsername(false);
   }
 
   function getFrameStyle(frame: ProfileFrame): FrameStyle {
@@ -152,14 +233,28 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.headerTitleRow}>
           <Text style={styles.title}>Customize Profile</Text>
           <Text style={styles.levelBadge}>Level {userLevel}</Text>
         </View>
-        <View style={styles.headerRight} />
+      </View>
+
+      {/* Username Section */}
+      <View style={styles.usernameSection}>
+        <View style={styles.usernameCard}>
+          <View style={styles.usernameInfo}>
+            <Text style={styles.usernameLabel}>Username</Text>
+            <Text style={styles.usernameValue}>{username || 'Not set'}</Text>
+          </View>
+          <TouchableOpacity style={styles.editButton} onPress={openUsernameModal}>
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Preview */}
@@ -244,7 +339,11 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
                         resizeMode="contain"
                       />
                     ) : !unlocked ? (
-                      <Text style={styles.lockIcon}>🔒</Text>
+                      <Image
+                        source={iconImages['padlock']}
+                        style={styles.lockIconImage}
+                        resizeMode="contain"
+                      />
                     ) : (
                       <Text style={styles.iconPreviewText}>{icon.icon_url}</Text>
                     )}
@@ -301,7 +400,11 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
                         resizeMode="contain"
                       />
                     ) : (
-                      <Text style={styles.lockIcon}>🔒</Text>
+                      <Image
+                        source={iconImages['padlock']}
+                        style={styles.lockIconImage}
+                        resizeMode="contain"
+                      />
                     )}
                   </View>
 
@@ -344,6 +447,59 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
           <Text style={styles.savingText}>Saving...</Text>
         </View>
       )}
+
+      {/* Username Change Modal */}
+      <Modal
+        visible={showUsernameModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowUsernameModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Change Username</Text>
+            <TextInput
+              style={styles.usernameInput}
+              value={newUsername}
+              onChangeText={setNewUsername}
+              placeholder="Enter new username"
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={20}
+            />
+            {usernameError && (
+              <Text style={styles.errorText}>{usernameError}</Text>
+            )}
+            <Text style={styles.usernameHint}>
+              3-20 characters. Letters, numbers, and underscores only.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowUsernameModal(false)}
+                disabled={savingUsername}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveButton, savingUsername && styles.saveButtonDisabled]}
+                onPress={handleSaveUsername}
+                disabled={savingUsername}
+              >
+                {savingUsername ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -359,17 +515,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   backButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 8,
+    backgroundColor: '#F2C94C',
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
@@ -380,8 +543,10 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: '#1A1A1A',
-    fontSize: 14,
-    fontFamily: 'DMSans_700Bold',
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   headerCenter: {
     alignItems: 'center',
@@ -524,9 +689,9 @@ const styles = StyleSheet.create({
   iconPreviewText: {
     fontSize: 32,
   },
-  lockIcon: {
-    fontSize: 24,
-    opacity: 0.5,
+  lockIconImage: {
+    width: 28,
+    height: 28,
   },
   iconName: {
     fontSize: 12,
@@ -663,5 +828,153 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'DMSans_500Medium',
+  },
+  // Username Section
+  usernameSection: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  usernameCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  usernameInfo: {
+    flex: 1,
+  },
+  usernameLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_500Medium',
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  usernameValue: {
+    fontSize: 18,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  editButton: {
+    backgroundColor: '#1ABC9C',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  usernameInput: {
+    backgroundColor: '#F5F2EB',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    fontFamily: 'DMSans_500Medium',
+    color: '#1A1A1A',
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 13,
+    fontFamily: 'DMSans_500Medium',
+    color: '#EF4444',
+    marginBottom: 8,
+  },
+  usernameHint: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: '#6B7280',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#E8E8E8',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: '#1ABC9C',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  saveButtonDisabled: {
+    opacity: 0.7,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
   },
 });

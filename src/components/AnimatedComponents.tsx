@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import {
   Animated,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   View,
   StyleSheet,
   ViewStyle,
@@ -72,15 +73,37 @@ export function AnimatedButton({
     outputRange: [2, 0],
   });
 
+  // Extract width/flex properties for the TouchableOpacity container
+  const flatStyle = StyleSheet.flatten(style) || {};
+  const containerStyle: any = {};
+  const innerStyle: any = { ...flatStyle };
+
+  // Move layout properties to container, remove from inner view
+  if (flatStyle.width) {
+    containerStyle.width = flatStyle.width;
+    delete innerStyle.width;
+  }
+  if (flatStyle.flex) {
+    containerStyle.flex = flatStyle.flex;
+    delete innerStyle.flex;
+  }
+  if (flatStyle.alignSelf) {
+    containerStyle.alignSelf = flatStyle.alignSelf;
+    delete innerStyle.alignSelf;
+  }
+
   return (
-    <TouchableWithoutFeedback
+    <TouchableOpacity
       onPress={disabled ? undefined : onPress}
       onPressIn={disabled ? undefined : handlePressIn}
       onPressOut={disabled ? undefined : handlePressOut}
+      activeOpacity={1}
+      disabled={disabled}
+      style={containerStyle}
     >
       <Animated.View
         style={[
-          style,
+          innerStyle,
           {
             transform: [{ translateX }, { translateY }],
             shadowOffset: {
@@ -97,7 +120,7 @@ export function AnimatedButton({
       >
         {children}
       </Animated.View>
-    </TouchableWithoutFeedback>
+    </TouchableOpacity>
   );
 }
 
@@ -222,12 +245,20 @@ export function AnimatedNavIcon({
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handlePress}>
+    <TouchableWithoutFeedback
+      onPress={handlePress}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      accessible={false}
+    >
       <Animated.View
         style={[
           style,
           {
             transform: [{ scale: scaleAnim }],
+            minWidth: 44,
+            minHeight: 44,
+            justifyContent: 'center',
+            alignItems: 'center',
           },
         ]}
       >

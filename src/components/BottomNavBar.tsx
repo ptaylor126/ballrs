@@ -51,6 +51,7 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
                 <Image
                   source={tabIcons[tab.name]}
                   style={[styles.icon, isActive && styles.iconActive]}
+                  accessible={false}
                 />
                 {showBadge && (
                   <View style={styles.badge}>

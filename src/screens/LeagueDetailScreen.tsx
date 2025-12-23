@@ -396,10 +396,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   backButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 8,
+    backgroundColor: '#F2C94C',
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     alignSelf: 'flex-start',
@@ -411,8 +411,10 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: '#1A1A1A',
-    fontSize: 14,
-    fontFamily: 'DMSans_700Bold',
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   leagueCard: {
     backgroundColor: '#FFFFFF',

@@ -211,7 +211,8 @@ export const getSportEmoji = (sport: Sport): string => {
   }
 };
 
-// Common styles for neubrutalist cards
+// Common styles for neubrutalist info cards (non-tappable)
+// White background, dark text, normal case, 8px radius
 export const cardStyle = {
   backgroundColor: colors.surface,
   borderWidth: borders.card,
@@ -220,17 +221,66 @@ export const cardStyle = {
   ...shadows.card,
 };
 
-// Common styles for buttons
+// Common styles for buttons (tappable)
+// Filled background, white text, uppercase, 16px pill radius
 export const buttonStyle = {
+  // Primary teal button
   primary: {
+    backgroundColor: colors.accent,
     borderWidth: borders.button,
     borderColor: colors.border,
     borderRadius: borderRadius.button,
+    ...shadows.card,
   },
+  // Secondary button (yellow background for Back, Cancel, Skip, etc.)
   secondary: {
+    backgroundColor: '#F2C94C',
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    borderRadius: borderRadius.button,
+    ...shadows.card,
+  },
+  // White button (for use in colored containers)
+  white: {
     backgroundColor: colors.surface,
     borderWidth: borders.button,
     borderColor: colors.border,
     borderRadius: borderRadius.button,
+    ...shadows.card,
+  },
+  // Sport-colored buttons (use getSportColor for backgroundColor)
+  sport: {
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    borderRadius: borderRadius.button,
+    ...shadows.card,
+  },
+  // Disabled state
+  disabled: {
+    backgroundColor: colors.accentDisabled,
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    borderRadius: borderRadius.button,
+    ...shadows.card,
+  },
+};
+
+// Button text styles (uppercase)
+export const buttonTextStyle = {
+  primary: {
+    color: '#FFFFFF',
+    ...typography.button,
+  },
+  secondary: {
+    color: '#1A1A1A',  // Dark text on yellow background
+    ...typography.button,
+  },
+  white: {
+    color: colors.text,
+    ...typography.button,
+  },
+  disabled: {
+    color: colors.accentDisabledText,
+    ...typography.button,
   },
 };

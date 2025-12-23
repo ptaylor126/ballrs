@@ -6,6 +6,7 @@
       "team": "MCI",
       "position": "FWD",
       "nationality": "Norway",
+      "jerseyNumber": 9,
       "clues": [
         "His father played for Manchester City and was infamously tackled by Roy Keane in 2001",
         "Won the Premier League Golden Boot and broke the scoring record with 36 goals in 2022-23",
@@ -21,6 +22,7 @@
       "team": "LIV",
       "position": "FWD",
       "nationality": "Egypt",
+      "jerseyNumber": 11,
       "clues": [
         "Previously played for Chelsea but was sold after just 19 appearances",
         "Won the PFA Player of the Year and Golden Boot with 32 goals in 2017-18",
@@ -36,6 +38,7 @@
       "team": "ARS",
       "position": "MID",
       "nationality": "England",
+      "jerseyNumber": 7,
       "clues": [
         "Joined Arsenal's academy at age 7 and made his debut at 17",
         "Named Arsenal's Player of the Season three consecutive years (2021-2024)",
@@ -51,6 +54,7 @@
       "team": "CHE",
       "position": "MID",
       "nationality": "England",
+      "jerseyNumber": 20,
       "clues": [
         "Scored four goals in one half against Brighton in 2024, a Premier League record",
         "Won PFA Young Player of the Year in his first full Premier League season",
@@ -66,6 +70,7 @@
       "team": "MUN",
       "position": "MID",
       "nationality": "Portugal",
+      "jerseyNumber": 8,
       "clues": [
         "Played in Italy for Udinese and Sampdoria before moving to Portugal",
         "Won four consecutive Manchester United Player of the Year awards",
@@ -81,6 +86,7 @@
       "team": "LIV",
       "position": "MID",
       "nationality": "Germany",
+      "jerseyNumber": 10,
       "clues": [
         "Won the Bundesliga with Bayer Leverkusen unbeaten in 2023-24 season",
         "Became Liverpool's record signing at £116 million in June 2025",
@@ -96,6 +102,7 @@
       "team": "LIV",
       "position": "DEF",
       "nationality": "Netherlands",
+      "jerseyNumber": 4,
       "clues": [
         "Started his career at Groningen and was rejected by multiple clubs as a teenager",
         "Finished 2nd in Ballon d'Or voting in 2019, highest ever for a defender",
@@ -111,6 +118,7 @@
       "team": "ARS",
       "position": "MID",
       "nationality": "Norway",
+      "jerseyNumber": 8,
       "clues": [
         "Signed for Real Madrid at age 16, becoming their youngest ever player",
         "Became Arsenal captain at age 23, the youngest in over a decade",
@@ -126,6 +134,7 @@
       "team": "MCI",
       "position": "MID",
       "nationality": "England",
+      "jerseyNumber": 47,
       "clues": [
         "Joined Manchester City's academy at age 4 and is a lifelong supporter",
         "Won PFA Player of the Year in 2024, the first City academy product to do so",
@@ -141,6 +150,7 @@
       "team": "ARS",
       "position": "MID",
       "nationality": "England",
+      "jerseyNumber": 41,
       "clues": [
         "Was released by Chelsea's academy at age 14 before joining West Ham",
         "Captained West Ham to their first European trophy in 58 years (Conference League 2023)",
@@ -156,6 +166,7 @@
       "team": "LIV",
       "position": "FWD",
       "nationality": "Sweden",
+      "jerseyNumber": 9,
       "clues": [
         "Was the youngest ever goalscorer for AIK Stockholm at 16 years old",
         "Went on strike at Newcastle demanding a transfer in August 2025",
@@ -171,6 +182,7 @@
       "team": "MCI",
       "position": "MID",
       "nationality": "Spain",
+      "jerseyNumber": 16,
       "clues": [
         "Came through the Atletico Madrid academy and played for Villarreal on loan",
         "Won the 2024 Ballon d'Or, the first Premier League midfielder since 1979",
@@ -186,6 +198,7 @@
       "team": "ARS",
       "position": "DEF",
       "nationality": "France",
+      "jerseyNumber": 2,
       "clues": [
         "Was loaned out three times before making his Arsenal debut",
         "Named in PFA Team of the Year in 2022-23, his first full Arsenal season",
@@ -201,6 +214,7 @@
       "team": "ARS",
       "position": "FWD",
       "nationality": "Sweden",
+      "jerseyNumber": 9,
       "clues": [
         "Scored an incredible 97 goals in 102 appearances for Sporting Lisbon",
         "Was released by Brighton as a youngster before rebuilding his career in Sweden",
@@ -216,6 +230,7 @@
       "team": "AVL",
       "position": "FWD",
       "nationality": "England",
+      "jerseyNumber": 11,
       "clues": [
         "Started his career at Exeter City in League Two before Brentford signed him",
         "Scored the winner vs Netherlands to send England to Euro 2024 final",
@@ -231,6 +246,7 @@
       "team": "TOT",
       "position": "MID",
       "nationality": "Netherlands",
+      "jerseyNumber": 7,
       "clues": [
         "Came through Barcelona's La Masia academy before joining PSG",
         "Left RB Leipzig after they failed to qualify for Champions League",
@@ -246,6 +262,7 @@
       "team": "CHE",
       "position": "MID",
       "nationality": "Ecuador",
+      "jerseyNumber": 25,
       "clues": [
         "Started his career at Independiente del Valle in Ecuador",
         "Chelsea and Liverpool had a bidding war for him in 2023",
@@ -261,6 +278,7 @@
       "team": "TOT",
       "position": "MID",
       "nationality": "England",
+      "jerseyNumber": 10,
       "clues": [
         "Released by Coventry at 15, then rebuilt his career at Norwich",
         "Won FA Cup with Leicester City in 2021, their first ever",
@@ -276,6 +294,7 @@
       "team": "WHU",
       "position": "FWD",
       "nationality": "England",
+      "jerseyNumber": 20,
       "clues": [
         "Played non-league football for Hereford before joining Hull City",
         "Scored in the Europa Conference League final win in 2023",
@@ -291,6 +310,7 @@
       "team": "MCI",
       "position": "MID",
       "nationality": "Portugal",
+      "jerseyNumber": 20,
       "clues": [
         "Came through Benfica's academy and played for Monaco before City",
         "Won PFA Player of the Year runner-up twice, voted by fellow players",
@@ -306,6 +326,7 @@
       "team": "ARS",
       "position": "MID",
       "nationality": "England",
+      "jerseyNumber": 10,
       "clues": [
         "Was released by multiple academies including Millwall and Arsenal as a youth",
         "Scored the only goal in the 2025 FA Cup final for Crystal Palace",
@@ -321,6 +342,7 @@
       "team": "CHE",
       "position": "FWD",
       "nationality": "Brazil",
+      "jerseyNumber": 9,
       "clues": [
         "Started his career at Fluminense before moving to Watford aged 18",
         "Was Brighton's joint-top scorer with 19 goals in 2024-25",
@@ -336,6 +358,7 @@
       "team": "NEW",
       "position": "MID",
       "nationality": "Brazil",
+      "jerseyNumber": 39,
       "clues": [
         "Was plucked from the Brazilian second division by Athletico Paranaense",
         "Has a £100 million release clause that top clubs have monitored",
@@ -351,6 +374,7 @@
       "team": "TOT",
       "position": "FWD",
       "nationality": "England",
+      "jerseyNumber": 19,
       "clues": [
         "Won the Golden Ball at the U20 World Cup in 2017 with England",
         "Scored 19 Premier League goals for Bournemouth in 2023-24",
@@ -366,6 +390,7 @@
       "team": "MCI",
       "position": "DEF",
       "nationality": "Portugal",
+      "jerseyNumber": 3,
       "clues": [
         "Came through Benfica's academy and captained Portugal at youth levels",
         "Won FWA Footballer of the Year in his debut Premier League season (2020-21)",
@@ -381,6 +406,7 @@
       "team": "ARS",
       "position": "MID",
       "nationality": "Spain",
+      "jerseyNumber": 36,
       "clues": [
         "Spent his entire career at Real Sociedad before joining Arsenal",
         "Turned down Liverpool in 2024, opting to stay at Sociedad another year",
@@ -396,6 +422,7 @@
       "team": "ARS",
       "position": "FWD",
       "nationality": "Germany",
+      "jerseyNumber": 29,
       "clues": [
         "Became the youngest player to reach 100 Bundesliga appearances at 20 years old",
         "Scored the winning goal in the 2021 Champions League final for Chelsea",
@@ -411,6 +438,7 @@
       "team": "CHE",
       "position": "MID",
       "nationality": "Argentina",
+      "jerseyNumber": 8,
       "clues": [
         "Started at River Plate and was part of Argentina's 2022 World Cup squad",
         "Won the Best Young Player award at the 2022 World Cup",
@@ -426,6 +454,7 @@
       "team": "WHU",
       "position": "MID",
       "nationality": "Ghana",
+      "jerseyNumber": 14,
       "clues": [
         "Grew up in Nima, one of the poorest areas of Accra, Ghana",
         "Scored a stunning solo goal against Freiburg in Champions League for Ajax",
@@ -441,6 +470,7 @@
       "team": "NEW",
       "position": "MID",
       "nationality": "Italy",
+      "jerseyNumber": 8,
       "clues": [
         "Compared to Andrea Pirlo as a youngster coming through Brescia",
         "Won Serie A with AC Milan in 2022 before moving to England",
@@ -456,6 +486,7 @@
       "team": "LIV",
       "position": "MID",
       "nationality": "Argentina",
+      "jerseyNumber": 10,
       "clues": [
         "His father Carlos and two brothers also played professional football",
         "Started in the World Cup final and won it with Argentina in 2022",
@@ -471,6 +502,7 @@
       "team": "BHA",
       "position": "FWD",
       "nationality": "Japan",
+      "jerseyNumber": 22,
       "clues": [
         "Wrote a university thesis on dribbling while at Tsukuba University",
         "Scored a controversial goal vs Liverpool where the ball may have crossed the line",
@@ -486,6 +518,7 @@
       "team": "MCI",
       "position": "DEF",
       "nationality": "Croatia",
+      "jerseyNumber": 24,
       "clues": [
         "Became the most expensive defender ever at £77 million when signed",
         "Was one of the standout defenders at the 2022 World Cup aged just 20",
@@ -501,6 +534,7 @@
       "team": "MUN",
       "position": "DEF",
       "nationality": "Argentina",
+      "jerseyNumber": 6,
       "clues": [
         "Nicknamed 'The Butcher' for his aggressive tackling style at Ajax",
         "Won the World Cup with Argentina in 2022",
@@ -516,6 +550,7 @@
       "team": "AVL",
       "position": "GK",
       "nationality": "Argentina",
+      "jerseyNumber": 1,
       "clues": [
         "Spent 10 years at Arsenal with multiple loan spells before his breakthrough",
         "Won the Golden Glove at the 2022 World Cup, saving key penalties in the final",
@@ -531,6 +566,7 @@
       "team": "NEW",
       "position": "FWD",
       "nationality": "England",
+      "jerseyNumber": 10,
       "clues": [
         "Came through Everton's academy and is a lifelong Evertonian",
         "Was subject of a £75 million bid from Liverpool in 2024",
@@ -546,6 +582,7 @@
       "team": "ARS",
       "position": "FWD",
       "nationality": "England",
+      "jerseyNumber": 11,
       "clues": [
         "Left England at 16 to join PSV Eindhoven's academy in the Netherlands",
         "Chelsea signed him for £29 million from PSV in January 2023",
@@ -561,6 +598,7 @@
       "team": "CHE",
       "position": "FWD",
       "nationality": "Argentina",
+      "jerseyNumber": 17,
       "clues": [
         "Born in Madrid but chose to represent Argentina internationally",
         "Came through Manchester United's academy and was compared to Ronaldo",
@@ -576,6 +614,7 @@
       "team": "EVE",
       "position": "GK",
       "nationality": "England",
+      "jerseyNumber": 1,
       "clues": [
         "Grew up in Washington and was a Sunderland fan as a child",
         "England's first-choice goalkeeper and penalty shootout hero at World Cup 2018",
@@ -591,6 +630,7 @@
       "team": "MCI",
       "position": "GK",
       "nationality": "Italy",
+      "jerseyNumber": 1,
       "clues": [
         "Made his AC Milan debut at just 16 years old, the youngest ever",
         "Won the Best Player award at Euro 2020 as Italy won the tournament",
@@ -606,6 +646,7 @@
       "team": "FUL",
       "position": "DEF",
       "nationality": "USA",
+      "jerseyNumber": 33,
       "clues": [
         "Born in England but chose to represent the United States",
         "Key player in USA's run to the Round of 16 at the 2022 World Cup",
@@ -621,6 +662,7 @@
       "team": "TOT",
       "position": "DEF",
       "nationality": "Spain",
+      "jerseyNumber": 23,
       "clues": [
         "Came through the Girona academy before joining Manchester City",
         "Part of Spain's Euro 2024 winning squad",
@@ -636,6 +678,7 @@
       "team": "ARS",
       "position": "GK",
       "nationality": "Spain",
+      "jerseyNumber": 22,
       "clues": [
         "Started his career at Blackburn Rovers before dropping down to League One",
         "Saved a penalty from Erling Haaland in a crucial game vs Man City",
@@ -651,6 +694,7 @@
       "team": "WOL",
       "position": "FWD",
       "nationality": "Brazil",
+      "jerseyNumber": 10,
       "clues": [
         "Represented Brazil at the 2020 Tokyo Olympics",
         "Wolves' top scorer and most important player",
@@ -666,6 +710,7 @@
       "team": "TOT",
       "position": "DEF",
       "nationality": "Netherlands",
+      "jerseyNumber": 37,
       "clues": [
         "Started his career at Volendam in the Netherlands before Wolfsburg",
         "Made a famous length-of-the-pitch run vs Brentford in 2023",
@@ -681,6 +726,7 @@
       "team": "MUN",
       "position": "MID",
       "nationality": "England",
+      "jerseyNumber": 37,
       "clues": [
         "Born in Stockport and joined Man United's academy at age 9",
         "Scored the winning goal in the 2024 FA Cup final against Man City",
@@ -696,6 +742,7 @@
       "team": "CHE",
       "position": "FWD",
       "nationality": "England",
+      "jerseyNumber": 19,
       "clues": [
         "His father was famous for his long throw-ins at Stoke City",
         "Was Ipswich Town's top scorer with 12 goals in their 2024-25 PL season",
@@ -711,6 +758,7 @@
       "team": "BRE",
       "position": "FWD",
       "nationality": "Cameroon",
+      "jerseyNumber": 19,
       "clues": [
         "Started his career at Troyes in France before moving to England",
         "Became Brentford's top scorer after Ivan Toney's departure",
@@ -726,6 +774,7 @@
       "team": "MUN",
       "position": "FWD",
       "nationality": "Slovenia",
+      "jerseyNumber": 9,
       "clues": [
         "Came through Red Bull Salzburg's academy before joining RB Leipzig",
         "Scored 18 Bundesliga goals for Leipzig in 2024-25 season",
@@ -741,6 +790,7 @@
       "team": "TOT",
       "position": "DEF",
       "nationality": "Argentina",
+      "jerseyNumber": 17,
       "clues": [
         "Named Serie A Defender of the Year in 2021 while at Atalanta",
         "Won the World Cup with Argentina in 2022, starting in the final",

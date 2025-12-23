@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { getSportColor, Sport } from '../lib/theme';
+import { soundService } from '../lib/soundService';
 
 // Sport icons
 const sportIcons: Record<Sport, any> = {
@@ -22,7 +23,7 @@ const sportIcons: Record<Sport, any> = {
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
-  pl: 'Premier League',
+  pl: 'EPL',
   nfl: 'NFL',
   mlb: 'MLB',
 };
@@ -35,7 +36,10 @@ import {
   submitTriviaAnswer,
   completeDuel,
   determineWinner,
+  determineFinalWinner,
   setRoundStartTime,
+  advanceToNextRound,
+  getCurrentQuestionId,
 } from '../lib/duelService';
 import { areFriends, addFriend } from '../lib/friendsService';
 import { supabase } from '../lib/supabase';
@@ -55,6 +59,7 @@ interface Props {
   duel: Duel;
   onBack: () => void;
   onComplete: (won: boolean) => void;
+  getRandomQuestionId?: (sport: 'nba' | 'pl' | 'nfl' | 'mlb') => string;
 }
 
 const TIMER_DURATION = 15; // seconds
@@ -92,7 +97,7 @@ const getTriviaQuestions = (sport: 'nba' | 'pl' | 'nfl' | 'mlb'): TriviaQuestion
   }
 };
 
-export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }: Props) {
+export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, getRandomQuestionId }: Props) {
   const { user } = useAuth();
   const [duel, setDuel] = useState<Duel>(initialDuel);
   const [question, setQuestion] = useState<TriviaQuestion | null>(null);
@@ -100,9 +105,15 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
   const [hasAnswered, setHasAnswered] = useState(false);
   const [opponentAnswered, setOpponentAnswered] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(TIMER_DURATION);
-  const [gamePhase, setGamePhase] = useState<'waiting' | 'playing' | 'results'>('waiting');
+  const [gamePhase, setGamePhase] = useState<'waiting' | 'playing' | 'roundResult' | 'results'>('waiting');
   const [showResultModal, setShowResultModal] = useState(false);
   const [roundStartTime, setRoundStartTimeState] = useState<number | null>(null);
+
+  // Multi-question state
+  const [myScore, setMyScore] = useState(0);
+  const [opponentScore, setOpponentScore] = useState(0);
+  const [roundWon, setRoundWon] = useState<boolean | null>(null);
+  const [isAdvancingRound, setIsAdvancingRound] = useState(false);
 
   const [alreadyFriends, setAlreadyFriends] = useState(false);
   const [friendAdded, setFriendAdded] = useState(false);
@@ -114,6 +125,11 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
   const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
   const [showAchievementToast, setShowAchievementToast] = useState(false);
 
+  // Helper to check if this is a multi-question duel
+  const isMultiQuestion = duel.question_count > 1;
+  const totalQuestions = duel.question_count;
+  const currentRound = duel.current_round;
+
   const channelRef = useRef<RealtimeChannel | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const timerAnim = useRef(new Animated.Value(1)).current;
@@ -124,20 +140,31 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
     new Animated.Value(1),
     new Animated.Value(1),
   ]).current;
+  const lastTickSecond = useRef<number>(-1);
+  const soundPlayedForResult = useRef<boolean>(false);
 
   const isPlayer1 = user?.id === duel.player1_id;
   const opponentId = isPlayer1 ? duel.player2_id : duel.player1_id;
   const sportColor = getSportColor(duel.sport as Sport);
   const isFriendDuel = !!initialDuel.invite_code;
 
-  // Find the trivia question
+  // Initialize sound service
+  useEffect(() => {
+    soundService.initialize();
+    return () => {
+      soundService.cleanup();
+    };
+  }, []);
+
+  // Find the trivia question for current round
   useEffect(() => {
     const questions = getTriviaQuestions(duel.sport);
-    const q = questions.find(q => q.id === duel.mystery_player_id);
+    const currentQuestionId = getCurrentQuestionId(duel);
+    const q = questions.find(q => q.id === currentQuestionId);
     if (q) {
       setQuestion(q);
     }
-  }, [duel.mystery_player_id, duel.sport]);
+  }, [duel.mystery_player_id, duel.sport, duel.current_round]);
 
   // Pulse animation for live indicator
   useEffect(() => {
@@ -196,6 +223,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
     channelRef.current = subscribeToDuel(duel.id, (updatedDuel) => {
       setDuel(updatedDuel);
 
+      // Update scores from duel state
+      const myCurrentScore = isPlayer1 ? updatedDuel.player1_score : updatedDuel.player2_score;
+      const oppCurrentScore = isPlayer1 ? updatedDuel.player2_score : updatedDuel.player1_score;
+      setMyScore(myCurrentScore);
+      setOpponentScore(oppCurrentScore);
+
       // Check if round started
       if (updatedDuel.round_start_time && gamePhase === 'waiting') {
         const startTime = new Date(updatedDuel.round_start_time).getTime();
@@ -211,9 +244,26 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
 
       // Check if both have answered or game is completed
       const myAnswer = isPlayer1 ? updatedDuel.player1_answer : updatedDuel.player2_answer;
-      if (updatedDuel.status === 'completed' || (myAnswer !== null && opponentAnswer !== null)) {
+      if (updatedDuel.status === 'completed') {
         setGamePhase('results');
         setShowResultModal(true);
+
+        // TODO: INTERSTITIAL AD TRIGGER POINT
+        // Show interstitial ad after duel completion
+        // Example with AdMob:
+        // import { InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+        // const interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID);
+        // interstitial.show();
+      } else if (myAnswer !== null && opponentAnswer !== null && gamePhase === 'playing') {
+        // Both answered - handle round end
+        if (isMultiQuestion) {
+          // Show round result, then advance
+          setGamePhase('roundResult');
+        } else {
+          // Single question - show final results
+          setGamePhase('results');
+          setShowResultModal(true);
+        }
       }
     });
 
@@ -222,9 +272,104 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
         unsubscribeFromDuel(channelRef.current);
       }
     };
-  }, [duel.id, isPlayer1, gamePhase]);
+  }, [duel.id, isPlayer1, gamePhase, isMultiQuestion]);
 
-  // Timer countdown
+  // Helper function to get random question ID
+  const getNewQuestionId = useCallback(() => {
+    if (getRandomQuestionId) {
+      return getRandomQuestionId(duel.sport);
+    }
+    // Fallback: generate random question ID from available questions
+    const questions = getTriviaQuestions(duel.sport);
+    const usedIds = duel.mystery_player_id.split(',');
+    const availableQuestions = questions.filter(q => !usedIds.includes(q.id));
+    if (availableQuestions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+      return availableQuestions[randomIndex].id;
+    }
+    // If all questions used, just pick a random one
+    const randomIndex = Math.floor(Math.random() * questions.length);
+    return questions[randomIndex].id;
+  }, [duel.sport, duel.mystery_player_id, getRandomQuestionId]);
+
+  // Handle round result phase - advance to next round after brief delay
+  useEffect(() => {
+    if (gamePhase !== 'roundResult' || !question || isAdvancingRound) return;
+
+    // Calculate if I won this round
+    const myAnswer = isPlayer1 ? duel.player1_answer : duel.player2_answer;
+    const oppAnswer = isPlayer1 ? duel.player2_answer : duel.player1_answer;
+    const iCorrect = myAnswer === question.correctAnswer;
+    const oCorrect = oppAnswer === question.correctAnswer;
+    setRoundWon(iCorrect && !oCorrect ? true : (!iCorrect && oCorrect ? false : null));
+
+    const isLastRound = currentRound >= totalQuestions;
+
+    // Wait 2 seconds to show round result, then advance
+    const timer = setTimeout(async () => {
+      if (isLastRound) {
+        // Last round - complete the duel and show final results
+        const p1Correct = duel.player1_answer === question.correctAnswer;
+        const p2Correct = duel.player2_answer === question.correctAnswer;
+
+        // Calculate final scores including this round
+        const finalP1Score = duel.player1_score + (p1Correct ? 1 : 0);
+        const finalP2Score = duel.player2_score + (p2Correct ? 1 : 0);
+        const finalP1Time = duel.player1_total_time + (duel.player1_answer_time || TIMER_DURATION * 1000);
+        const finalP2Time = duel.player2_total_time + (duel.player2_answer_time || TIMER_DURATION * 1000);
+
+        // Update local scores for display
+        setMyScore(isPlayer1 ? finalP1Score : finalP2Score);
+        setOpponentScore(isPlayer1 ? finalP2Score : finalP1Score);
+
+        // Player 1 determines final winner and completes duel
+        if (isPlayer1) {
+          // Create a temporary duel object with final scores for winner determination
+          const finalDuel = {
+            ...duel,
+            player1_score: finalP1Score,
+            player2_score: finalP2Score,
+            player1_total_time: finalP1Time,
+            player2_total_time: finalP2Time,
+          };
+          const { winnerId } = determineFinalWinner(finalDuel);
+          await completeDuel(duel.id, winnerId || '');
+        }
+
+        setGamePhase('results');
+        setShowResultModal(true);
+      } else {
+        // Not last round - advance to next round (only player 1 does this)
+        if (isPlayer1 && !isAdvancingRound) {
+          setIsAdvancingRound(true);
+          const newQuestionId = getNewQuestionId();
+          const p1Correct = duel.player1_answer === question.correctAnswer;
+          const p2Correct = duel.player2_answer === question.correctAnswer;
+          await advanceToNextRound(
+            duel.id,
+            newQuestionId,
+            p1Correct,
+            p2Correct,
+            duel.player1_answer_time || TIMER_DURATION * 1000,
+            duel.player2_answer_time || TIMER_DURATION * 1000
+          );
+        }
+        // Reset round state
+        setSelectedAnswer(null);
+        setHasAnswered(false);
+        setOpponentAnswered(false);
+        setTimeRemaining(TIMER_DURATION);
+        setRoundStartTimeState(null);
+        setRoundWon(null);
+        setIsAdvancingRound(false);
+        setGamePhase('waiting');
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [gamePhase, question, isPlayer1, currentRound, totalQuestions, duel, isAdvancingRound, getNewQuestionId]);
+
+  // Timer countdown with tick sounds
   useEffect(() => {
     if (gamePhase !== 'playing' || !roundStartTime) return;
 
@@ -236,8 +381,17 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
       // Animate timer bar
       timerAnim.setValue(remaining / TIMER_DURATION);
 
+      // Play tick sounds each second
+      const currentSecond = Math.ceil(remaining);
+      if (currentSecond !== lastTickSecond.current && currentSecond > 0 && currentSecond <= TIMER_DURATION && !hasAnswered) {
+        lastTickSecond.current = currentSecond;
+        // Play faster tick in last 5 seconds
+        soundService.playTick(currentSecond <= 5);
+      }
+
       if (remaining <= 0 && !hasAnswered) {
-        // Time's up - submit null answer
+        // Time's up - play buzzer and submit null answer
+        soundService.playBuzzer();
         handleTimeUp();
       }
     };
@@ -284,7 +438,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
   }, [duel.id, question]);
 
   const handleSelectAnswer = async (answer: string, index: number) => {
-    if (hasAnswered || gamePhase !== 'playing' || !roundStartTime) return;
+    if (hasAnswered || gamePhase !== 'playing' || !roundStartTime || !question) return;
 
     // Animate button press
     Animated.sequence([
@@ -302,6 +456,13 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
 
     setSelectedAnswer(answer);
     setHasAnswered(true);
+
+    // Play correct/wrong sound
+    if (answer === question.correctAnswer) {
+      soundService.playCorrect();
+    } else {
+      soundService.playWrong();
+    }
 
     // Calculate answer time (ms from round start)
     const answerTime = Date.now() - roundStartTime;
@@ -342,9 +503,38 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
     if (gamePhase === 'results' && user && !xpAwarded && question) {
       setXpAwarded(true);
 
-      const { winnerId } = determineWinner(duel, question.correctAnswer);
-      const won = winnerId === user.id;
-      const tie = winnerId === null;
+      let won: boolean;
+      let tie: boolean;
+
+      if (isMultiQuestion) {
+        // For multi-question duels, use scores to determine winner
+        if (myScore > opponentScore) {
+          won = true;
+          tie = false;
+        } else if (opponentScore > myScore) {
+          won = false;
+          tie = false;
+        } else {
+          // Scores tied - use total time as tiebreaker
+          const myTotalTime = isPlayer1 ? duel.player1_total_time : duel.player2_total_time;
+          const oppTotalTime = isPlayer1 ? duel.player2_total_time : duel.player1_total_time;
+          if (myTotalTime < oppTotalTime) {
+            won = true;
+            tie = false;
+          } else if (oppTotalTime < myTotalTime) {
+            won = false;
+            tie = false;
+          } else {
+            won = false;
+            tie = true;
+          }
+        }
+      } else {
+        // Single question duel
+        const { winnerId } = determineWinner(duel, question.correctAnswer);
+        won = winnerId === user.id;
+        tie = winnerId === null;
+      }
 
       // Calculate XP: Winner 75, Loser 25, Tie 40
       const xpResult: 'win' | 'loss' | 'tie' = tie ? 'tie' : won ? 'win' : 'loss';
@@ -368,7 +558,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
         });
       }, 500);
     }
-  }, [gamePhase, user, xpAwarded, question, duel, isPlayer1]);
+  }, [gamePhase, user, xpAwarded, question, duel, isPlayer1, isMultiQuestion, myScore, opponentScore]);
 
   const getTimerColor = () => {
     if (timeRemaining <= 3) return colors.timerDanger;
@@ -410,58 +600,96 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
 
   const showFriendPrompt = isFriendDuel && !alreadyFriends && !friendAdded && opponentId;
 
-  // Determine result
+  // Determine result for both single and multi-question duels
   const getResult = () => {
-    if (!question) return { won: false, tie: false, subtitle: '', xpEarned: 0 };
+    if (!question) return { won: false, tie: false, subtitle: '', xpEarned: 0, finalScore: { me: 0, opp: 0 } };
 
-    const { winnerId, reason } = determineWinner(duel, question.correctAnswer);
-    const won = winnerId === user?.id;
-    const tie = winnerId === null;
+    let won: boolean;
+    let tie: boolean;
+    let subtitle: string;
 
-    const myAnswer = isPlayer1 ? duel.player1_answer : duel.player2_answer;
-    const opponentAnswer = isPlayer1 ? duel.player2_answer : duel.player1_answer;
-    const myTime = isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time;
-    const opponentTime = isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time;
+    if (isMultiQuestion) {
+      // For multi-question duels, use scores to determine winner
+      const finalMyScore = myScore;
+      const finalOppScore = opponentScore;
 
-    const iCorrect = myAnswer === question.correctAnswer;
-    const oCorrect = opponentAnswer === question.correctAnswer;
-    const iTimedOut = myAnswer === '' || myAnswer === null;
-    const oTimedOut = opponentAnswer === '' || opponentAnswer === null;
+      won = finalMyScore > finalOppScore;
+      tie = finalMyScore === finalOppScore;
+
+      // If scores are equal, use total time as tiebreaker
+      if (tie) {
+        const myTotalTime = isPlayer1 ? duel.player1_total_time : duel.player2_total_time;
+        const oppTotalTime = isPlayer1 ? duel.player2_total_time : duel.player1_total_time;
+        if (myTotalTime < oppTotalTime) {
+          won = true;
+          tie = false;
+          subtitle = `Tied ${finalMyScore}-${finalOppScore}, but you were faster overall!`;
+        } else if (oppTotalTime < myTotalTime) {
+          won = false;
+          tie = false;
+          subtitle = `Tied ${finalMyScore}-${finalOppScore}, but opponent was faster overall`;
+        } else {
+          subtitle = `Tied ${finalMyScore}-${finalOppScore} with same total time!`;
+        }
+      } else if (won) {
+        subtitle = `You won ${finalMyScore}-${finalOppScore}!`;
+      } else {
+        subtitle = `You lost ${finalMyScore}-${finalOppScore}`;
+      }
+    } else {
+      // Single question duel - original logic
+      const { winnerId, reason } = determineWinner(duel, question.correctAnswer);
+      won = winnerId === user?.id;
+      tie = winnerId === null;
+
+      const myAnswer = isPlayer1 ? duel.player1_answer : duel.player2_answer;
+      const opponentAnswer = isPlayer1 ? duel.player2_answer : duel.player1_answer;
+      const myTime = isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time;
+      const opponentTime = isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time;
+
+      const iCorrect = myAnswer === question.correctAnswer;
+      const oCorrect = opponentAnswer === question.correctAnswer;
+      const iTimedOut = myAnswer === '' || myAnswer === null;
+      const oTimedOut = opponentAnswer === '' || opponentAnswer === null;
+
+      if (tie) {
+        if (iTimedOut && oTimedOut) {
+          subtitle = 'Both players timed out';
+        } else if (!iCorrect && !oCorrect) {
+          subtitle = 'Neither player answered correctly';
+        } else {
+          subtitle = 'Exact same answer time!';
+        }
+      } else if (won) {
+        if (iCorrect && oTimedOut) {
+          subtitle = 'Opponent timed out!';
+        } else if (iCorrect && !oCorrect) {
+          subtitle = 'You answered correctly!';
+        } else if (iCorrect && oCorrect) {
+          const timeDiff = ((opponentTime || 0) - (myTime || 0)) / 1000;
+          subtitle = `You were ${timeDiff.toFixed(2)}s faster!`;
+        } else {
+          subtitle = '';
+        }
+      } else {
+        if (oCorrect && iTimedOut) {
+          subtitle = 'You timed out';
+        } else if (!iCorrect && oCorrect) {
+          subtitle = 'Opponent answered correctly';
+        } else if (iCorrect && oCorrect) {
+          const timeDiff = ((myTime || 0) - (opponentTime || 0)) / 1000;
+          subtitle = `Opponent was ${timeDiff.toFixed(2)}s faster`;
+        } else {
+          subtitle = '';
+        }
+      }
+    }
 
     // Calculate XP earned
     const xpResult: 'win' | 'loss' | 'tie' = tie ? 'tie' : won ? 'win' : 'loss';
     const xpEarned = calculateDuelXP(xpResult);
 
-    let subtitle = '';
-    if (tie) {
-      if (iTimedOut && oTimedOut) {
-        subtitle = 'Both players timed out';
-      } else if (!iCorrect && !oCorrect) {
-        subtitle = 'Neither player answered correctly';
-      } else {
-        subtitle = 'Exact same answer time!';
-      }
-    } else if (won) {
-      if (iCorrect && oTimedOut) {
-        subtitle = 'Opponent timed out!';
-      } else if (iCorrect && !oCorrect) {
-        subtitle = 'You answered correctly!';
-      } else if (iCorrect && oCorrect) {
-        const timeDiff = ((opponentTime || 0) - (myTime || 0)) / 1000;
-        subtitle = `You were ${timeDiff.toFixed(2)}s faster!`;
-      }
-    } else {
-      if (oCorrect && iTimedOut) {
-        subtitle = 'You timed out';
-      } else if (!iCorrect && oCorrect) {
-        subtitle = 'Opponent answered correctly';
-      } else if (iCorrect && oCorrect) {
-        const timeDiff = ((myTime || 0) - (opponentTime || 0)) / 1000;
-        subtitle = `Opponent was ${timeDiff.toFixed(2)}s faster`;
-      }
-    }
-
-    return { won, tie, subtitle, xpEarned };
+    return { won, tie, subtitle, xpEarned, finalScore: { me: myScore, opp: opponentScore } };
   };
 
   const result = getResult();
@@ -484,10 +712,29 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
         <Text style={styles.title}>Trivia Duel</Text>
         <View style={styles.sportBadgeContainer}>
           <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
-            <Image source={sportIcons[duel.sport as Sport]} style={styles.sportIcon} />
+            <Image source={sportIcons[duel.sport as Sport]} style={styles.sportIcon} resizeMode="contain" />
             <Text style={styles.sportBadgeText}>{sportNames[duel.sport as Sport]}</Text>
           </View>
         </View>
+        {/* Round and Score Display for multi-question duels */}
+        {isMultiQuestion && (
+          <View style={styles.roundScoreContainer}>
+            <View style={styles.roundIndicator}>
+              <Text style={styles.roundText}>Round {currentRound} of {totalQuestions}</Text>
+            </View>
+            <View style={styles.scoreDisplay}>
+              <View style={styles.scoreItem}>
+                <Text style={styles.scoreLabel}>You</Text>
+                <Text style={[styles.scoreValue, { color: sportColor }]}>{myScore}</Text>
+              </View>
+              <Text style={styles.scoreDivider}>-</Text>
+              <View style={styles.scoreItem}>
+                <Text style={styles.scoreLabel}>{opponentUsername || 'Opp'}</Text>
+                <Text style={[styles.scoreValue, { color: colors.opponent }]}>{opponentScore}</Text>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Timer Bar */}
@@ -591,6 +838,33 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
         </View>
       )}
 
+      {/* Round Result Overlay (for multi-question duels) */}
+      {gamePhase === 'roundResult' && question && (
+        <View style={styles.roundResultOverlay}>
+          <View style={styles.roundResultCard}>
+            <Text style={styles.roundResultEmoji}>
+              {roundWon === true ? '✓' : roundWon === false ? '✗' : '−'}
+            </Text>
+            <Text style={[
+              styles.roundResultText,
+              roundWon === true && styles.roundResultWin,
+              roundWon === false && styles.roundResultLose,
+              roundWon === null && styles.roundResultTie,
+            ]}>
+              {roundWon === true ? 'Correct!' : roundWon === false ? 'Wrong!' : 'Tie!'}
+            </Text>
+            <Text style={styles.roundResultAnswer}>
+              Answer: {question.correctAnswer}
+            </Text>
+            {currentRound < totalQuestions ? (
+              <Text style={styles.roundResultNext}>Next question in 2s...</Text>
+            ) : (
+              <Text style={styles.roundResultNext}>Calculating final results...</Text>
+            )}
+          </View>
+        </View>
+      )}
+
       {/* Results Modal */}
       {showResultModal && question && (
         <View style={styles.modalOverlay}>
@@ -608,6 +882,21 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
             </Text>
             <Text style={styles.modalSubtitle}>{result.subtitle}</Text>
 
+            {/* Final Score Display for multi-question duels */}
+            {isMultiQuestion && (
+              <View style={styles.finalScoreContainer}>
+                <View style={styles.finalScoreItem}>
+                  <Text style={styles.finalScoreLabel}>You</Text>
+                  <Text style={[styles.finalScoreValue, { color: sportColor }]}>{result.finalScore.me}</Text>
+                </View>
+                <Text style={styles.finalScoreDivider}>-</Text>
+                <View style={styles.finalScoreItem}>
+                  <Text style={styles.finalScoreLabel}>{opponentUsername || 'Opp'}</Text>
+                  <Text style={[styles.finalScoreValue, { color: colors.opponent }]}>{result.finalScore.opp}</Text>
+                </View>
+              </View>
+            )}
+
             {/* XP Earned */}
             <View style={[styles.xpBadge, { backgroundColor: `${sportColor}30` }]}>
               <Text style={[styles.xpBadgeText, { color: sportColor }]}>
@@ -615,59 +904,63 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete }
               </Text>
             </View>
 
-            {/* Question */}
-            <View style={styles.questionSummary}>
-              <Text style={styles.questionSummaryText}>{question.question}</Text>
-            </View>
+            {/* Question (only show for single-question duels) */}
+            {!isMultiQuestion && (
+              <>
+                <View style={styles.questionSummary}>
+                  <Text style={styles.questionSummaryText}>{question.question}</Text>
+                </View>
 
-            {/* Correct Answer */}
-            <View style={styles.answerContainer}>
-              <Text style={styles.answerLabel}>Correct Answer:</Text>
-              <Text style={styles.answerText}>{question.correctAnswer}</Text>
-            </View>
+                {/* Correct Answer */}
+                <View style={styles.answerContainer}>
+                  <Text style={styles.answerLabel}>Correct Answer:</Text>
+                  <Text style={styles.answerText}>{question.correctAnswer}</Text>
+                </View>
 
-            {/* Players' Answers Comparison */}
-            <View style={styles.answersComparison}>
-              <View style={styles.answerColumn}>
-                <Text style={styles.answerColumnLabel}>You</Text>
-                <Text style={[
-                  styles.answerColumnValue,
-                  (isPlayer1 ? duel.player1_answer : duel.player2_answer) === question.correctAnswer
-                    ? styles.correctAnswerText
-                    : styles.wrongAnswerText
-                ]}>
-                  {(isPlayer1 ? duel.player1_answer : duel.player2_answer) || 'Timed out'}
-                </Text>
-                {(isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time) ? (
-                  <Text style={styles.answerTime}>
-                    {((isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time)! / 1000).toFixed(2)}s
-                  </Text>
-                ) : (
-                  <Text style={styles.answerTime}>--</Text>
-                )}
-              </View>
-              <View style={styles.vsContainer}>
-                <Text style={styles.vsText}>VS</Text>
-              </View>
-              <View style={styles.answerColumn}>
-                <Text style={styles.answerColumnLabel}>{opponentUsername || 'Opponent'}</Text>
-                <Text style={[
-                  styles.answerColumnValue,
-                  (isPlayer1 ? duel.player2_answer : duel.player1_answer) === question.correctAnswer
-                    ? styles.correctAnswerText
-                    : styles.wrongAnswerText
-                ]}>
-                  {(isPlayer1 ? duel.player2_answer : duel.player1_answer) || 'Timed out'}
-                </Text>
-                {(isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time) ? (
-                  <Text style={styles.answerTime}>
-                    {((isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time)! / 1000).toFixed(2)}s
-                  </Text>
-                ) : (
-                  <Text style={styles.answerTime}>--</Text>
-                )}
-              </View>
-            </View>
+                {/* Players' Answers Comparison */}
+                <View style={styles.answersComparison}>
+                  <View style={styles.answerColumn}>
+                    <Text style={styles.answerColumnLabel}>You</Text>
+                    <Text style={[
+                      styles.answerColumnValue,
+                      (isPlayer1 ? duel.player1_answer : duel.player2_answer) === question.correctAnswer
+                        ? styles.correctAnswerText
+                        : styles.wrongAnswerText
+                    ]}>
+                      {(isPlayer1 ? duel.player1_answer : duel.player2_answer) || 'Timed out'}
+                    </Text>
+                    {(isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time) ? (
+                      <Text style={styles.answerTime}>
+                        {((isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time)! / 1000).toFixed(2)}s
+                      </Text>
+                    ) : (
+                      <Text style={styles.answerTime}>--</Text>
+                    )}
+                  </View>
+                  <View style={styles.vsContainer}>
+                    <Text style={styles.vsText}>VS</Text>
+                  </View>
+                  <View style={styles.answerColumn}>
+                    <Text style={styles.answerColumnLabel}>{opponentUsername || 'Opponent'}</Text>
+                    <Text style={[
+                      styles.answerColumnValue,
+                      (isPlayer1 ? duel.player2_answer : duel.player1_answer) === question.correctAnswer
+                        ? styles.correctAnswerText
+                        : styles.wrongAnswerText
+                    ]}>
+                      {(isPlayer1 ? duel.player2_answer : duel.player1_answer) || 'Timed out'}
+                    </Text>
+                    {(isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time) ? (
+                      <Text style={styles.answerTime}>
+                        {((isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time)! / 1000).toFixed(2)}s
+                      </Text>
+                    ) : (
+                      <Text style={styles.answerTime}>--</Text>
+                    )}
+                  </View>
+                </View>
+              </>
+            )}
 
             {showFriendPrompt && (
               <TouchableOpacity style={styles.addFriendButton} onPress={handleAddFriend}>
@@ -737,10 +1030,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
@@ -751,8 +1044,10 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: '#1A1A1A',
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   liveIndicator: {
     flexDirection: 'row',
@@ -789,9 +1084,10 @@ const styles = StyleSheet.create({
   sportBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
@@ -803,8 +1099,6 @@ const styles = StyleSheet.create({
   sportIcon: {
     width: 20,
     height: 20,
-    tintColor: '#FFFFFF',
-    marginRight: 8,
   },
   sportBadgeText: {
     fontSize: 14,
@@ -887,7 +1181,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   cancelButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
@@ -900,9 +1194,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cancelButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
-    color: colors.textDark,
+    color: '#1A1A1A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   questionContainer: {
     backgroundColor: '#FFFFFF',
@@ -1208,5 +1504,144 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     fontSize: 16,
     fontFamily: 'DMSans_900Black',
+  },
+  // Multi-question duel styles
+  roundScoreContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingHorizontal: 8,
+  },
+  roundIndicator: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  roundText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.textDark,
+  },
+  scoreDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  scoreItem: {
+    alignItems: 'center',
+  },
+  scoreLabel: {
+    fontSize: 10,
+    fontFamily: 'DMSans_500Medium',
+    color: colors.textMuted,
+  },
+  scoreValue: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
+  },
+  scoreDivider: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
+    color: colors.textMuted,
+    marginHorizontal: 12,
+  },
+  // Round result overlay
+  roundResultOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  roundResultCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 32,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 280,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  roundResultEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  roundResultText: {
+    fontSize: 24,
+    fontFamily: 'DMSans_900Black',
+    marginBottom: 8,
+  },
+  roundResultWin: {
+    color: colors.correct,
+  },
+  roundResultLose: {
+    color: colors.wrong,
+  },
+  roundResultTie: {
+    color: colors.textMuted,
+  },
+  roundResultAnswer: {
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    color: colors.textDark,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  roundResultNext: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.textMuted,
+    fontStyle: 'italic',
+  },
+  // Final score display in results modal
+  finalScoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    marginBottom: 16,
+  },
+  finalScoreItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  finalScoreLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: colors.textMuted,
+    marginBottom: 4,
+  },
+  finalScoreValue: {
+    fontSize: 32,
+    fontFamily: 'DMSans_900Black',
+  },
+  finalScoreDivider: {
+    fontSize: 28,
+    fontFamily: 'DMSans_900Black',
+    color: colors.textMuted,
+    marginHorizontal: 16,
   },
 });

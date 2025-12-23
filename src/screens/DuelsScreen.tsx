@@ -175,8 +175,10 @@ interface Props {
   onNavigateToDuel: (duel: Duel) => void;
   onLogin: () => void;
   onQuickDuel?: (sport: Sport) => void;
-  onChallengeFriend?: (sport: Sport) => void;
+  onChallengeFriend?: (sport: Sport, questionCount: number) => void;
 }
+
+const QUESTION_COUNT_OPTIONS = [1, 3, 7, 10];
 
 const formatTime = (ms: number | null): string => {
   if (ms === null) return '--';
@@ -197,6 +199,9 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
   const [processingDuelId, setProcessingDuelId] = useState<string | null>(null);
   const [sportSelectorVisible, setSportSelectorVisible] = useState(false);
   const [sportSelectorAction, setSportSelectorAction] = useState<'quickDuel' | 'challenge'>('quickDuel');
+  const [questionCountPickerVisible, setQuestionCountPickerVisible] = useState(false);
+  const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
+  const [selectedQuestionCount, setSelectedQuestionCount] = useState(3);
   const [inputFocused, setInputFocused] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [duelToCancel, setDuelToCancel] = useState<DuelWithOpponent | null>(null);
@@ -322,8 +327,23 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
     setSportSelectorVisible(false);
     if (sportSelectorAction === 'quickDuel' && onQuickDuel) {
       onQuickDuel(sport);
-    } else if (sportSelectorAction === 'challenge' && onChallengeFriend) {
-      onChallengeFriend(sport);
+    } else if (sportSelectorAction === 'challenge') {
+      // Show question count picker for Challenge Friend
+      setSelectedSport(sport);
+      setSelectedQuestionCount(3); // Default to 3 questions
+      setQuestionCountPickerVisible(true);
+    }
+  };
+
+  const handleQuestionCountSelect = (count: number) => {
+    setSelectedQuestionCount(count);
+  };
+
+  const handleConfirmChallenge = () => {
+    if (selectedSport && onChallengeFriend) {
+      setQuestionCountPickerVisible(false);
+      onChallengeFriend(selectedSport, selectedQuestionCount);
+      setSelectedSport(null);
     }
   };
 
@@ -534,7 +554,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
             <TextInput
               style={[styles.codeInput, inputFocused && styles.codeInputFocused]}
               placeholder="Enter invite code"
-              placeholderTextColor="#888888"
+              placeholderTextColor="#F2C94C"
               value={inviteCode}
               onChangeText={setInviteCode}
               onFocus={() => setInputFocused(true)}
@@ -644,6 +664,65 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
             <TouchableOpacity
               style={styles.modalCancelButton}
               onPress={() => setSportSelectorVisible(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Question Count Picker Modal */}
+      <Modal
+        visible={questionCountPickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQuestionCountPickerVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setQuestionCountPickerVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalContent}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.modalTitle}>How many questions?</Text>
+            <Text style={styles.modalSubtitle}>
+              {selectedSport && sportNames[selectedSport]} Trivia
+            </Text>
+            <View style={styles.questionCountOptions}>
+              {QUESTION_COUNT_OPTIONS.map((count) => (
+                <TouchableOpacity
+                  key={count}
+                  style={[
+                    styles.questionCountOption,
+                    selectedQuestionCount === count && styles.questionCountOptionSelected,
+                  ]}
+                  onPress={() => handleQuestionCountSelect(count)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.questionCountText,
+                      selectedQuestionCount === count && styles.questionCountTextSelected,
+                    ]}
+                  >
+                    {count}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <AnimatedButton
+              style={[styles.confirmChallengeButton, { backgroundColor: selectedSport ? getSportColor(selectedSport) : ACCENT_COLOR }]}
+              onPress={handleConfirmChallenge}
+            >
+              <Text style={styles.confirmChallengeButtonText}>Create Challenge</Text>
+            </AnimatedButton>
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setQuestionCountPickerVisible(false)}
             >
               <Text style={styles.modalCancelText}>Cancel</Text>
             </TouchableOpacity>
@@ -822,13 +901,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   loginButtonText: {
-    fontSize: 16,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   // Sections
   section: {
-    paddingHorizontal: 24,
+    paddingLeft: 24,
+    paddingRight: 26, // Extra 2px for shadow offset
     marginBottom: 24,
   },
   sectionTitle: {
@@ -959,7 +1041,7 @@ const styles = StyleSheet.create({
   declineButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     backgroundColor: '#FFFFFF',
@@ -970,14 +1052,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   declineButtonText: {
-    fontSize: 14,
-    fontFamily: 'DMSans_700Bold',
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
     color: '#666666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   acceptButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
@@ -987,9 +1071,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   acceptButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   // Join by Code
   codeCard: {
@@ -997,7 +1083,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
-    padding: 16,
+    paddingVertical: 16,
+    paddingLeft: 16,
+    paddingRight: 18,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -1008,7 +1096,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   codeInput: {
-    flex: 0.65,
+    flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -1019,19 +1107,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     borderWidth: 2,
     borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
   },
   codeInputFocused: {
-    borderColor: ACCENT_COLOR,
+    borderColor: '#1ABC9C',
   },
   joinButton: {
-    flex: 0.35,
-    backgroundColor: ACCENT_COLOR,
+    backgroundColor: '#F2C94C',
     paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
@@ -1044,17 +1127,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   joinButtonDisabled: {
-    backgroundColor: DISABLED_BG,
-    shadowOpacity: 0,
-    elevation: 0,
+    backgroundColor: '#E8E8E8',
   },
   joinButtonText: {
     fontSize: 14,
     fontFamily: 'DMSans_900Black',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
   },
   joinButtonTextDisabled: {
-    color: DISABLED_TEXT,
+    color: '#999999',
   },
   // History Cards
   historyCard: {
@@ -1121,9 +1202,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   actionButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   // Modal
   modalOverlay: {
@@ -1177,26 +1260,99 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   sportOptionText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   modalCancelButton: {
     marginTop: 16,
+    backgroundColor: '#F2C94C',
     paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
     alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   modalCancelText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  modalSubtitle: {
     fontSize: 14,
-    fontFamily: 'DMSans_600SemiBold',
+    fontFamily: 'DMSans_500Medium',
     color: '#666666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  questionCountOptions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 24,
+  },
+  questionCountOption: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  questionCountOptionSelected: {
+    backgroundColor: ACCENT_COLOR,
+  },
+  questionCountText: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  questionCountTextSelected: {
+    color: '#FFFFFF',
+  },
+  confirmChallengeButton: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  confirmChallengeButtonText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   // Section header with hint
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
   swipeHint: {
     fontSize: 11,
@@ -1222,7 +1378,7 @@ const styles = StyleSheet.create({
   },
   swipeCancelButton: {
     backgroundColor: '#E53935',
-    borderRadius: 8,
+    borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
     justifyContent: 'center',
@@ -1236,9 +1392,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   swipeCancelButtonText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   duelCardWrapper: {
     backgroundColor: '#F5F2EB',
@@ -1278,7 +1436,7 @@ const styles = StyleSheet.create({
   },
   keepButton: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 2,
@@ -1291,9 +1449,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   keepButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   confirmCancelButton: {
     flex: 1,
@@ -1310,9 +1470,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   confirmCancelButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   // Toast
   toast: {

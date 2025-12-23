@@ -5,6 +5,7 @@
       "name": "LeBron James",
       "team": "LAL",
       "position": "SF",
+      "jerseyNumber": 23,
       "clues": [
         "Was drafted straight out of St. Vincent-St. Mary High School in Akron, Ohio",
         "4-time NBA champion and 4-time Finals MVP with three different franchises",
@@ -19,6 +20,7 @@
       "name": "Stephen Curry",
       "team": "GSW",
       "position": "PG",
+      "jerseyNumber": 30,
       "clues": [
         "His father played 16 seasons in the NBA and his brother also plays professionally",
         "4-time NBA champion and only unanimous MVP in league history (2016)",
@@ -33,6 +35,7 @@
       "name": "Kevin Durant",
       "team": "PHX",
       "position": "SF",
+      "jerseyNumber": 35,
       "clues": [
         "Grew up in Prince George's County, Maryland and played one year at Texas",
         "2-time NBA Finals MVP, winning back-to-back titles with the Warriors",
@@ -47,6 +50,7 @@
       "name": "Giannis Antetokounmpo",
       "team": "MIL",
       "position": "PF",
+      "jerseyNumber": 34,
       "clues": [
         "Born in Athens, Greece to Nigerian immigrant parents, sold goods on the streets as a child",
         "2021 NBA Finals MVP, dropping 50 points in the closeout Game 6",
@@ -61,6 +65,7 @@
       "name": "Nikola Jokic",
       "team": "DEN",
       "position": "C",
+      "jerseyNumber": 15,
       "clues": [
         "Was drafted while the Nuggets staff was at a Taco Bell, famously picked 41st overall",
         "3-time MVP (2021, 2022, 2024) and 2023 NBA Finals MVP",
@@ -75,6 +80,7 @@
       "name": "Luka Doncic",
       "team": "DAL",
       "position": "PG",
+      "jerseyNumber": 77,
       "clues": [
         "Won the EuroLeague MVP at age 19, the youngest ever, before entering the NBA",
         "Led the Mavericks to the 2024 NBA Finals in just his sixth season",
@@ -89,6 +95,7 @@
       "name": "Joel Embiid",
       "team": "PHI",
       "position": "C",
+      "jerseyNumber": 21,
       "clues": [
         "Didn't start playing basketball until age 15 in his native Cameroon",
         "2023 NBA MVP and has won multiple scoring titles",
@@ -103,6 +110,7 @@
       "name": "Jayson Tatum",
       "team": "BOS",
       "position": "SF",
+      "jerseyNumber": 0,
       "clues": [
         "His godfather is former NBA player Larry Hughes who played with his father",
         "2024 NBA champion and Finals MVP, leading Boston to their 18th title",
@@ -117,6 +125,7 @@
       "name": "Anthony Edwards",
       "team": "MIN",
       "position": "SG",
+      "jerseyNumber": 5,
       "clues": [
         "Grew up in Atlanta and was a standout football player before focusing on basketball",
         "Led the Timberwolves to the Western Conference Finals in 2024",
@@ -131,6 +140,7 @@
       "name": "Shai Gilgeous-Alexander",
       "team": "OKC",
       "position": "PG",
+      "jerseyNumber": 2,
       "clues": [
         "Born in Toronto, Canada and played college basketball at Kentucky",
         "Finished top-3 in MVP voting in 2024, leading OKC's rebuild",
@@ -145,6 +155,7 @@
       "name": "Jaylen Brown",
       "team": "BOS",
       "position": "SG",
+      "jerseyNumber": 7,
       "clues": [
         "Studied philosophy at Cal Berkeley and is known for his intellectual pursuits",
         "2024 NBA Finals MVP, leading the Celtics to their 18th championship",
@@ -159,6 +170,7 @@
       "name": "Devin Booker",
       "team": "PHX",
       "position": "SG",
+      "jerseyNumber": 1,
       "clues": [
         "His father Melvin Booker played professionally overseas after a brief NBA career",
         "Led the Suns to the 2021 NBA Finals, their first appearance since 1993",
@@ -173,6 +185,7 @@
       "name": "Ja Morant",
       "team": "MEM",
       "position": "PG",
+      "jerseyNumber": 12,
       "clues": [
         "Was a 2-star recruit who only had one D1 offer from Murray State",
         "Won Rookie of the Year in 2020 and Most Improved Player in 2022",
@@ -187,6 +200,7 @@
       "name": "Donovan Mitchell",
       "team": "CLE",
       "position": "SG",
+      "jerseyNumber": 45,
       "clues": [
         "His father Donovan Sr. was an MLB player in the Mets organization",
         "Scored 71 points in a game against Chicago in 2023, most in Cavaliers history",
@@ -201,6 +215,7 @@
       "name": "Jimmy Butler",
       "team": "MIA",
       "position": "SF",
+      "jerseyNumber": 22,
       "clues": [
         "Was homeless as a teenager and bounced between friends' homes in Texas",
         "Led the Heat to two NBA Finals appearances (2020, 2023)",
@@ -215,6 +230,7 @@
       "name": "Damian Lillard",
       "team": "MIL",
       "position": "PG",
+      "jerseyNumber": 0,
       "clues": [
         "From Oakland, California and played college ball at Weber State in Utah",
         "Hit the famous 'Dame Time' series-winning shot against OKC in 2019",
@@ -229,6 +245,7 @@
       "name": "Kyrie Irving",
       "team": "DAL",
       "position": "PG",
+      "jerseyNumber": 11,
       "clues": [
         "Born in Melbourne, Australia and moved to the US at age 2",
         "Hit the championship-winning shot in Game 7 of the 2016 Finals for Cleveland",
@@ -243,6 +260,7 @@
       "name": "Kawhi Leonard",
       "team": "LAC",
       "position": "SF",
+      "jerseyNumber": 2,
       "clues": [
         "His father Mark was murdered at a car wash in Compton when Kawhi was 16",
         "2-time Finals MVP with two different franchises (Spurs 2014, Raptors 2019)",
@@ -257,6 +275,7 @@
       "name": "Paul George",
       "team": "PHI",
       "position": "SF",
+      "jerseyNumber": 8,
       "clues": [
         "Suffered a gruesome leg injury during a Team USA scrimmage in 2014",
         "Finished 3rd in MVP voting in 2019 while with Oklahoma City",
@@ -271,6 +290,7 @@
       "name": "Anthony Davis",
       "team": "LAL",
       "position": "PF",
+      "jerseyNumber": 3,
       "clues": [
         "Won a national championship and was named MOP at Kentucky in 2012",
         "2020 NBA champion with the Lakers, won in the Orlando bubble",
@@ -285,6 +305,7 @@
       "name": "Trae Young",
       "team": "ATL",
       "position": "PG",
+      "jerseyNumber": 11,
       "clues": [
         "Named after former NFL running back Trae Waynes; played at Oklahoma",
         "Led the Hawks to the Eastern Conference Finals in 2021",
@@ -299,6 +320,7 @@
       "name": "Zion Williamson",
       "team": "NOP",
       "position": "PF",
+      "jerseyNumber": 1,
       "clues": [
         "Went viral in high school for his incredible dunks; played one year at Duke",
         "Became the fastest player in NBA history to score 500 points in 30 games or fewer",
@@ -313,6 +335,7 @@
       "name": "Karl-Anthony Towns",
       "team": "NYK",
       "position": "C",
+      "jerseyNumber": 32,
       "clues": [
         "His mother Jacqueline died from COVID-19 complications in 2020",
         "Won Rookie of the Year in 2016 and is a 4-time All-Star",
@@ -327,6 +350,7 @@
       "name": "Bam Adebayo",
       "team": "MIA",
       "position": "C",
+      "jerseyNumber": 13,
       "clues": [
         "Raised by a single mother in Newark, New Jersey; named Edrice but goes by Bam",
         "Made the iconic block on Jayson Tatum in the 2020 Eastern Conference Finals",
@@ -341,6 +365,7 @@
       "name": "Draymond Green",
       "team": "GSW",
       "position": "PF",
+      "jerseyNumber": 23,
       "clues": [
         "From Saginaw, Michigan; was Big Ten Player of the Year at Michigan State",
         "4-time NBA champion and 2017 Defensive Player of the Year",
@@ -355,6 +380,7 @@
       "name": "Jalen Brunson",
       "team": "NYK",
       "position": "PG",
+      "jerseyNumber": 11,
       "clues": [
         "His father played 9 seasons in the NBA and is now an assistant coach for the Knicks",
         "Won back-to-back national championships at Villanova (2016, 2018)",
@@ -369,6 +395,7 @@
       "name": "De'Aaron Fox",
       "team": "SAC",
       "position": "PG",
+      "jerseyNumber": 5,
       "clues": [
         "From New Orleans; his speed at Kentucky earned him comparisons to John Wall",
         "Led the Kings to their first playoff appearance in 17 years in 2023",
@@ -383,6 +410,7 @@
       "name": "Tyrese Haliburton",
       "team": "IND",
       "position": "PG",
+      "jerseyNumber": 0,
       "clues": [
         "From Oshkosh, Wisconsin; played college ball at Iowa State",
         "Led the league in assists in 2024, becoming an All-NBA player",
@@ -397,6 +425,7 @@
       "name": "LaMelo Ball",
       "team": "CHA",
       "position": "PG",
+      "jerseyNumber": 1,
       "clues": [
         "Played professionally in Lithuania and Australia before the NBA draft",
         "Won Rookie of the Year in 2021, youngest of three basketball-playing brothers",
@@ -411,6 +440,7 @@
       "name": "Pascal Siakam",
       "team": "IND",
       "position": "PF",
+      "jerseyNumber": 43,
       "clues": [
         "From Cameroon; didn't start playing basketball until age 17",
         "Won the 2019 NBA Championship with Toronto and was Most Improved Player in 2019",
@@ -425,6 +455,7 @@
       "name": "Domantas Sabonis",
       "team": "SAC",
       "position": "C",
+      "jerseyNumber": 10,
       "clues": [
         "His father is a Hall of Famer considered one of the best European players ever",
         "3-time All-Star who leads the league in rebounds",
@@ -439,6 +470,7 @@
       "name": "Jaren Jackson Jr.",
       "team": "MEM",
       "position": "PF",
+      "jerseyNumber": 13,
       "clues": [
         "His father played 12 seasons in the NBA for multiple teams",
         "Won Defensive Player of the Year in 2023",
@@ -453,6 +485,7 @@
       "name": "Chet Holmgren",
       "team": "OKC",
       "position": "C",
+      "jerseyNumber": 7,
       "clues": [
         "From Minneapolis; won high school national championship at Minnehaha Academy",
         "Named to All-Rookie First Team in 2024 after missing entire first year injured",
@@ -467,6 +500,7 @@
       "name": "Victor Wembanyama",
       "team": "SAS",
       "position": "C",
+      "jerseyNumber": 1,
       "clues": [
         "From France; was playing professionally at age 15 for Nanterre",
         "Won Rookie of the Year in 2024 with historic defensive numbers",
@@ -481,6 +515,7 @@
       "name": "Jrue Holiday",
       "team": "BOS",
       "position": "PG",
+      "jerseyNumber": 4,
       "clues": [
         "His brother Justin plays in the NBA and brother Aaron played in the NFL",
         "2021 NBA champion with Milwaukee, key player in the Finals",
@@ -495,6 +530,7 @@
       "name": "Derrick White",
       "team": "BOS",
       "position": "SG",
+      "jerseyNumber": 9,
       "clues": [
         "Played at Division II Colorado-Colorado Springs before transferring to Colorado",
         "2024 NBA champion with Boston, hit crucial shots in the Finals",
@@ -509,6 +545,7 @@
       "name": "Kristaps Porzingis",
       "team": "BOS",
       "position": "C",
+      "jerseyNumber": 8,
       "clues": [
         "From Latvia; was playing for Sevilla in Spain before being drafted",
         "2024 NBA champion with Boston after injuries limited his career",
@@ -523,6 +560,7 @@
       "name": "Mikal Bridges",
       "team": "NYK",
       "position": "SF",
+      "jerseyNumber": 1,
       "clues": [
         "Grew up in Philadelphia and played college ball at Villanova",
         "Had an ironman streak of 335+ consecutive games played",
@@ -537,6 +575,7 @@
       "name": "Bradley Beal",
       "team": "PHX",
       "position": "SG",
+      "jerseyNumber": 3,
       "clues": [
         "From St. Louis, Missouri; played one year at Florida",
         "Led the league in scoring in 2021 with 31.3 points per game",
@@ -551,6 +590,7 @@
       "name": "Fred VanVleet",
       "team": "HOU",
       "position": "PG",
+      "jerseyNumber": 5,
       "clues": [
         "From Rockford, Illinois; went undrafted out of Wichita State",
         "2019 NBA champion with Toronto, hit crucial 3s in the Finals",
@@ -565,6 +605,7 @@
       "name": "OG Anunoby",
       "team": "NYK",
       "position": "SF",
+      "jerseyNumber": 8,
       "clues": [
         "Born in London, England and moved to the US as a child",
         "2019 NBA champion with Toronto, elite defensive player",
@@ -579,6 +620,7 @@
       "name": "Lauri Markkanen",
       "team": "UTA",
       "position": "PF",
+      "jerseyNumber": 23,
       "clues": [
         "From Finland; his father and grandfather both played professional basketball",
         "Became the first Finnish All-Star in NBA history in 2023",
@@ -593,6 +635,7 @@
       "name": "Scottie Barnes",
       "team": "TOR",
       "position": "SF",
+      "jerseyNumber": 4,
       "clues": [
         "From West Palm Beach, Florida; played one year at Florida State",
         "Won Rookie of the Year in 2022, beating out Cade Cunningham and Evan Mobley",
@@ -607,6 +650,7 @@
       "name": "Evan Mobley",
       "team": "CLE",
       "position": "C",
+      "jerseyNumber": 4,
       "clues": [
         "His brother Isaiah also plays in the NBA; both played at USC",
         "Finished 2nd in Rookie of the Year voting in 2022",
@@ -621,6 +665,7 @@
       "name": "Cade Cunningham",
       "team": "DET",
       "position": "PG",
+      "jerseyNumber": 2,
       "clues": [
         "From Arlington, Texas; led Oklahoma State to NCAA Tournament in 2021",
         "Finished 3rd in Rookie of the Year voting in 2022",
@@ -635,6 +680,7 @@
       "name": "Desmond Bane",
       "team": "MEM",
       "position": "SG",
+      "jerseyNumber": 22,
       "clues": [
         "From Richmond, Indiana; played four years at TCU",
         "Became one of the best 3-point shooters in the league",
@@ -649,6 +695,7 @@
       "name": "Anfernee Simons",
       "team": "POR",
       "position": "SG",
+      "jerseyNumber": 1,
       "clues": [
         "Skipped college to play at IMG Academy, entered draft straight from prep school",
         "Had a 45-point game in 2022, emerging as Portland's future star",
@@ -663,6 +710,7 @@
       "name": "Austin Reaves",
       "team": "LAL",
       "position": "SG",
+      "jerseyNumber": 15,
       "clues": [
         "From Newark, Arkansas; transferred from Wichita State to Oklahoma",
         "Went undrafted and became a key starter for the Lakers",
@@ -677,6 +725,7 @@
       "name": "Jalen Williams",
       "team": "OKC",
       "position": "SF",
+      "jerseyNumber": 8,
       "clues": [
         "From Houston, Texas; played college basketball at Santa Clara",
         "Emerged as a key piece of OKC's young core, potential All-Star",
@@ -691,6 +740,7 @@
       "name": "Paolo Banchero",
       "team": "ORL",
       "position": "PF",
+      "jerseyNumber": 5,
       "clues": [
         "From Seattle; his mother Rhonda played in the WNBA for the Seattle Storm",
         "Won Rookie of the Year in 2023, beating out Keegan Murray",

@@ -4,349 +4,1755 @@
     "question": "Who is the Premier League's all-time top scorer?",
     "options": ["Wayne Rooney", "Alan Shearer", "Thierry Henry", "Harry Kane"],
     "correctAnswer": "Alan Shearer",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records"
   },
   {
     "id": "pl_q2",
     "question": "Which team has won the most Premier League titles?",
     "options": ["Liverpool", "Chelsea", "Manchester United", "Arsenal"],
     "correctAnswer": "Manchester United",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q3",
     "question": "In what year was the Premier League founded?",
     "options": ["1988", "1990", "1992", "1994"],
     "correctAnswer": "1992",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history"
   },
   {
     "id": "pl_q4",
     "question": "Which team completed an unbeaten league season in 2003-04?",
     "options": ["Manchester United", "Chelsea", "Arsenal", "Liverpool"],
     "correctAnswer": "Arsenal",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Arsenal"
   },
   {
     "id": "pl_q5",
     "question": "Who holds the record for most Premier League assists?",
     "options": ["Ryan Giggs", "Frank Lampard", "Kevin De Bruyne", "David Beckham"],
     "correctAnswer": "Ryan Giggs",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q6",
     "question": "Which team won the 2015-16 Premier League in a shocking upset?",
     "options": ["Southampton", "Leicester City", "West Ham", "Tottenham"],
     "correctAnswer": "Leicester City",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Leicester"
   },
   {
     "id": "pl_q7",
     "question": "Who scored the fastest hat-trick in Premier League history?",
     "options": ["Robbie Fowler", "Sadio Mane", "Sergio Aguero", "Ian Wright"],
     "correctAnswer": "Sadio Mane",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "records"
   },
   {
     "id": "pl_q8",
     "question": "How many points did Manchester City get when they set the record in 2017-18?",
     "options": ["95", "98", "100", "102"],
     "correctAnswer": "100",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Man City"
   },
   {
     "id": "pl_q9",
     "question": "Who is known as 'The Special One'?",
     "options": ["Pep Guardiola", "Arsene Wenger", "Jose Mourinho", "Sir Alex Ferguson"],
     "correctAnswer": "Jose Mourinho",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history"
   },
   {
     "id": "pl_q10",
     "question": "Which goalkeeper has the most Premier League clean sheets?",
     "options": ["David Seaman", "Peter Schmeichel", "Petr Cech", "Edwin van der Sar"],
     "correctAnswer": "Petr Cech",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Chelsea"
   },
   {
     "id": "pl_q11",
     "question": "Who scored the 'Aguerooo' goal to win the 2011-12 title?",
     "options": ["Carlos Tevez", "David Silva", "Sergio Aguero", "Yaya Toure"],
     "correctAnswer": "Sergio Aguero",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Man City"
   },
   {
     "id": "pl_q12",
     "question": "Which player has made the most Premier League appearances?",
     "options": ["Ryan Giggs", "Gareth Barry", "Frank Lampard", "James Milner"],
     "correctAnswer": "Gareth Barry",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "records"
   },
   {
     "id": "pl_q13",
     "question": "What is the nickname of Arsenal?",
     "options": ["The Reds", "The Blues", "The Gunners", "The Hammers"],
     "correctAnswer": "The Gunners",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Arsenal"
   },
   {
     "id": "pl_q14",
     "question": "Who managed Manchester United for 26 years?",
     "options": ["Matt Busby", "Alex Ferguson", "Jose Mourinho", "David Moyes"],
     "correctAnswer": "Alex Ferguson",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q15",
     "question": "Which stadium is home to Liverpool FC?",
     "options": ["Old Trafford", "Stamford Bridge", "Anfield", "Emirates Stadium"],
     "correctAnswer": "Anfield",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Liverpool"
   },
   {
     "id": "pl_q16",
     "question": "Who scored the first ever Premier League goal?",
     "options": ["Alan Shearer", "Brian Deane", "Eric Cantona", "Teddy Sheringham"],
     "correctAnswer": "Brian Deane",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "history"
   },
   {
     "id": "pl_q17",
     "question": "Which player has scored in the most consecutive Premier League games?",
     "options": ["Ruud van Nistelrooy", "Jamie Vardy", "Thierry Henry", "Mohamed Salah"],
     "correctAnswer": "Jamie Vardy",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Leicester"
   },
   {
     "id": "pl_q18",
     "question": "How many Premier League titles has Manchester City won?",
     "options": ["6", "7", "8", "9"],
     "correctAnswer": "8",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Man City"
   },
   {
     "id": "pl_q19",
     "question": "Which club is nicknamed 'The Toffees'?",
     "options": ["Aston Villa", "Everton", "West Ham", "Burnley"],
     "correctAnswer": "Everton",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Everton"
   },
   {
     "id": "pl_q20",
     "question": "Who holds the record for most goals in a single Premier League season (38 games)?",
     "options": ["Alan Shearer", "Mohamed Salah", "Cristiano Ronaldo", "Erling Haaland"],
     "correctAnswer": "Erling Haaland",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Man City"
   },
   {
     "id": "pl_q21",
     "question": "Which player is known as 'King Eric'?",
     "options": ["Eric Cantona", "Eric Dier", "Erik ten Hag", "Eric Bailly"],
     "correctAnswer": "Eric Cantona",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q22",
     "question": "What is the record for biggest Premier League victory?",
     "options": ["8-0", "9-0", "10-0", "11-0"],
     "correctAnswer": "9-0",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "records"
   },
   {
     "id": "pl_q23",
     "question": "Which manager has won the most Premier League titles?",
     "options": ["Arsene Wenger", "Jose Mourinho", "Pep Guardiola", "Alex Ferguson"],
     "correctAnswer": "Alex Ferguson",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q24",
     "question": "Who won the Premier League Golden Boot in 2023-24?",
     "options": ["Erling Haaland", "Mohamed Salah", "Cole Palmer", "Alexander Isak"],
     "correctAnswer": "Cole Palmer",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Chelsea"
   },
   {
     "id": "pl_q25",
     "question": "Which club plays at Stamford Bridge?",
     "options": ["Arsenal", "Chelsea", "Fulham", "West Ham"],
     "correctAnswer": "Chelsea",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Chelsea"
   },
   {
     "id": "pl_q26",
     "question": "Who is Chelsea's all-time top scorer in the Premier League?",
     "options": ["Didier Drogba", "Frank Lampard", "Eden Hazard", "Jimmy Floyd Hasselbaink"],
     "correctAnswer": "Frank Lampard",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Chelsea"
   },
   {
     "id": "pl_q27",
     "question": "Which team won their first Premier League title in 2019-20 after 30 years?",
     "options": ["Manchester City", "Liverpool", "Tottenham", "Chelsea"],
     "correctAnswer": "Liverpool",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Liverpool"
   },
   {
     "id": "pl_q28",
     "question": "How many goals did Erling Haaland score in his debut Premier League season?",
     "options": ["32", "36", "40", "44"],
     "correctAnswer": "36",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "current",
+    "team": "Man City"
   },
   {
     "id": "pl_q29",
     "question": "Which player has won the most Premier League Player of the Month awards?",
     "options": ["Wayne Rooney", "Steven Gerrard", "Harry Kane", "Sergio Aguero"],
     "correctAnswer": "Harry Kane",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Spurs"
   },
   {
     "id": "pl_q30",
     "question": "What year did Chelsea win their first Premier League title?",
     "options": ["2003", "2004", "2005", "2006"],
     "correctAnswer": "2005",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Chelsea"
   },
   {
     "id": "pl_q31",
     "question": "Who is nicknamed 'The Egyptian King'?",
     "options": ["Ahmed Elmohamady", "Mohamed Salah", "Amr Zaki", "Mohamed Elneny"],
     "correctAnswer": "Mohamed Salah",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Liverpool"
   },
   {
     "id": "pl_q32",
     "question": "Which club did Thierry Henry score the most Premier League goals for?",
     "options": ["Arsenal", "Manchester United", "Chelsea", "Tottenham"],
     "correctAnswer": "Arsenal",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Arsenal"
   },
   {
     "id": "pl_q33",
     "question": "What is the name of the trophy given to the Premier League champions?",
     "options": ["Premier Trophy", "English Cup", "Premier League Trophy", "First Division Cup"],
     "correctAnswer": "Premier League Trophy",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history"
   },
   {
     "id": "pl_q34",
     "question": "Which player received the most red cards in Premier League history?",
     "options": ["Roy Keane", "Patrick Vieira", "Richard Dunne", "Duncan Ferguson"],
     "correctAnswer": "Richard Dunne",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "records"
   },
   {
     "id": "pl_q35",
     "question": "Who scored a famous bicycle kick for Manchester United vs Manchester City in 2011?",
     "options": ["Cristiano Ronaldo", "Wayne Rooney", "Robin van Persie", "Dimitar Berbatov"],
     "correctAnswer": "Wayne Rooney",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q36",
     "question": "Which team is nicknamed 'The Foxes'?",
     "options": ["Wolverhampton", "Leicester City", "Norwich City", "Watford"],
     "correctAnswer": "Leicester City",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Leicester"
   },
   {
     "id": "pl_q37",
     "question": "Who was the first non-British manager to win the Premier League?",
     "options": ["Jose Mourinho", "Arsene Wenger", "Roberto Mancini", "Carlo Ancelotti"],
     "correctAnswer": "Arsene Wenger",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Arsenal"
   },
   {
     "id": "pl_q38",
     "question": "What is the capacity of Old Trafford?",
     "options": ["65,000", "74,000", "80,000", "90,000"],
     "correctAnswer": "74,000",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q39",
     "question": "Which London club plays at the Tottenham Hotspur Stadium?",
     "options": ["Arsenal", "Chelsea", "West Ham", "Tottenham"],
     "correctAnswer": "Tottenham",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Spurs"
   },
   {
     "id": "pl_q40",
     "question": "Who managed Leicester City to their miracle title win in 2015-16?",
     "options": ["Brendan Rodgers", "Claude Puel", "Claudio Ranieri", "Craig Shakespeare"],
     "correctAnswer": "Claudio Ranieri",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Leicester"
   },
   {
     "id": "pl_q41",
     "question": "Which player has the most Premier League own goals?",
     "options": ["Jamie Carragher", "Richard Dunne", "Martin Skrtel", "Phil Jones"],
     "correctAnswer": "Richard Dunne",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "records"
   },
   {
     "id": "pl_q42",
     "question": "How many clubs competed in the first Premier League season?",
     "options": ["18", "20", "22", "24"],
     "correctAnswer": "22",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "history"
   },
   {
     "id": "pl_q43",
     "question": "Which player scored the fastest goal in Premier League history (7.69 seconds)?",
     "options": ["Ledley King", "Shane Long", "Alan Shearer", "Christian Eriksen"],
     "correctAnswer": "Shane Long",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "records"
   },
   {
     "id": "pl_q44",
     "question": "Who is Arsenal's all-time top Premier League scorer?",
     "options": ["Dennis Bergkamp", "Thierry Henry", "Ian Wright", "Robin van Persie"],
     "correctAnswer": "Thierry Henry",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Arsenal"
   },
   {
     "id": "pl_q45",
     "question": "Which club has never been relegated from the Premier League?",
     "options": ["Liverpool", "Arsenal", "Manchester United", "All of the above"],
     "correctAnswer": "All of the above",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "category": "history"
   },
   {
     "id": "pl_q46",
     "question": "Who captained Liverpool to their 2019-20 Premier League title?",
     "options": ["Virgil van Dijk", "Jordan Henderson", "James Milner", "Trent Alexander-Arnold"],
     "correctAnswer": "Jordan Henderson",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Liverpool"
   },
   {
     "id": "pl_q47",
     "question": "What nationality is Kevin De Bruyne?",
     "options": ["Dutch", "French", "Belgian", "German"],
     "correctAnswer": "Belgian",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Man City"
   },
   {
     "id": "pl_q48",
     "question": "Which club did Cristiano Ronaldo first play for in England?",
     "options": ["Manchester City", "Chelsea", "Manchester United", "Liverpool"],
     "correctAnswer": "Manchester United",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Man Utd"
   },
   {
     "id": "pl_q49",
     "question": "Who holds the record for most saves in a single Premier League match?",
     "options": ["Tim Krul", "David de Gea", "Brad Friedel", "Petr Cech"],
     "correctAnswer": "Tim Krul",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "category": "records"
   },
   {
     "id": "pl_q50",
     "question": "Which club is known as 'The Red Devils'?",
     "options": ["Liverpool", "Arsenal", "Manchester United", "Southampton"],
     "correctAnswer": "Manchester United",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q51",
+    "question": "Which stadium is home to Newcastle United?",
+    "options": ["Stadium of Light", "St James' Park", "Riverside Stadium", "Elland Road"],
+    "correctAnswer": "St James' Park",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Newcastle"
+  },
+  {
+    "id": "pl_q52",
+    "question": "Who is Newcastle United's all-time top Premier League scorer?",
+    "options": ["Andy Cole", "Les Ferdinand", "Alan Shearer", "Peter Beardsley"],
+    "correctAnswer": "Alan Shearer",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Newcastle"
+  },
+  {
+    "id": "pl_q53",
+    "question": "Which club is nicknamed 'The Hammers'?",
+    "options": ["Sheffield United", "West Ham", "Wolverhampton", "Aston Villa"],
+    "correctAnswer": "West Ham",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "West Ham"
+  },
+  {
+    "id": "pl_q54",
+    "question": "Which stadium do West Ham play at?",
+    "options": ["Craven Cottage", "Selhurst Park", "London Stadium", "Boleyn Ground"],
+    "correctAnswer": "London Stadium",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "West Ham"
+  },
+  {
+    "id": "pl_q55",
+    "question": "Who won the Premier League Golden Boot in 2022-23?",
+    "options": ["Mohamed Salah", "Harry Kane", "Erling Haaland", "Ivan Toney"],
+    "correctAnswer": "Erling Haaland",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q56",
+    "question": "Which club is known as 'The Villans'?",
+    "options": ["West Ham", "Aston Villa", "Crystal Palace", "Everton"],
+    "correctAnswer": "Aston Villa",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Aston Villa"
+  },
+  {
+    "id": "pl_q57",
+    "question": "Who is Aston Villa's record Premier League goalscorer?",
+    "options": ["Dwight Yorke", "Gabriel Agbonlahor", "Dion Dublin", "Christian Benteke"],
+    "correctAnswer": "Gabriel Agbonlahor",
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Aston Villa"
+  },
+  {
+    "id": "pl_q58",
+    "question": "Which stadium is home to Aston Villa?",
+    "options": ["St Andrew's", "Molineux", "Villa Park", "The Hawthorns"],
+    "correctAnswer": "Villa Park",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Aston Villa"
+  },
+  {
+    "id": "pl_q59",
+    "question": "Who was the first player to score 100 Premier League goals?",
+    "options": ["Teddy Sheringham", "Les Ferdinand", "Alan Shearer", "Andy Cole"],
+    "correctAnswer": "Alan Shearer",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "pl_q60",
+    "question": "Which club plays at Molineux Stadium?",
+    "options": ["West Brom", "Aston Villa", "Wolves", "Birmingham City"],
+    "correctAnswer": "Wolves",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Wolves"
+  },
+  {
+    "id": "pl_q61",
+    "question": "What is the nickname of Wolverhampton Wanderers?",
+    "options": ["The Wanderers", "The Old Gold", "Wolves", "The Molineux Men"],
+    "correctAnswer": "Wolves",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Wolves"
+  },
+  {
+    "id": "pl_q62",
+    "question": "Who won the PFA Player of the Year in 2022-23?",
+    "options": ["Kevin De Bruyne", "Erling Haaland", "Bukayo Saka", "Marcus Rashford"],
+    "correctAnswer": "Erling Haaland",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q63",
+    "question": "Which player won the 2019-20 PFA Player of the Year?",
+    "options": ["Sadio Mane", "Virgil van Dijk", "Kevin De Bruyne", "Jordan Henderson"],
+    "correctAnswer": "Kevin De Bruyne",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q64",
+    "question": "Which club is nicknamed 'The Eagles'?",
+    "options": ["Sheffield United", "Brighton", "Crystal Palace", "Norwich City"],
+    "correctAnswer": "Crystal Palace",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Crystal Palace"
+  },
+  {
+    "id": "pl_q65",
+    "question": "Which stadium is home to Crystal Palace?",
+    "options": ["Craven Cottage", "Selhurst Park", "The Valley", "Loftus Road"],
+    "correctAnswer": "Selhurst Park",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Crystal Palace"
+  },
+  {
+    "id": "pl_q66",
+    "question": "Who holds the record for most Premier League goals for Everton?",
+    "options": ["Duncan Ferguson", "Tim Cahill", "Romelu Lukaku", "Dominic Calvert-Lewin"],
+    "correctAnswer": "Romelu Lukaku",
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Everton"
+  },
+  {
+    "id": "pl_q67",
+    "question": "Which stadium is home to Everton?",
+    "options": ["Anfield", "Goodison Park", "Bramley-Moore Dock", "Walton Hall Park"],
+    "correctAnswer": "Goodison Park",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Everton"
+  },
+  {
+    "id": "pl_q68",
+    "question": "Who was the first £1 million player in English football?",
+    "options": ["Alan Shearer", "Trevor Francis", "Kenny Dalglish", "Bryan Robson"],
+    "correctAnswer": "Trevor Francis",
+    "difficulty": "hard",
+    "category": "transfers"
+  },
+  {
+    "id": "pl_q69",
+    "question": "Which club plays at Craven Cottage?",
+    "options": ["Brentford", "Fulham", "QPR", "Crystal Palace"],
+    "correctAnswer": "Fulham",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Fulham"
+  },
+  {
+    "id": "pl_q70",
+    "question": "What is Fulham's nickname?",
+    "options": ["The Cottagers", "The Whites", "The Lilywhites", "The Riversiders"],
+    "correctAnswer": "The Cottagers",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Fulham"
+  },
+  {
+    "id": "pl_q71",
+    "question": "Which club plays at the Gtech Community Stadium?",
+    "options": ["Brighton", "Brentford", "Bournemouth", "Burnley"],
+    "correctAnswer": "Brentford",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Brentford"
+  },
+  {
+    "id": "pl_q72",
+    "question": "What is Brentford's nickname?",
+    "options": ["The Hornets", "The Bees", "The Wasps", "The Ants"],
+    "correctAnswer": "The Bees",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Brentford"
+  },
+  {
+    "id": "pl_q73",
+    "question": "Which player transferred from Benfica to Liverpool for £75 million in 2022?",
+    "options": ["Luis Diaz", "Darwin Nunez", "Diogo Jota", "Cody Gakpo"],
+    "correctAnswer": "Darwin Nunez",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q74",
+    "question": "Who is the most expensive English player ever?",
+    "options": ["Raheem Sterling", "Jack Grealish", "Jadon Sancho", "Harry Maguire"],
+    "correctAnswer": "Jack Grealish",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q75",
+    "question": "Which stadium is home to Brighton & Hove Albion?",
+    "options": ["Withdean Stadium", "Amex Stadium", "Falmer Stadium", "The Goldstone Ground"],
+    "correctAnswer": "Amex Stadium",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Brighton"
+  },
+  {
+    "id": "pl_q76",
+    "question": "What is Brighton's nickname?",
+    "options": ["The Gulls", "The Seagulls", "The Albions", "The Seasiders"],
+    "correctAnswer": "The Seagulls",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Brighton"
+  },
+  {
+    "id": "pl_q77",
+    "question": "Which team famously lost the 1995-96 title race after leading by 12 points?",
+    "options": ["Manchester United", "Liverpool", "Newcastle United", "Blackburn Rovers"],
+    "correctAnswer": "Newcastle United",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Newcastle"
+  },
+  {
+    "id": "pl_q78",
+    "question": "Who gave the famous 'I would love it' interview in 1996?",
+    "options": ["Alex Ferguson", "Kevin Keegan", "Kenny Dalglish", "Roy Evans"],
+    "correctAnswer": "Kevin Keegan",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Newcastle"
+  },
+  {
+    "id": "pl_q79",
+    "question": "Which club is nicknamed 'The Cherries'?",
+    "options": ["Southampton", "Bournemouth", "Portsmouth", "Brighton"],
+    "correctAnswer": "Bournemouth",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Bournemouth"
+  },
+  {
+    "id": "pl_q80",
+    "question": "Which stadium is home to AFC Bournemouth?",
+    "options": ["Dean Court", "Vitality Stadium", "St Mary's", "Fratton Park"],
+    "correctAnswer": "Vitality Stadium",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Bournemouth"
+  },
+  {
+    "id": "pl_q81",
+    "question": "Who won the FA Cup in 2023-24?",
+    "options": ["Manchester City", "Manchester United", "Arsenal", "Liverpool"],
+    "correctAnswer": "Manchester United",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q82",
+    "question": "Which team won the League Cup in 2023-24?",
+    "options": ["Chelsea", "Newcastle", "Liverpool", "Manchester United"],
+    "correctAnswer": "Liverpool",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q83",
+    "question": "Who was the first African player to win the Premier League?",
+    "options": ["Didier Drogba", "Michael Essien", "Nwankwo Kanu", "Lucas Radebe"],
+    "correctAnswer": "Nwankwo Kanu",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "pl_q84",
+    "question": "Which club is nicknamed 'The Saints'?",
+    "options": ["Southampton", "Sunderland", "Swansea", "Stoke City"],
+    "correctAnswer": "Southampton",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Southampton"
+  },
+  {
+    "id": "pl_q85",
+    "question": "Which stadium is home to Southampton?",
+    "options": ["The Dell", "St Mary's Stadium", "Dean Court", "Fratton Park"],
+    "correctAnswer": "St Mary's Stadium",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Southampton"
+  },
+  {
+    "id": "pl_q86",
+    "question": "Who scored the winning goal in the 1999 FA Cup final for Manchester United?",
+    "options": ["David Beckham", "Roy Keane", "Teddy Sheringham", "Ole Gunnar Solskjaer"],
+    "correctAnswer": "Teddy Sheringham",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q87",
+    "question": "Which team did Manchester United beat to win the 1999 Champions League final?",
+    "options": ["Juventus", "Bayern Munich", "Barcelona", "Real Madrid"],
+    "correctAnswer": "Bayern Munich",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q88",
+    "question": "Who scored the stoppage time winner in the 1999 Champions League final?",
+    "options": ["Teddy Sheringham", "Ole Gunnar Solskjaer", "David Beckham", "Andy Cole"],
+    "correctAnswer": "Ole Gunnar Solskjaer",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q89",
+    "question": "Which club is nicknamed 'The Canaries'?",
+    "options": ["Watford", "Norwich City", "Leeds United", "Hull City"],
+    "correctAnswer": "Norwich City",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Norwich"
+  },
+  {
+    "id": "pl_q90",
+    "question": "Which club plays at Carrow Road?",
+    "options": ["Ipswich Town", "Norwich City", "Watford", "Luton Town"],
+    "correctAnswer": "Norwich City",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Norwich"
+  },
+  {
+    "id": "pl_q91",
+    "question": "Who won the PFA Player of the Year in 2018-19?",
+    "options": ["Mohamed Salah", "Raheem Sterling", "Virgil van Dijk", "Sadio Mane"],
+    "correctAnswer": "Virgil van Dijk",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q92",
+    "question": "Which player won the Golden Boot three times in a row (1994-1996)?",
+    "options": ["Andy Cole", "Robbie Fowler", "Alan Shearer", "Les Ferdinand"],
+    "correctAnswer": "Alan Shearer",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "pl_q93",
+    "question": "Who was the first player to score a Premier League hat-trick?",
+    "options": ["Mark Robins", "Eric Cantona", "Les Ferdinand", "Mick Quinn"],
+    "correctAnswer": "Mick Quinn",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "pl_q94",
+    "question": "Which club plays at Portman Road?",
+    "options": ["Norwich City", "Ipswich Town", "Colchester United", "Cambridge United"],
+    "correctAnswer": "Ipswich Town",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Ipswich"
+  },
+  {
+    "id": "pl_q95",
+    "question": "What is Ipswich Town's nickname?",
+    "options": ["The Blues", "The Tractor Boys", "The Town", "The Suffolk Men"],
+    "correctAnswer": "The Tractor Boys",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Ipswich"
+  },
+  {
+    "id": "pl_q96",
+    "question": "Which club plays at the City Ground?",
+    "options": ["Derby County", "Nottingham Forest", "Leicester City", "Coventry City"],
+    "correctAnswer": "Nottingham Forest",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Nottingham Forest"
+  },
+  {
+    "id": "pl_q97",
+    "question": "Who managed Nottingham Forest to back-to-back European Cups in 1979-80?",
+    "options": ["Bobby Robson", "Brian Clough", "Don Revie", "Bill Shankly"],
+    "correctAnswer": "Brian Clough",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Nottingham Forest"
+  },
+  {
+    "id": "pl_q98",
+    "question": "Who is the most expensive defender in Premier League history?",
+    "options": ["Virgil van Dijk", "Harry Maguire", "Wesley Fofana", "Ruben Dias"],
+    "correctAnswer": "Wesley Fofana",
+    "difficulty": "hard",
+    "category": "transfers",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q99",
+    "question": "Which player moved from Liverpool to Chelsea in 2011 causing controversy?",
+    "options": ["Steven Gerrard", "Fernando Torres", "Xabi Alonso", "Javier Mascherano"],
+    "correctAnswer": "Fernando Torres",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q100",
+    "question": "How much did Chelsea pay for Fernando Torres in 2011?",
+    "options": ["£35 million", "£40 million", "£50 million", "£60 million"],
+    "correctAnswer": "£50 million",
+    "difficulty": "hard",
+    "category": "transfers",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q101",
+    "question": "Who won the Premier League Golden Boot in 2020-21?",
+    "options": ["Mohamed Salah", "Harry Kane", "Bruno Fernandes", "Patrick Bamford"],
+    "correctAnswer": "Harry Kane",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Spurs"
+  },
+  {
+    "id": "pl_q102",
+    "question": "Which club won their first major trophy in 2020 (FA Cup)?",
+    "options": ["Leicester City", "Arsenal", "West Ham", "Everton"],
+    "correctAnswer": "Arsenal",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q103",
+    "question": "Who is Tottenham's all-time top Premier League scorer?",
+    "options": ["Teddy Sheringham", "Jermain Defoe", "Harry Kane", "Robbie Keane"],
+    "correctAnswer": "Harry Kane",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Spurs"
+  },
+  {
+    "id": "pl_q104",
+    "question": "Which player scored 5 goals in one Premier League match against Newcastle in 1999?",
+    "options": ["Andy Cole", "Michael Owen", "Alan Shearer", "Dwight Yorke"],
+    "correctAnswer": "Alan Shearer",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q105",
+    "question": "Who scored the most Premier League goals in a calendar year?",
+    "options": ["Alan Shearer", "Harry Kane", "Mohamed Salah", "Erling Haaland"],
+    "correctAnswer": "Harry Kane",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Spurs"
+  },
+  {
+    "id": "pl_q106",
+    "question": "Which club is nicknamed 'The Blades'?",
+    "options": ["Sheffield Wednesday", "Sheffield United", "Burnley", "Stoke City"],
+    "correctAnswer": "Sheffield United",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Sheffield United"
+  },
+  {
+    "id": "pl_q107",
+    "question": "Which stadium is home to Sheffield United?",
+    "options": ["Hillsborough", "Bramall Lane", "Elland Road", "The Valley"],
+    "correctAnswer": "Bramall Lane",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Sheffield United"
+  },
+  {
+    "id": "pl_q108",
+    "question": "Who was the Premier League's first £100 million player?",
+    "options": ["Neymar", "Paul Pogba", "Romelu Lukaku", "Virgil van Dijk"],
+    "correctAnswer": "Paul Pogba",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q109",
+    "question": "Which club did Leicester City beat on the final day to win the 2015-16 title?",
+    "options": ["Chelsea", "Everton", "Tottenham", "They didn't play on the final day they won"],
+    "correctAnswer": "Everton",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Leicester"
+  },
+  {
+    "id": "pl_q110",
+    "question": "How many goals did Jamie Vardy score in his record consecutive scoring run?",
+    "options": ["9", "10", "11", "12"],
+    "correctAnswer": "11",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Leicester"
+  },
+  {
+    "id": "pl_q111",
+    "question": "Which player has scored the most headed goals in Premier League history?",
+    "options": ["Alan Shearer", "Peter Crouch", "Dion Dublin", "Andy Carroll"],
+    "correctAnswer": "Peter Crouch",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q112",
+    "question": "Who won the Premier League title with the fewest points?",
+    "options": ["Blackburn Rovers 1994-95", "Manchester United 1996-97", "Arsenal 1997-98", "Manchester United 2000-01"],
+    "correctAnswer": "Manchester United 1996-97",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q113",
+    "question": "Which team was relegated with the most points in Premier League history?",
+    "options": ["Leicester City 2002", "Sheffield United 2007", "West Ham 2003", "Southampton 2005"],
+    "correctAnswer": "West Ham 2003",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "West Ham"
+  },
+  {
+    "id": "pl_q114",
+    "question": "Who scored Arsenal's last ever goal at Highbury?",
+    "options": ["Thierry Henry", "Dennis Bergkamp", "Robert Pires", "Patrick Vieira"],
+    "correctAnswer": "Thierry Henry",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q115",
+    "question": "Which player scored a famous volley against Newcastle in 2002 for Arsenal?",
+    "options": ["Thierry Henry", "Dennis Bergkamp", "Robert Pires", "Patrick Vieira"],
+    "correctAnswer": "Dennis Bergkamp",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q116",
+    "question": "Who won the PFA Young Player of the Year in 2023-24?",
+    "options": ["Jude Bellingham", "Cole Palmer", "Kobbie Mainoo", "Bukayo Saka"],
+    "correctAnswer": "Cole Palmer",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q117",
+    "question": "Which club has won the most FA Cups?",
+    "options": ["Manchester United", "Liverpool", "Arsenal", "Chelsea"],
+    "correctAnswer": "Arsenal",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q118",
+    "question": "How many FA Cups has Arsenal won?",
+    "options": ["12", "13", "14", "15"],
+    "correctAnswer": "14",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q119",
+    "question": "Which club won the League Cup a record 9 times?",
+    "options": ["Manchester United", "Manchester City", "Liverpool", "Aston Villa"],
+    "correctAnswer": "Liverpool",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q120",
+    "question": "Who managed Chelsea to their first Premier League title?",
+    "options": ["Claudio Ranieri", "Jose Mourinho", "Carlo Ancelotti", "Avram Grant"],
+    "correctAnswer": "Jose Mourinho",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q121",
+    "question": "Which club plays at Elland Road?",
+    "options": ["Sheffield United", "Sheffield Wednesday", "Leeds United", "Huddersfield Town"],
+    "correctAnswer": "Leeds United",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Leeds"
+  },
+  {
+    "id": "pl_q122",
+    "question": "What is Leeds United's nickname?",
+    "options": ["The Peacocks", "The Whites", "The Lions", "The Yorkshire Terriers"],
+    "correctAnswer": "The Whites",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Leeds"
+  },
+  {
+    "id": "pl_q123",
+    "question": "Which former Leeds manager is known for 'Murderball' tactics?",
+    "options": ["David O'Leary", "Marcelo Bielsa", "Jesse Marsch", "Sam Allardyce"],
+    "correctAnswer": "Marcelo Bielsa",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Leeds"
+  },
+  {
+    "id": "pl_q124",
+    "question": "Who was Premier League top scorer in 2019-20?",
+    "options": ["Pierre-Emerick Aubameyang", "Jamie Vardy", "Mohamed Salah", "Raheem Sterling"],
+    "correctAnswer": "Jamie Vardy",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Leicester"
+  },
+  {
+    "id": "pl_q125",
+    "question": "Which club is nicknamed 'The Hornets'?",
+    "options": ["Norwich City", "Hull City", "Watford", "Brentford"],
+    "correctAnswer": "Watford",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Watford"
+  },
+  {
+    "id": "pl_q126",
+    "question": "Which stadium is home to Watford?",
+    "options": ["London Road", "Vicarage Road", "Kenilworth Road", "Craven Cottage"],
+    "correctAnswer": "Vicarage Road",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Watford"
+  },
+  {
+    "id": "pl_q127",
+    "question": "Who scored a hat-trick in the 2019 Champions League final for Liverpool?",
+    "options": ["Mohamed Salah", "Sadio Mane", "Roberto Firmino", "None of them"],
+    "correctAnswer": "None of them",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q128",
+    "question": "Which player was sent off in his debut for West Ham in 2017?",
+    "options": ["Marko Arnautovic", "Javier Hernandez", "Pablo Zabaleta", "None of these"],
+    "correctAnswer": "None of these",
+    "difficulty": "hard",
+    "category": "history",
+    "team": "West Ham"
+  },
+  {
+    "id": "pl_q129",
+    "question": "Who is West Ham's all-time top Premier League scorer?",
+    "options": ["Paolo Di Canio", "Carlton Cole", "Mark Noble", "Michail Antonio"],
+    "correctAnswer": "Michail Antonio",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "West Ham"
+  },
+  {
+    "id": "pl_q130",
+    "question": "Which player famously pushed a referee in 2004?",
+    "options": ["Roy Keane", "Patrick Vieira", "Paolo Di Canio", "Duncan Ferguson"],
+    "correctAnswer": "Paolo Di Canio",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "West Ham"
+  },
+  {
+    "id": "pl_q131",
+    "question": "Which manager won the Premier League with Blackburn Rovers?",
+    "options": ["Ray Harford", "Kenny Dalglish", "Brian Kidd", "Tony Parkes"],
+    "correctAnswer": "Kenny Dalglish",
+    "difficulty": "medium",
+    "category": "history"
+  },
+  {
+    "id": "pl_q132",
+    "question": "What year did Blackburn Rovers win the Premier League?",
+    "options": ["1993-94", "1994-95", "1995-96", "1996-97"],
+    "correctAnswer": "1994-95",
+    "difficulty": "medium",
+    "category": "history"
+  },
+  {
+    "id": "pl_q133",
+    "question": "Who financed Blackburn's title-winning squad?",
+    "options": ["Roman Abramovich", "Jack Walker", "Sheikh Mansour", "Vichai Srivaddhanaprabha"],
+    "correctAnswer": "Jack Walker",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "pl_q134",
+    "question": "Which player scored in every Premier League game in December 2019?",
+    "options": ["Jamie Vardy", "Marcus Rashford", "Sadio Mane", "Pierre-Emerick Aubameyang"],
+    "correctAnswer": "Marcus Rashford",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q135",
+    "question": "Who holds the record for most Premier League penalties scored?",
+    "options": ["Frank Lampard", "Alan Shearer", "Steven Gerrard", "Wayne Rooney"],
+    "correctAnswer": "Alan Shearer",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q136",
+    "question": "Which player scored a late winner at the Etihad for QPR in 2012?",
+    "options": ["Bobby Zamora", "Djibril Cisse", "Jamie Mackie", "Adel Taarabt"],
+    "correctAnswer": "Jamie Mackie",
+    "difficulty": "hard",
+    "category": "moments"
+  },
+  {
+    "id": "pl_q137",
+    "question": "Which club is nicknamed 'The Magpies'?",
+    "options": ["Newcastle United", "Notts County", "West Brom", "Sheffield Wednesday"],
+    "correctAnswer": "Newcastle United",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Newcastle"
+  },
+  {
+    "id": "pl_q138",
+    "question": "Who is Newcastle's record signing?",
+    "options": ["Joelinton", "Miguel Almiron", "Alexander Isak", "Bruno Guimaraes"],
+    "correctAnswer": "Alexander Isak",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Newcastle"
+  },
+  {
+    "id": "pl_q139",
+    "question": "Which consortium bought Newcastle United in 2021?",
+    "options": ["Qatar Sports Investments", "Saudi Public Investment Fund", "City Football Group", "RedBird Capital"],
+    "correctAnswer": "Saudi Public Investment Fund",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Newcastle"
+  },
+  {
+    "id": "pl_q140",
+    "question": "Who scored the first Premier League goal of the 2023-24 season?",
+    "options": ["Erling Haaland", "Mohamed Salah", "Phil Foden", "Bruno Fernandes"],
+    "correctAnswer": "Erling Haaland",
+    "difficulty": "medium",
+    "category": "current",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q141",
+    "question": "Which club has the longest unbeaten home run in Premier League history?",
+    "options": ["Manchester United", "Arsenal", "Chelsea", "Liverpool"],
+    "correctAnswer": "Chelsea",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q142",
+    "question": "How many consecutive home games did Chelsea go unbeaten (2004-2008)?",
+    "options": ["76", "82", "86", "90"],
+    "correctAnswer": "86",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q143",
+    "question": "Who broke Chelsea's unbeaten home run in 2008?",
+    "options": ["Arsenal", "Liverpool", "Manchester United", "Tottenham"],
+    "correctAnswer": "Liverpool",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q144",
+    "question": "Which player has the most Premier League hat-tricks?",
+    "options": ["Alan Shearer", "Robbie Fowler", "Thierry Henry", "Sergio Aguero"],
+    "correctAnswer": "Sergio Aguero",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q145",
+    "question": "How many Premier League hat-tricks did Sergio Aguero score?",
+    "options": ["10", "11", "12", "13"],
+    "correctAnswer": "12",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q146",
+    "question": "Which player won back-to-back Golden Boots in 2017 and 2018?",
+    "options": ["Harry Kane", "Mohamed Salah", "Sergio Aguero", "Pierre-Emerick Aubameyang"],
+    "correctAnswer": "Mohamed Salah",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q147",
+    "question": "Who scored 32 goals in 38 games in 2017-18?",
+    "options": ["Harry Kane", "Sergio Aguero", "Mohamed Salah", "Raheem Sterling"],
+    "correctAnswer": "Mohamed Salah",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q148",
+    "question": "Which player has been relegated from the Premier League the most times?",
+    "options": ["Hermann Hreidarsson", "Nathan Blake", "Gary Breen", "Jason Roberts"],
+    "correctAnswer": "Hermann Hreidarsson",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q149",
+    "question": "Which club plays at Kenilworth Road?",
+    "options": ["Luton Town", "Watford", "Reading", "Millwall"],
+    "correctAnswer": "Luton Town",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Luton"
+  },
+  {
+    "id": "pl_q150",
+    "question": "What is Luton Town's nickname?",
+    "options": ["The Reds", "The Hatters", "The Blues", "The Town"],
+    "correctAnswer": "The Hatters",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Luton"
+  },
+  {
+    "id": "pl_q151",
+    "question": "Which club won the last ever First Division title before the Premier League?",
+    "options": ["Manchester United", "Leeds United", "Liverpool", "Arsenal"],
+    "correctAnswer": "Leeds United",
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Leeds"
+  },
+  {
+    "id": "pl_q152",
+    "question": "Who won the first ever Premier League title?",
+    "options": ["Manchester United", "Blackburn Rovers", "Arsenal", "Liverpool"],
+    "correctAnswer": "Manchester United",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q153",
+    "question": "Which club has finished second in the Premier League the most times without winning?",
+    "options": ["Liverpool", "Arsenal", "Tottenham", "Manchester City"],
+    "correctAnswer": "Liverpool",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q154",
+    "question": "Who was the first player to score 50 Premier League goals?",
+    "options": ["Alan Shearer", "Andy Cole", "Les Ferdinand", "Ian Wright"],
+    "correctAnswer": "Andy Cole",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q155",
+    "question": "Which club did Andy Cole score most of his Premier League goals for?",
+    "options": ["Newcastle United", "Manchester United", "Blackburn Rovers", "Fulham"],
+    "correctAnswer": "Manchester United",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q156",
+    "question": "Who is Liverpool's all-time top Premier League scorer?",
+    "options": ["Michael Owen", "Steven Gerrard", "Robbie Fowler", "Mohamed Salah"],
+    "correctAnswer": "Mohamed Salah",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Liverpool"
+  },
+  {
+    "id": "pl_q157",
+    "question": "Which manager won the Premier League with Manchester City in 2012?",
+    "options": ["Mark Hughes", "Roberto Mancini", "Manuel Pellegrini", "Pep Guardiola"],
+    "correctAnswer": "Roberto Mancini",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q158",
+    "question": "Who scored the latest goal in Premier League history?",
+    "options": ["Sergio Aguero", "Jordan Pickford", "Anthony Martial", "Anthony Gordon"],
+    "correctAnswer": "Sergio Aguero",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q159",
+    "question": "What minute was Aguero's title-winning goal in 2012?",
+    "options": ["90", "91", "92", "94"],
+    "correctAnswer": "94",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q160",
+    "question": "Which player has been named PFA Player of the Year the most times?",
+    "options": ["Cristiano Ronaldo", "Thierry Henry", "Wayne Rooney", "Kevin De Bruyne"],
+    "correctAnswer": "Thierry Henry",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q161",
+    "question": "How many times did Thierry Henry win PFA Player of the Year?",
+    "options": ["1", "2", "3", "4"],
+    "correctAnswer": "2",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q162",
+    "question": "Which goalkeeper scored a Premier League goal?",
+    "options": ["David James", "Peter Schmeichel", "Brad Friedel", "Asmir Begovic"],
+    "correctAnswer": "Asmir Begovic",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q163",
+    "question": "Who is the oldest player to score a Premier League hat-trick?",
+    "options": ["Teddy Sheringham", "Gordon Strachan", "Matthew Le Tissier", "Stuart Pearce"],
+    "correctAnswer": "Teddy Sheringham",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q164",
+    "question": "Which player won the Premier League with three different clubs?",
+    "options": ["Nicolas Anelka", "Ashley Cole", "Henning Berg", "Robert Huth"],
+    "correctAnswer": "Henning Berg",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q165",
+    "question": "Who holds the record for most Premier League yellow cards?",
+    "options": ["Wayne Rooney", "Gareth Barry", "Lee Bowyer", "Scott Parker"],
+    "correctAnswer": "Gareth Barry",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q166",
+    "question": "Which manager has managed the most Premier League games?",
+    "options": ["Arsene Wenger", "Alex Ferguson", "Harry Redknapp", "Sam Allardyce"],
+    "correctAnswer": "Arsene Wenger",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q167",
+    "question": "How many Premier League games did Arsene Wenger manage?",
+    "options": ["750", "800", "828", "850"],
+    "correctAnswer": "828",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q168",
+    "question": "Which player was the first to score five goals in a Premier League game?",
+    "options": ["Alan Shearer", "Andrew Cole", "Jermain Defoe", "Dimitar Berbatov"],
+    "correctAnswer": "Andrew Cole",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q169",
+    "question": "Against which team did Andrew Cole score five goals in 1995?",
+    "options": ["Ipswich Town", "Sheffield Wednesday", "Queens Park Rangers", "Bolton Wanderers"],
+    "correctAnswer": "Ipswich Town",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q170",
+    "question": "Which club is nicknamed 'The Baggies'?",
+    "options": ["Stoke City", "West Brom", "Birmingham City", "Aston Villa"],
+    "correctAnswer": "West Brom",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "West Brom"
+  },
+  {
+    "id": "pl_q171",
+    "question": "Which stadium is home to West Bromwich Albion?",
+    "options": ["St Andrew's", "Villa Park", "The Hawthorns", "Molineux"],
+    "correctAnswer": "The Hawthorns",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "West Brom"
+  },
+  {
+    "id": "pl_q172",
+    "question": "Who scored the first goal at the new Wembley in 2007?",
+    "options": ["Wayne Rooney", "David Bentley", "Kenwyne Jones", "Giampaolo Pazzini"],
+    "correctAnswer": "David Bentley",
+    "difficulty": "hard",
+    "category": "moments"
+  },
+  {
+    "id": "pl_q173",
+    "question": "Which club won the first FA Cup final at the new Wembley?",
+    "options": ["Manchester United", "Chelsea", "Arsenal", "Liverpool"],
+    "correctAnswer": "Chelsea",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q174",
+    "question": "Who scored the winning goal in the first FA Cup final at new Wembley?",
+    "options": ["Frank Lampard", "Didier Drogba", "Joe Cole", "Michael Ballack"],
+    "correctAnswer": "Didier Drogba",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q175",
+    "question": "Which player has won the most Premier League medals?",
+    "options": ["Ryan Giggs", "Paul Scholes", "Gary Neville", "Denis Irwin"],
+    "correctAnswer": "Ryan Giggs",
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q176",
+    "question": "How many Premier League titles did Ryan Giggs win?",
+    "options": ["10", "11", "12", "13"],
+    "correctAnswer": "13",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q177",
+    "question": "Which club plays at the Stadium of Light?",
+    "options": ["Newcastle United", "Sunderland", "Middlesbrough", "Hartlepool"],
+    "correctAnswer": "Sunderland",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Sunderland"
+  },
+  {
+    "id": "pl_q178",
+    "question": "What is Sunderland's nickname?",
+    "options": ["The Mackems", "The Black Cats", "The Wearsiders", "All of the above"],
+    "correctAnswer": "All of the above",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Sunderland"
+  },
+  {
+    "id": "pl_q179",
+    "question": "Who is the youngest player to score in the Premier League?",
+    "options": ["James Vaughan", "Wayne Rooney", "Michael Owen", "Cesc Fabregas"],
+    "correctAnswer": "James Vaughan",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q180",
+    "question": "Which club was James Vaughan playing for when he scored as a 16-year-old?",
+    "options": ["Everton", "Crystal Palace", "Manchester City", "Aston Villa"],
+    "correctAnswer": "Everton",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Everton"
+  },
+  {
+    "id": "pl_q181",
+    "question": "Who is the oldest outfield player to appear in the Premier League?",
+    "options": ["Teddy Sheringham", "Ryan Giggs", "Gordon Strachan", "John Burridge"],
+    "correctAnswer": "Teddy Sheringham",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q182",
+    "question": "Which goalkeeper played until age 43 in the Premier League?",
+    "options": ["Brad Friedel", "Edwin van der Sar", "Mark Schwarzer", "David James"],
+    "correctAnswer": "Mark Schwarzer",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q183",
+    "question": "Who won the 2024-25 Manager of the Month in October?",
+    "options": ["Mikel Arteta", "Ange Postecoglou", "Nuno Espirito Santo", "Eddie Howe"],
+    "correctAnswer": "Nuno Espirito Santo",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Nottingham Forest"
+  },
+  {
+    "id": "pl_q184",
+    "question": "Which player has made the most substitute appearances in Premier League history?",
+    "options": ["Peter Crouch", "Jermain Defoe", "Ole Gunnar Solskjaer", "James Milner"],
+    "correctAnswer": "James Milner",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q185",
+    "question": "Who scored Tottenham's first goal at their new stadium in the Premier League?",
+    "options": ["Harry Kane", "Son Heung-min", "Christian Eriksen", "Lucas Moura"],
+    "correctAnswer": "Son Heung-min",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Spurs"
+  },
+  {
+    "id": "pl_q186",
+    "question": "Which player has the longest goal drought after scoring a hat-trick?",
+    "options": ["Romelu Lukaku", "Mario Balotelli", "Emmanuel Adebayor", "Olivier Giroud"],
+    "correctAnswer": "Emmanuel Adebayor",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q187",
+    "question": "Who was the first English manager to win the Premier League?",
+    "options": ["Howard Wilkinson", "No English manager has won it", "Sam Allardyce", "Roy Hodgson"],
+    "correctAnswer": "No English manager has won it",
+    "difficulty": "medium",
+    "category": "history"
+  },
+  {
+    "id": "pl_q188",
+    "question": "Which club conceded the fewest goals in a Premier League season?",
+    "options": ["Chelsea 2004-05", "Arsenal 1998-99", "Manchester United 2008-09", "Liverpool 2018-19"],
+    "correctAnswer": "Chelsea 2004-05",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q189",
+    "question": "How many goals did Chelsea concede in 2004-05?",
+    "options": ["12", "15", "18", "21"],
+    "correctAnswer": "15",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q190",
+    "question": "Who was the first £50 million player in Premier League history?",
+    "options": ["Fernando Torres", "Juan Mata", "Mesut Ozil", "Angel Di Maria"],
+    "correctAnswer": "Fernando Torres",
+    "difficulty": "medium",
+    "category": "transfers"
+  },
+  {
+    "id": "pl_q191",
+    "question": "Which club finished with the lowest points total in Premier League history?",
+    "options": ["Derby County 2007-08", "Sunderland 2005-06", "Huddersfield 2018-19", "Sheffield United 2020-21"],
+    "correctAnswer": "Derby County 2007-08",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "pl_q192",
+    "question": "How many points did Derby County finish with in 2007-08?",
+    "options": ["8", "11", "13", "15"],
+    "correctAnswer": "11",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "pl_q193",
+    "question": "Which player scored the first Premier League goal from outside the box in 2023-24?",
+    "options": ["Bruno Fernandes", "Cole Palmer", "Eberechi Eze", "James Maddison"],
+    "correctAnswer": "Cole Palmer",
+    "difficulty": "hard",
+    "category": "current",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q194",
+    "question": "Who is the current captain of Manchester City?",
+    "options": ["Kevin De Bruyne", "Kyle Walker", "Rodri", "Bernardo Silva"],
+    "correctAnswer": "Kyle Walker",
+    "difficulty": "medium",
+    "category": "current",
+    "team": "Man City"
+  },
+  {
+    "id": "pl_q195",
+    "question": "Which player has won the most Premier League titles without playing for Manchester United?",
+    "options": ["Vincent Kompany", "Fernandinho", "John Terry", "David Silva"],
+    "correctAnswer": "John Terry",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q196",
+    "question": "How many Premier League titles did John Terry win?",
+    "options": ["3", "4", "5", "6"],
+    "correctAnswer": "5",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Chelsea"
+  },
+  {
+    "id": "pl_q197",
+    "question": "Who scored the 30,000th goal in Premier League history?",
+    "options": ["Harry Kane", "Sergio Aguero", "Pierre-Emerick Aubameyang", "Raheem Sterling"],
+    "correctAnswer": "Pierre-Emerick Aubameyang",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Arsenal"
+  },
+  {
+    "id": "pl_q198",
+    "question": "Which stadium has hosted the most Premier League games?",
+    "options": ["Old Trafford", "Anfield", "Stamford Bridge", "Emirates Stadium"],
+    "correctAnswer": "Old Trafford",
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Man Utd"
+  },
+  {
+    "id": "pl_q199",
+    "question": "Who was the first Norwegian to score in the Premier League?",
+    "options": ["Ole Gunnar Solskjaer", "Jan Aage Fjortoft", "Steffen Iversen", "Erik Mykland"],
+    "correctAnswer": "Jan Aage Fjortoft",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "pl_q200",
+    "question": "Which current manager has won the most consecutive Premier League titles?",
+    "options": ["Jurgen Klopp", "Pep Guardiola", "Mikel Arteta", "Antonio Conte"],
+    "correctAnswer": "Pep Guardiola",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Man City"
   }
 ]

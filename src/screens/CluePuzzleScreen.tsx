@@ -14,6 +14,9 @@ import {
   Alert,
   Image,
   Easing,
+  LayoutChangeEvent,
+  Keyboard,
+  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ConfettiCannon from 'react-native-confetti-cannon';
@@ -21,7 +24,9 @@ import { colors, shadows, getSportColor, Sport, borders, borderRadius } from '..
 import { AnimatedButton } from '../components/AnimatedComponents';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXP, calculateLevel, XPAwardResult } from '../lib/xpService';
+import { fetchUserStats, getPlayStreak, getWinStreak, UserStats } from '../lib/statsService';
 import XPEarnedModal from '../components/XPEarnedModal';
+import JerseyReveal, { getFullTeamName } from '../components/JerseyReveal';
 import nbaPlayersData from '../../data/nba-players-clues.json';
 import plPlayersData from '../../data/pl-players-clues.json';
 import nflPlayersData from '../../data/nfl-players-clues.json';
@@ -41,12 +46,17 @@ const sportIcons: Record<Sport, any> = {
   mlb: require('../../assets/images/icon-baseball.png'),
 };
 
+// Streak icons
+const fireIcon = require('../../assets/images/icon-fire.png');
+const lightningIcon = require('../../assets/images/icon-lightning.png');
+
 interface CluePlayer {
   id: number;
   name: string;
   team: string;
   position: string;
   clues: string[];
+  jerseyNumber?: number | string;
 }
 
 interface AutocompletePlayer {
@@ -147,6 +157,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   const [showNotInPuzzleMessage, setShowNotInPuzzleMessage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState(0);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [shakeAnim] = useState(new Animated.Value(0));
   const [celebrateAnim] = useState(new Animated.Value(0));
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -157,6 +168,11 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   const [xpEarned, setXpEarned] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiRef = useRef<any>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [cluesContainerY, setCluesContainerY] = useState(0);
+  const [inputContainerY, setInputContainerY] = useState(0);
+  const [inputFocused, setInputFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
 
   // Pulse animation for "Need Another Clue" button
   useEffect(() => {
@@ -211,6 +227,14 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       if (streakStored) {
         const streakState: StreakState = JSON.parse(streakStored);
         setStreak(streakState.currentStreak);
+      }
+
+      // Fetch user stats for logged-in users
+      if (user) {
+        const stats = await fetchUserStats(user.id);
+        if (stats) {
+          setUserStats(stats);
+        }
       }
     } catch (error) {
       console.error('Error loading game state:', error);
@@ -309,6 +333,13 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       // Show confetti
       setShowConfetti(true);
 
+      // TODO: INTERSTITIAL AD TRIGGER POINT
+      // Show interstitial ad after puzzle completion (before showing results)
+      // Example with AdMob:
+      // import { InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+      // const interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID);
+      // interstitial.show();
+
       // Award XP (points earned = XP earned in clue puzzle)
       if (user) {
         const xpAmount = points * 10; // 10 XP per point earned
@@ -342,9 +373,32 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       triggerShake();
       saveGameState(currentClueIndex, newWrongGuesses, false, 0);
 
+      // TODO: INTERSTITIAL AD TRIGGER POINT (for failed puzzle)
+      // If this is the last clue and player got it wrong, puzzle is over
+      // if (currentClueIndex >= 5) {
+      //   showInterstitialAd();
+      // }
+
       setTimeout(() => setShowWrongMessage(false), 2000);
     }
   }
+
+  // Scroll to show the latest clue
+  const scrollToClues = () => {
+    // Small delay to allow the new clue to render
+    setTimeout(() => {
+      if (scrollViewRef.current) {
+        // Calculate approximate position: cluesContainerY + (clue height * number of clues)
+        // Each clue card is approximately 80px tall with margins
+        const clueHeight = 90;
+        const targetY = cluesContainerY + (currentClueIndex * clueHeight);
+        scrollViewRef.current.scrollTo({
+          y: targetY,
+          animated: true,
+        });
+      }
+    }, 100);
+  };
 
   function handleNextClue() {
     if (currentClueIndex < 5 && !solved) {
@@ -352,6 +406,18 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       setCurrentClueIndex(newIndex);
       setShowWrongMessage(false);
       saveGameState(newIndex, wrongGuesses, false, 0);
+
+      // Auto-scroll to show the new clue
+      setTimeout(() => {
+        if (scrollViewRef.current) {
+          const clueHeight = 90;
+          const targetY = cluesContainerY + (newIndex * clueHeight);
+          scrollViewRef.current.scrollTo({
+            y: targetY,
+            animated: true,
+          });
+        }
+      }, 150);
     }
   }
 
@@ -392,11 +458,50 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       ? `Guessed in ${currentClueIndex + 1} ${currentClueIndex === 0 ? 'clue' : 'clues'}!`
       : 'Failed to guess';
 
+    const playStreakValue = userStats ? getPlayStreak(userStats, sport) : streak;
+    const winStreakValue = solved ? (userStats ? getWinStreak(userStats, sport) : streak) : 0;
+
     return `Ballrs ${sportName}
 ${squares}
 ${clueText}
-${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}Streak: ${streak}`;
+${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}🔥 ${playStreakValue} ⚡ ${winStreakValue}`;
   }
+
+  // Handle input focus - scroll to keep input visible above keyboard
+  const handleInputFocus = () => {
+    setInputFocused(true);
+    if (scrollViewRef.current && inputContainerY > 0) {
+      const screenHeight = Dimensions.get('window').height;
+      // Position input in lower third of visible area (accounting for keyboard ~300px)
+      const keyboardHeight = Platform.OS === 'ios' ? 300 : 250;
+      const visibleHeight = screenHeight - keyboardHeight;
+      const targetScrollY = inputContainerY - (visibleHeight * 0.4);
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          y: Math.max(0, targetScrollY),
+          animated: true,
+        });
+      }, 100);
+    }
+  };
+
+  // Handle keyboard dismiss - scroll back to show clues
+  const handleInputBlur = () => {
+    setInputFocused(false);
+    // Only scroll back if we're not in a solved/answer state
+    if (!solved && !showAnswer && scrollViewRef.current) {
+      setTimeout(() => {
+        // Scroll to show current clue
+        const clueHeight = 90;
+        const targetY = cluesContainerY + (currentClueIndex * clueHeight);
+        scrollViewRef.current?.scrollTo({
+          y: Math.max(0, targetY - 100),
+          animated: true,
+        });
+      }, 100);
+    }
+  };
 
   async function handleShare() {
     try {
@@ -433,6 +538,7 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}Streak: ${streak}`;
         style={styles.keyboardView}
       >
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
@@ -445,7 +551,7 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}Streak: ${streak}`;
             </View>
             <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
               <Image source={sportIcons[sport]} style={styles.sportBadgeIcon} resizeMode="contain" />
-              <Text style={styles.sportBadgeText}>{sport.toUpperCase()}</Text>
+              <Text style={styles.sportBadgeText}>{sport === 'pl' ? 'EPL' : sport.toUpperCase()}</Text>
             </View>
             <Text style={styles.title}>Daily Puzzle</Text>
             <Text style={styles.subtitle}>Guess the {sportName} player</Text>
@@ -469,43 +575,109 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}Streak: ${streak}`;
             </View>
           </View>
 
-          {/* Success Message */}
+          {/* Success - Combined Result Card */}
           {solved && (
-            <Animated.View
-              style={[
-                styles.successContainer,
-                shadows.card,
-                { transform: [{ scale: celebrateAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 1.02],
-                }) }] }
-              ]}
-            >
-              <Text style={styles.successText}>Correct!</Text>
-              <Text style={styles.successPlayer}>{mysteryPlayer.name}</Text>
-              <View style={styles.successPointsBadge}>
-                <Text style={styles.successPoints}>+{pointsEarned} points</Text>
+            <View style={styles.resultCard}>
+              {/* Jersey with bounce animation */}
+              <View style={styles.jerseySection}>
+                <JerseyReveal
+                  playerName={mysteryPlayer.name}
+                  jerseyNumber={mysteryPlayer.jerseyNumber || '?'}
+                  teamName={mysteryPlayer.team}
+                  sport={sport}
+                  isCorrect={true}
+                  showPlayerInfo={false}
+                  embedded={true}
+                />
               </View>
-              <Text style={styles.successStats}>
+
+              {/* Player Info */}
+              <Text style={styles.resultPlayerName}>{mysteryPlayer.name}</Text>
+              <Text style={styles.resultTeamName}>
+                {getFullTeamName(sport, mysteryPlayer.team)}
+              </Text>
+
+              {/* Divider */}
+              <View style={styles.resultDivider} />
+
+              {/* Points Badge */}
+              <View style={[styles.resultPointsBadge, { backgroundColor: sportColor }]}>
+                <Text style={styles.resultPointsText}>+{pointsEarned} points</Text>
+              </View>
+
+              {/* Stats */}
+              <Text style={styles.resultStats}>
                 Solved on clue {currentClueIndex + 1} with {wrongGuesses} wrong {wrongGuesses === 1 ? 'guess' : 'guesses'}
               </Text>
-              <Text style={styles.streakText}>Streak: {streak}</Text>
-              <AnimatedButton style={styles.shareButton} onPress={handleShare}>
-                <Text style={styles.shareButtonText}>Share Result</Text>
+
+              {/* Streaks */}
+              <View style={styles.resultStreaksContainer}>
+                <View style={styles.resultStreakRow}>
+                  <Image source={fireIcon} style={styles.streakIconFire} />
+                  <Text style={styles.resultStreakText}>
+                    {userStats ? getPlayStreak(userStats, sport) : streak}
+                  </Text>
+                </View>
+                <View style={styles.resultStreakRow}>
+                  <Image source={lightningIcon} style={styles.streakIconLightning} />
+                  <Text style={styles.resultStreakText}>
+                    {userStats ? getWinStreak(userStats, sport) : streak}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Share Button */}
+              <AnimatedButton style={styles.resultShareButton} onPress={handleShare}>
+                <Text style={styles.resultShareButtonText}>SHARE RESULT</Text>
               </AnimatedButton>
-            </Animated.View>
+            </View>
           )}
 
-          {/* Game Over - Reveal Answer */}
+          {/* Game Over - Combined Result Card (Failed) */}
           {showAnswer && (
-            <View style={[styles.revealContainer, shadows.card]}>
-              <Text style={styles.revealText}>The answer was:</Text>
-              <Text style={styles.revealPlayer}>{mysteryPlayer.name}</Text>
-              <Text style={styles.revealInfo}>
-                {mysteryPlayer.team} • {mysteryPlayer.position}
+            <View style={styles.resultCard}>
+              {/* Jersey with bounce animation */}
+              <View style={styles.jerseySection}>
+                <JerseyReveal
+                  playerName={mysteryPlayer.name}
+                  jerseyNumber={mysteryPlayer.jerseyNumber || '?'}
+                  teamName={mysteryPlayer.team}
+                  sport={sport}
+                  isCorrect={false}
+                  showPlayerInfo={false}
+                  embedded={true}
+                />
+              </View>
+
+              {/* Player Info */}
+              <Text style={styles.resultPlayerName}>{mysteryPlayer.name}</Text>
+              <Text style={styles.resultTeamName}>
+                {getFullTeamName(sport, mysteryPlayer.team)}
               </Text>
-              <AnimatedButton style={styles.shareButtonFailed} onPress={handleShare}>
-                <Text style={styles.shareButtonFailedText}>Share Result</Text>
+
+              {/* Divider */}
+              <View style={styles.resultDivider} />
+
+              {/* Failed Message */}
+              <Text style={styles.resultFailedText}>Better luck tomorrow!</Text>
+
+              {/* Streaks - Play streak continues, Win streak resets */}
+              <View style={styles.resultStreaksContainer}>
+                <View style={styles.resultStreakRow}>
+                  <Image source={fireIcon} style={styles.streakIconFire} />
+                  <Text style={styles.resultStreakText}>
+                    {userStats ? getPlayStreak(userStats, sport) : streak}
+                  </Text>
+                </View>
+                <View style={styles.resultStreakRow}>
+                  <Image source={lightningIcon} style={styles.streakIconLightning} />
+                  <Text style={styles.resultStreakText}>0</Text>
+                </View>
+              </View>
+
+              {/* Share Button */}
+              <AnimatedButton style={styles.resultShareButton} onPress={handleShare}>
+                <Text style={styles.resultShareButtonText}>SHARE RESULT</Text>
               </AnimatedButton>
             </View>
           )}
@@ -535,7 +707,12 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}Streak: ${streak}`;
           )}
 
           {/* Clues Stack */}
-          <View style={styles.cluesContainer}>
+          <View
+            style={styles.cluesContainer}
+            onLayout={(event: LayoutChangeEvent) => {
+              setCluesContainerY(event.nativeEvent.layout.y);
+            }}
+          >
             <Text style={styles.cluesTitle}>CLUES</Text>
             {revealedClues.map((clue, index) => (
               <View
@@ -562,7 +739,10 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}Streak: ${streak}`;
 
           {/* Input (only show if not solved and not game over) */}
           {!solved && !showAnswer && (
-            <View style={styles.inputWrapper}>
+            <View
+              style={styles.inputWrapper}
+              onLayout={(e: LayoutChangeEvent) => setInputContainerY(e.nativeEvent.layout.y)}
+            >
               {showSuggestions && filteredPlayers.length > 0 && (
                 <View style={styles.suggestionsContainer}>
                   {filteredPlayers.map((player, index) => (
@@ -578,12 +758,15 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}Streak: ${streak}`;
                 </View>
               )}
               <TextInput
-                style={styles.input}
+                ref={inputRef}
+                style={[styles.input, inputFocused && styles.inputFocused]}
                 value={guess}
                 onChangeText={(text) => {
                   setGuess(text);
                   setShowSuggestions(text.trim().length > 0);
                 }}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
                 placeholder="Type player name..."
                 placeholderTextColor="#888888"
                 autoCapitalize="words"
@@ -697,12 +880,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   backButton: {
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2C94C',
     borderWidth: 2,
     borderColor: '#000000',
-    borderRadius: 8,
+    borderRadius: 16,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
@@ -711,8 +894,10 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: '#1A1A1A',
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   resetButton: {
     backgroundColor: '#FFFFFF',
@@ -735,7 +920,7 @@ const styles = StyleSheet.create({
   sportBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
@@ -753,10 +938,9 @@ const styles = StyleSheet.create({
     height: 20,
   },
   sportBadgeText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   title: {
     fontSize: 24,
@@ -805,107 +989,110 @@ const styles = StyleSheet.create({
   wrongValue: {
     color: '#E53935',
   },
-  successContainer: {
-    backgroundColor: colors.success,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    padding: 28,
+  // Combined Result Card styles
+  resultCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
     alignItems: 'center',
     marginBottom: 24,
-    ...shadows.card,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
-  successText: {
+  jerseySection: {
+    marginBottom: 16,
+  },
+  resultPlayerName: {
     fontSize: 24,
     fontFamily: 'DMSans_900Black',
-    color: colors.surface,
+    color: '#1A1A1A',
+    textAlign: 'center',
   },
-  successPlayer: {
-    fontSize: 20,
-    fontFamily: 'DMSans_700Bold',
-    color: colors.surface,
-    marginTop: 8,
+  resultTeamName: {
+    fontSize: 16,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: 4,
   },
-  successPointsBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  resultDivider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginVertical: 16,
+  },
+  resultPointsBadge: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: borderRadius.button,
-    marginTop: 16,
+    borderRadius: 20,
+    marginBottom: 12,
   },
-  successPoints: {
+  resultPointsText: {
     fontSize: 16,
     fontFamily: 'DMSans_700Bold',
-    color: colors.surface,
+    color: '#FFFFFF',
   },
-  successStats: {
-    fontSize: 13,
-    color: colors.surface,
-    opacity: 0.9,
-    marginTop: 12,
+  resultStats: {
+    fontSize: 14,
     fontFamily: 'DMSans_400Regular',
+    color: '#666666',
+    textAlign: 'center',
   },
-  streakText: {
-    fontSize: 16,
-    fontFamily: 'DMSans_700Bold',
-    color: colors.surface,
-    marginTop: 12,
-  },
-  shareButton: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    marginTop: 20,
-  },
-  shareButtonText: {
-    color: colors.text,
-    fontSize: 12,
-    fontFamily: 'DMSans_900Black',
-  },
-  revealContainer: {
-    backgroundColor: colors.error,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    padding: 28,
+  resultStreaksContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    ...shadows.card,
+    justifyContent: 'center',
+    gap: 20,
+    marginTop: 12,
   },
-  revealText: {
-    fontSize: 14,
-    color: colors.surface,
-    fontFamily: 'DMSans_400Regular',
+  resultStreakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  revealPlayer: {
-    fontSize: 24,
+  streakIconFire: {
+    width: 20,
+    height: 24,
+  },
+  streakIconLightning: {
+    width: 16,
+    height: 24,
+  },
+  resultStreakText: {
+    fontSize: 18,
     fontFamily: 'DMSans_900Black',
-    color: colors.surface,
-    marginTop: 8,
+    color: '#1A1A1A',
   },
-  revealInfo: {
-    fontSize: 14,
-    color: colors.surface,
-    opacity: 0.9,
-    marginTop: 6,
-    fontFamily: 'DMSans_400Regular',
-  },
-  shareButtonFailed: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  resultShareButton: {
+    backgroundColor: '#1ABC9C',
     paddingHorizontal: 28,
     paddingVertical: 14,
-    borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
     marginTop: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
-  shareButtonFailedText: {
-    color: colors.surface,
-    fontSize: 12,
+  resultShareButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontFamily: 'DMSans_900Black',
+  },
+  resultFailedText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_500Medium',
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   wrongMessage: {
     backgroundColor: colors.error,
@@ -955,6 +1142,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
+  },
+  inputFocused: {
+    borderColor: '#1ABC9C',
   },
   suggestionsContainer: {
     backgroundColor: '#FFFFFF',

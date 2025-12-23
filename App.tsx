@@ -13,6 +13,7 @@ import {
   Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   AnimatedButton,
   AnimatedCard,
@@ -29,9 +30,10 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { colors, shadows, getSportColor, getSportName, getSportEmoji, Sport, borders, borderRadius } from './src/lib/theme';
 import { getUserXP, getXPProgressInLevel, getXPForLevel } from './src/lib/xpService';
-import { fetchUserStats, UserStats } from './src/lib/statsService';
+import { fetchUserStats, UserStats, getTotalPlayStreak } from './src/lib/statsService';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 import CluePuzzleScreen from './src/screens/CluePuzzleScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
@@ -47,9 +49,11 @@ import LeagueDetailScreen from './src/screens/LeagueDetailScreen';
 import AchievementsScreen from './src/screens/AchievementsScreen';
 import CustomizeProfileScreen from './src/screens/CustomizeProfileScreen';
 import FriendChallengeListener from './src/components/FriendChallengeListener';
+import AdBanner from './src/components/AdBanner';
 import CreateLeagueModal from './src/components/CreateLeagueModal';
 import JoinLeagueModal from './src/components/JoinLeagueModal';
 import BottomNavBar, { TabName } from './src/components/BottomNavBar';
+import LevelProgressionModal from './src/components/LevelProgressionModal';
 import DuelsScreen from './src/screens/DuelsScreen';
 import { getProfile } from './src/lib/profilesService';
 import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges } from './src/lib/duelService';
@@ -60,6 +64,20 @@ import plTriviaData from './data/pl-trivia.json';
 import nflTriviaData from './data/nfl-trivia.json';
 import mlbTriviaData from './data/mlb-trivia.json';
 import { TriviaQuestion } from './src/lib/duelService';
+import { getSmartQuestionId, resetDuelSession } from './src/lib/questionSelectionService';
+
+const ONBOARDING_KEY = '@ballrs_onboarding_complete';
+
+// Get level title based on level number
+function getLevelTitle(level: number): string {
+  if (level >= 50) return 'Legend';
+  if (level >= 40) return 'Master';
+  if (level >= 30) return 'Expert';
+  if (level >= 20) return 'Veteran';
+  if (level >= 10) return 'Pro';
+  if (level >= 5) return 'Rising Star';
+  return 'Rookie';
+}
 
 // Sport icon images
 const sportIcons = {
@@ -134,6 +152,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onChallenge, onLogin, onSignUp, ref
   const [level, setLevel] = useState(1);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [completedToday, setCompletedToday] = useState<Set<Sport>>(new Set());
+  const [showLevelModal, setShowLevelModal] = useState(false);
 
   // Animated XP bar
   const xpBarAnim = useRef(new Animated.Value(0)).current;
@@ -165,15 +184,10 @@ function HomeScreen({ onDailyPuzzle, onDuel, onChallenge, onLogin, onSignUp, ref
     loadData();
   }, [user, refreshKey]);
 
-  // Calculate total streak (sum of all current streaks)
+  // Calculate total play streak (sum of all play streaks across sports)
   const getTotalStreak = () => {
     if (!stats) return 0;
-    return (
-      (stats.nba_current_streak || 0) +
-      (stats.pl_current_streak || 0) +
-      (stats.nfl_current_streak || 0) +
-      (stats.mlb_current_streak || 0)
-    );
+    return getTotalPlayStreak(stats);
   };
 
   const progress = getXPProgressInLevel(xp);
@@ -230,10 +244,20 @@ function HomeScreen({ onDailyPuzzle, onDuel, onChallenge, onLogin, onSignUp, ref
         {/* Level & XP Bar */}
         {user && (
           <View style={styles.levelSection}>
-            <View style={styles.levelRow}>
-              <Text style={styles.levelLabel}>LEVEL {level}</Text>
-              <Text style={styles.xpLabel}>{xpIntoLevel}/{xpNeededForNext} XP</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.combinedLevelBadge}
+              onPress={() => setShowLevelModal(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.levelSection_left}>
+                <Text style={styles.levelBadgeText}>LEVEL {level}</Text>
+              </View>
+              <View style={styles.levelDivider} />
+              <View style={styles.levelSection_right}>
+                <Text style={styles.levelTitleText}>{getLevelTitle(level)}</Text>
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.xpLabel}>{xpIntoLevel}/{xpNeededForNext} XP</Text>
             <View style={styles.xpBarOuter}>
               <Animated.View style={[styles.xpBarFillContainer, { width: xpBarWidth }]}>
                 <LinearGradient
@@ -304,6 +328,14 @@ function HomeScreen({ onDailyPuzzle, onDuel, onChallenge, onLogin, onSignUp, ref
           })}
         </View>
       </ScrollView>
+
+      {/* Level Progression Modal */}
+      <LevelProgressionModal
+        visible={showLevelModal}
+        onClose={() => setShowLevelModal(false)}
+        currentLevel={level}
+        currentXP={xp}
+      />
     </SafeAreaView>
   );
 }
@@ -313,13 +345,37 @@ function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [activeTab, setActiveTab] = useState<TabName>('home');
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
   const [currentDuel, setCurrentDuel] = useState<Duel | null>(null);
   const [duelSport, setDuelSport] = useState<Sport>('nba');
+  const [duelQuestionCount, setDuelQuestionCount] = useState<number>(1);
   const [showCreateLeagueModal, setShowCreateLeagueModal] = useState(false);
   const [showJoinLeagueModal, setShowJoinLeagueModal] = useState(false);
   const [currentLeague, setCurrentLeague] = useState<LeagueWithMemberCount | null>(null);
   const [homeRefreshKey, setHomeRefreshKey] = useState(0);
   const [incomingChallengesCount, setIncomingChallengesCount] = useState(0);
+
+  // Check if onboarding has been completed
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const seen = await AsyncStorage.getItem(ONBOARDING_KEY);
+        setHasSeenOnboarding(seen === 'true');
+      } catch (error) {
+        // If error reading, assume onboarding completed to not block users
+        setHasSeenOnboarding(true);
+      }
+    };
+    checkOnboarding();
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    setHasSeenOnboarding(true);
+  };
+
+  const handleReplayOnboarding = () => {
+    setHasSeenOnboarding(false);
+  };
 
   const refreshChallengesCount = useCallback(async () => {
     if (user) {
@@ -372,24 +428,25 @@ function AppContent() {
     setCurrentScreen('home');
   };
 
-  const getRandomTriviaQuestion = (sport: Sport): string => {
-    let questions: TriviaQuestion[];
+  // Helper function to get trivia questions for a sport
+  const getTriviaQuestions = (sport: Sport): TriviaQuestion[] => {
     switch (sport) {
       case 'nba':
-        questions = nbaTriviaData as TriviaQuestion[];
-        break;
+        return nbaTriviaData as TriviaQuestion[];
       case 'pl':
-        questions = plTriviaData as TriviaQuestion[];
-        break;
+        return plTriviaData as TriviaQuestion[];
       case 'nfl':
-        questions = nflTriviaData as TriviaQuestion[];
-        break;
+        return nflTriviaData as TriviaQuestion[];
       case 'mlb':
-        questions = mlbTriviaData as TriviaQuestion[];
-        break;
+        return mlbTriviaData as TriviaQuestion[];
     }
-    const randomIndex = Math.floor(Math.random() * questions.length);
-    return questions[randomIndex].id;
+  };
+
+  // Smart question selection that avoids repeats within session,
+  // consecutive same categories, and consecutive same teams
+  const getRandomTriviaQuestion = (sport: Sport): string => {
+    const questions = getTriviaQuestions(sport);
+    return getSmartQuestionId(sport, questions);
   };
 
   const handleQuickDuel = async (sport: Sport) => {
@@ -401,27 +458,34 @@ function AppContent() {
       return;
     }
 
-    setDuelSport(sport);
+    try {
+      setDuelSport(sport);
+      // Reset duel session for fresh question selection
+      resetDuelSession(sport);
 
-    const waitingDuel = await findWaitingDuel(sport, user.id);
+      const waitingDuel = await findWaitingDuel(sport, user.id);
 
-    if (waitingDuel) {
-      const joinedDuel = await joinDuel(waitingDuel.id, user.id);
-      if (joinedDuel) {
-        setCurrentDuel(joinedDuel);
-        setCurrentScreen('duelGame');
+      if (waitingDuel) {
+        const joinedDuel = await joinDuel(waitingDuel.id, user.id);
+        if (joinedDuel) {
+          setCurrentDuel(joinedDuel);
+          setCurrentScreen('duelGame');
+        } else {
+          Alert.alert('Error', 'Failed to join duel. Please try again.');
+        }
       } else {
-        Alert.alert('Error', 'Failed to join duel. Please try again.');
+        const questionId = getRandomTriviaQuestion(sport);
+        const newDuel = await createDuel(user.id, sport, questionId);
+        if (newDuel) {
+          setCurrentDuel(newDuel);
+          setCurrentScreen('waitingForOpponent');
+        } else {
+          Alert.alert('Error', 'Failed to create duel. Please try again.');
+        }
       }
-    } else {
-      const questionId = getRandomTriviaQuestion(sport);
-      const newDuel = await createDuel(user.id, sport, questionId);
-      if (newDuel) {
-        setCurrentDuel(newDuel);
-        setCurrentScreen('waitingForOpponent');
-      } else {
-        Alert.alert('Error', 'Failed to create duel. Please try again.');
-      }
+    } catch (error) {
+      console.error('Error in handleQuickDuel:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
     }
   };
 
@@ -435,7 +499,7 @@ function AppContent() {
     setCurrentScreen('home');
   };
 
-  const handleChallengeFriend = (sport: Sport) => {
+  const handleChallengeFriend = (sport: Sport, questionCount: number = 1) => {
     if (!user) {
       Alert.alert('Login Required', 'Please log in to challenge a friend', [
         { text: 'Cancel', style: 'cancel' },
@@ -444,8 +508,16 @@ function AppContent() {
       return;
     }
 
-    setDuelSport(sport);
-    setCurrentScreen('challengeSetup');
+    try {
+      setDuelSport(sport);
+      setDuelQuestionCount(questionCount);
+      // Reset duel session for fresh question selection
+      resetDuelSession(sport);
+      setCurrentScreen('challengeSetup');
+    } catch (error) {
+      console.error('Error in handleChallengeFriend:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    }
   };
 
   const handleDuelCreated = (duel: Duel) => {
@@ -500,6 +572,34 @@ function AppContent() {
     'customizeProfile',
     'leaderboard',
   ].includes(currentScreen);
+
+  // Show ads on: Home, Leagues, Profile tabs (when on home screen)
+  // Also show on: WaitingForOpponent
+  // Don't show on: Active puzzles, Active duels, Onboarding, Login/Signup flows
+  const showAdBanner = (
+    (currentScreen === 'home' && ['home', 'leagues', 'profile'].includes(activeTab)) ||
+    currentScreen === 'waitingForOpponent' ||
+    currentScreen === 'leaderboard'
+  );
+
+  // Show loading while checking onboarding status
+  if (hasSeenOnboarding === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.text} />
+      </View>
+    );
+  }
+
+  // Show onboarding for first-time users
+  if (!hasSeenOnboarding) {
+    return (
+      <>
+        <StatusBar style="dark" />
+        <OnboardingScreen onComplete={handleOnboardingComplete} />
+      </>
+    );
+  }
 
   if (user && hasProfile === false) {
     return (
@@ -574,6 +674,7 @@ function AppContent() {
             onLogout={handleBack}
             onNavigateToAchievements={() => setCurrentScreen('achievements')}
             onNavigateToCustomize={() => setCurrentScreen('customizeProfile')}
+            onReplayOnboarding={handleReplayOnboarding}
           />
         )}
         {currentScreen === 'achievements' && (
@@ -604,6 +705,7 @@ function AppContent() {
             duel={currentDuel}
             onBack={handleBack}
             onComplete={handleDuelComplete}
+            getRandomQuestionId={getRandomTriviaQuestion}
           />
         )}
         {currentScreen === 'inviteFriend' && currentDuel && (
@@ -617,6 +719,7 @@ function AppContent() {
         {currentScreen === 'challengeSetup' && (
           <ChallengeSetupScreen
             sport={duelSport}
+            questionCount={duelQuestionCount}
             onCancel={handleBack}
             onDuelCreated={handleDuelCreated}
             getRandomQuestionId={getRandomTriviaQuestion}
@@ -655,6 +758,8 @@ function AppContent() {
         />
         <FriendChallengeListener onAcceptChallenge={handleAcceptFriendChallenge} />
       </View>
+      {/* Ad Banner - shown on Home, Leagues, Profile, Waiting, Leaderboard screens */}
+      {showAdBanner && <AdBanner />}
       {!hideNavBar && (
         <BottomNavBar
           activeTab={activeTab}
@@ -766,32 +871,67 @@ const styles = StyleSheet.create({
   },
   // Level Section
   levelSection: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingLeft: 24,
+    paddingRight: 26, // Extra 2px for shadow
+    paddingBottom: 2, // Extra space for XP bar shadow
+    marginBottom: 22,
   },
-  levelRow: {
+  combinedLevelBadge: {
+    alignSelf: 'flex-start',
+    marginBottom: 2,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'stretch',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
-  levelLabel: {
-    fontSize: 12,
-    fontFamily: 'DMSans_500Medium',
-    color: colors.text,
+  levelSection_left: {
+    backgroundColor: '#F2C94C',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderTopLeftRadius: 6,
+    borderBottomLeftRadius: 6,
+  },
+  levelDivider: {
+    width: 2,
+    backgroundColor: '#000000',
+  },
+  levelSection_right: {
+    backgroundColor: '#F5F2EB',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderTopRightRadius: 6,
+    borderBottomRightRadius: 6,
+  },
+  levelBadgeText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  levelTitleText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
   },
   xpLabel: {
     fontSize: 12,
-    fontFamily: 'DMSans_500Medium',
-    color: colors.text,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    textAlign: 'right',
+    marginTop: -10,
+    marginBottom: 6,
   },
   xpBarOuter: {
     height: 16,
-    backgroundColor: colors.surface,
-    borderWidth: borders.button,
-    borderColor: colors.border,
+    backgroundColor: '#E8E8E8',
+    borderWidth: 2,
+    borderColor: '#000000',
     borderRadius: 8,
-    overflow: 'hidden',
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
