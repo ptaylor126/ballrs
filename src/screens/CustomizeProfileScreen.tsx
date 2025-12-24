@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -13,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
@@ -231,21 +231,28 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.headerTitleRow}>
-          <Text style={styles.title}>Customize Profile</Text>
-          <Text style={styles.levelBadge}>Level {userLevel}</Text>
-        </View>
+      {/* Back Button - Fixed at top */}
+      <View style={styles.backButtonRow}>
+        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Username Section */}
-      <View style={styles.usernameSection}>
+      <ScrollView
+        style={styles.mainScrollView}
+        contentContainerStyle={styles.mainScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.title}>Customize Profile</Text>
+            <Text style={styles.levelBadge}>Level {userLevel}</Text>
+          </View>
+        </View>
+
+        {/* Username Section */}
+        <View style={styles.usernameSection}>
         <View style={styles.usernameCard}>
           <View style={styles.usernameInfo}>
             <Text style={styles.usernameLabel}>Username</Text>
@@ -310,8 +317,7 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
         </View>
       </View>
 
-      {/* Content */}
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {/* Content */}
         {activeTab === 'icons' ? (
           <View style={styles.iconsGrid}>
             {icons.map((icon) => {
@@ -641,6 +647,18 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: '#FFFFFF',
   },
+  backButtonRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  mainScrollView: {
+    flex: 1,
+  },
+  mainScrollContent: {
+    paddingBottom: 40,
+  },
   scrollView: {
     flex: 1,
   },
@@ -652,7 +670,7 @@ const styles = StyleSheet.create({
   iconsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -6,
+    paddingHorizontal: 10,
   },
   iconCard: {
     width: '33.33%',
@@ -730,6 +748,7 @@ const styles = StyleSheet.create({
   // Frames List
   framesList: {
     gap: 12,
+    paddingHorizontal: 16,
   },
   frameCard: {
     flexDirection: 'row',

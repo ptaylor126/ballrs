@@ -1,27 +1,26 @@
 import { supabase } from './supabase';
 
-// Level thresholds: Level 1 = 0, Level 2 = 200, Level 3 = 500, then +400 per level
+// Level thresholds: ~1500 XP per level (about 2 weeks of casual play)
+// Assuming casual play = 1-2 puzzles/day = ~100 XP/day = 1400 XP in 2 weeks
 // Level 1: 0 XP
-// Level 2: 200 XP
-// Level 3: 500 XP
-// Level 4: 900 XP
-// Level 5: 1300 XP
-// Level 6: 1700 XP
-// etc.
+// Level 2: 500 XP
+// Level 3: 2000 XP
+// Level 4: 3500 XP
+// Level 5: 5000 XP
+// Level 6: 6500 XP
+// etc. (+1500 per level after level 2)
 
 export function getXPForLevel(level: number): number {
   if (level <= 1) return 0;
-  if (level === 2) return 200;
-  if (level === 3) return 500;
-  // Level 4+: 500 + (level - 3) * 400
-  return 500 + (level - 3) * 400;
+  if (level === 2) return 500;
+  // Level 3+: 500 + (level - 2) * 1500
+  return 500 + (level - 2) * 1500;
 }
 
 export function calculateLevel(xp: number): number {
-  if (xp < 200) return 1;
-  if (xp < 500) return 2;
-  // For level 3+: level = 3 + floor((xp - 500) / 400)
-  return 3 + Math.floor((xp - 500) / 400);
+  if (xp < 500) return 1;
+  // For level 2+: level = 2 + floor((xp - 500) / 1500)
+  return 2 + Math.floor((xp - 500) / 1500);
 }
 
 export function getXPProgressInLevel(xp: number): { current: number; required: number; percentage: number } {

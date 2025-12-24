@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   container: {
     height: AD_BANNER_HEIGHT,
     width: '100%',
-    backgroundColor: '#E8E8E8',
+    backgroundColor: '#F5F2EB',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 5,

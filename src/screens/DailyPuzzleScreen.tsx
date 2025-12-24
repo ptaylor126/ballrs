@@ -5,14 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   Modal,
   Share,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -67,6 +65,40 @@ const defaultStats: StatsData = {
   gamesWon: 0,
   lastPlayedDate: '',
 };
+
+const STREAK_KEY = 'ballrs_nba_daily_streak';
+
+interface StreakState {
+  currentStreak: number;
+  lastPlayedDate: string;
+}
+
+// Helper to calculate daily streak (only increments once per day)
+async function calculateDailyStreak(): Promise<number> {
+  const today = getTodayString();
+  const streakStored = await AsyncStorage.getItem(STREAK_KEY);
+  let newStreak = 1;
+
+  if (streakStored) {
+    const streakState: StreakState = JSON.parse(streakStored);
+    const lastDate = new Date(streakState.lastPlayedDate);
+    const todayDate = new Date(today);
+    const diffTime = todayDate.getTime() - lastDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      newStreak = streakState.currentStreak + 1;
+    } else if (diffDays === 0) {
+      newStreak = streakState.currentStreak;
+    }
+  }
+
+  // Save the new streak state
+  const newStreakState: StreakState = { currentStreak: newStreak, lastPlayedDate: today };
+  await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(newStreakState));
+
+  return newStreak;
+}
 
 // Position groups for partial matching
 const positionGroups: Record<string, string> = {
@@ -272,7 +304,8 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
 
       if (currentCloudStats) {
         if (won) {
-          const updatedStats = await updateStatsAfterWin(user.id, 'nba', currentCloudStats);
+          const dailyStreak = await calculateDailyStreak();
+          const updatedStats = await updateStatsAfterWin(user.id, 'nba', currentCloudStats, dailyStreak);
           if (updatedStats) {
             setCloudStats(updatedStats);
           }
@@ -410,15 +443,16 @@ Points: ${solved ? calculatePoints(revealedClues) : 0}`;
   const currentPoints = calculatePoints(revealedClues);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        style={styles.scrollView}
+        enableOnAndroid={true}
+        extraScrollHeight={0}
+        enableAutomaticScroll={true}
+        keyboardOpeningTime={0}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
           {/* Back Button */}
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Text style={styles.backButtonText}>← Back</Text>
@@ -504,9 +538,19 @@ Points: ${solved ? calculatePoints(revealedClues) : 0}`;
             </TouchableOpacity>
           )}
 
-          {/* Input Section - at bottom */}
+          {/* Input Section */}
           {!gameOver && (
             <View style={styles.inputSection}>
+              <TextInput
+                style={styles.input}
+                value={guess}
+                onChangeText={handleTextChange}
+                onFocus={() => console.log('INPUT FOCUSED')}
+                placeholder="Type player name..."
+                placeholderTextColor={colors.textSecondary}
+                autoCapitalize="words"
+                autoCorrect={false}
+              />
               {showSuggestions && filteredPlayers.length > 0 && (
                 <View style={styles.suggestionsContainer}>
                   {filteredPlayers.map((player) => (
@@ -521,21 +565,9 @@ Points: ${solved ? calculatePoints(revealedClues) : 0}`;
                   ))}
                 </View>
               )}
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  value={guess}
-                  onChangeText={handleTextChange}
-                  placeholder="Type player name..."
-                  placeholderTextColor={colors.textSecondary}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                />
-              </View>
             </View>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
 
       {/* Share Modal */}
       <Modal
@@ -615,12 +647,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  keyboardView: {
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -879,10 +911,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   inputSection: {
-    marginTop: 'auto',
-  },
-  inputWrapper: {
-    position: 'relative',
+    marginTop: 16,
   },
   input: {
     backgroundColor: colors.surface,
@@ -890,7 +919,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.border,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'DMSans_600SemiBold',
     color: colors.text,
@@ -902,22 +931,25 @@ const styles = StyleSheet.create({
   },
   suggestionsContainer: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: colors.border,
-    marginBottom: 8,
-    overflow: 'hidden',
+    marginTop: 8,
+    maxHeight: 180,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 3,
+    elevation: 5,
   },
   suggestionItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E0',
+    borderBottomColor: '#CCCCCC',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   suggestionText: {
     fontSize: 16,
@@ -928,7 +960,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'DMSans_400Regular',
     color: colors.textSecondary,
-    marginTop: 2,
   },
   modalOverlay: {
     flex: 1,

@@ -7,7 +7,9 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#1a1a2e"
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F2EB"
     },
     "ios": {
       "supportsTablet": true,
@@ -15,12 +17,18 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#1a1a2e"
+        "backgroundColor": "#F5F2EB"
       }
     },
     "web": {},
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cf236079-b446-4163-863f-723b82302cc6"
+      }
+    },
+    "owner": "trrblplsy"
   }
 }

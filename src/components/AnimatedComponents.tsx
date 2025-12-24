@@ -63,16 +63,6 @@ export function AnimatedButton({
     outputRange: [0, 2],
   });
 
-  const shadowOffsetX = pressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [2, 0],
-  });
-
-  const shadowOffsetY = pressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [2, 0],
-  });
-
   // Extract width/flex properties for the TouchableOpacity container
   const flatStyle = StyleSheet.flatten(style) || {};
   const containerStyle: any = {};
@@ -106,11 +96,8 @@ export function AnimatedButton({
           innerStyle,
           {
             transform: [{ translateX }, { translateY }],
-            shadowOffset: {
-              width: shadowOffsetX as unknown as number,
-              height: shadowOffsetY as unknown as number,
-            },
             shadowColor,
+            shadowOffset: { width: 2, height: 2 },
             shadowOpacity: 1,
             shadowRadius: 0,
             elevation: 2,
@@ -143,40 +130,23 @@ export function AnimatedCard({
   disabled = false,
 }: AnimatedCardProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const shadowAnim = useRef(new Animated.Value(2)).current;
 
   const handlePressIn = () => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 0.98,
-        duration: 150,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(shadowAnim, {
-        toValue: 1,
-        duration: 150,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.timing(scaleAnim, {
+      toValue: 0.98,
+      duration: 150,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 5,
-        tension: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shadowAnim, {
-        toValue: 2,
-        duration: 150,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 5,
+      tension: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
   if (!onPress) {
@@ -194,10 +164,6 @@ export function AnimatedCard({
           style,
           {
             transform: [{ scale: scaleAnim }],
-            shadowOffset: {
-              width: shadowAnim as unknown as number,
-              height: shadowAnim as unknown as number,
-            },
           },
         ]}
       >

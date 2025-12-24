@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Alert,
   ActivityIndicator,
@@ -12,6 +11,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -55,6 +55,7 @@ import JoinLeagueModal from './src/components/JoinLeagueModal';
 import BottomNavBar, { TabName } from './src/components/BottomNavBar';
 import LevelProgressionModal from './src/components/LevelProgressionModal';
 import DuelsScreen from './src/screens/DuelsScreen';
+import AnimatedSplashScreen from './src/screens/AnimatedSplashScreen';
 import { getProfile } from './src/lib/profilesService';
 import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges } from './src/lib/duelService';
 import { getCompletedSportsToday } from './src/lib/dailyPuzzleService';
@@ -70,6 +71,7 @@ const ONBOARDING_KEY = '@ballrs_onboarding_complete';
 
 // Get level title based on level number
 function getLevelTitle(level: number): string {
+  if (level >= 100) return 'Hall of Famer';
   if (level >= 50) return 'Legend';
   if (level >= 40) return 'Master';
   if (level >= 30) return 'Expert';
@@ -140,13 +142,12 @@ type Screen = 'home' | 'nba' | 'pl' | 'nfl' | 'mlb' | 'nbaDaily' | 'plDaily' | '
 interface HomeScreenProps {
   onDailyPuzzle: (sport: Sport) => void;
   onDuel: (sport: Sport) => void;
-  onChallenge: (sport: Sport) => void;
   onLogin: () => void;
   onSignUp: () => void;
   refreshKey?: number;
 }
 
-function HomeScreen({ onDailyPuzzle, onDuel, onChallenge, onLogin, onSignUp, refreshKey }: HomeScreenProps) {
+function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: HomeScreenProps) {
   const { user, loading } = useAuth();
   const [xp, setXP] = useState(0);
   const [level, setLevel] = useState(1);
@@ -221,7 +222,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onChallenge, onLogin, onSignUp, ref
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -315,13 +316,6 @@ function HomeScreen({ onDailyPuzzle, onDuel, onChallenge, onLogin, onSignUp, ref
                   >
                     <Text style={styles.secondaryButtonText}>DUEL</Text>
                   </AnimatedButton>
-
-                  <AnimatedButton
-                    style={styles.secondaryButton}
-                    onPress={() => onChallenge(card.sport)}
-                  >
-                    <Text style={styles.secondaryButtonText}>CHALLENGE</Text>
-                  </AnimatedButton>
                 </View>
               </AnimatedCard>
             );
@@ -354,6 +348,8 @@ function AppContent() {
   const [currentLeague, setCurrentLeague] = useState<LeagueWithMemberCount | null>(null);
   const [homeRefreshKey, setHomeRefreshKey] = useState(0);
   const [incomingChallengesCount, setIncomingChallengesCount] = useState(0);
+  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
+  const [autoStartDuelSport, setAutoStartDuelSport] = useState<Sport | null>(null);
 
   // Check if onboarding has been completed
   useEffect(() => {
@@ -447,6 +443,18 @@ function AppContent() {
   const getRandomTriviaQuestion = (sport: Sport): string => {
     const questions = getTriviaQuestions(sport);
     return getSmartQuestionId(sport, questions);
+  };
+
+  // Navigate to Duels screen and auto-open the Start Duel modal
+  const handleNavigateToDuels = (sport: Sport) => {
+    setAutoStartDuelSport(sport);
+    setActiveTab('duels');
+    setCurrentScreen('home');
+  };
+
+  // Clear autoStartDuelSport after it's been consumed
+  const clearAutoStartDuel = () => {
+    setAutoStartDuelSport(null);
   };
 
   const handleQuickDuel = async (sport: Sport) => {
@@ -555,32 +563,21 @@ function AppContent() {
     setCurrentScreen('home');
   };
 
+  // Only hide nav bar during active gameplay (duel game) and auth flows
   const hideNavBar = [
     'duelGame',
-    'waitingForOpponent',
-    'inviteFriend',
-    'challengeSetup',
-    'nbaDaily',
-    'plDaily',
-    'nflDaily',
-    'mlbDaily',
     'login',
     'signup',
     'setUsername',
-    'leagueDetail',
-    'achievements',
-    'customizeProfile',
-    'leaderboard',
   ].includes(currentScreen);
 
-  // Show ads on: Home, Leagues, Profile tabs (when on home screen)
-  // Also show on: WaitingForOpponent
-  // Don't show on: Active puzzles, Active duels, Onboarding, Login/Signup flows
-  const showAdBanner = (
-    (currentScreen === 'home' && ['home', 'leagues', 'profile'].includes(activeTab)) ||
-    currentScreen === 'waitingForOpponent' ||
-    currentScreen === 'leaderboard'
-  );
+  // Show ads on all screens except active duel game and auth flows
+  const showAdBanner = ![
+    'duelGame',
+    'login',
+    'signup',
+    'setUsername',
+  ].includes(currentScreen);
 
   // Show loading while checking onboarding status
   if (hasSeenOnboarding === null) {
@@ -588,6 +585,16 @@ function AppContent() {
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator size="large" color={colors.text} />
       </View>
+    );
+  }
+
+  // Show animated splash screen on app launch
+  if (showAnimatedSplash) {
+    return (
+      <>
+        <StatusBar style="dark" />
+        <AnimatedSplashScreen onAnimationComplete={() => setShowAnimatedSplash(false)} />
+      </>
     );
   }
 
@@ -620,8 +627,7 @@ function AppContent() {
         {currentScreen === 'home' && activeTab === 'home' && (
           <HomeScreen
             onDailyPuzzle={(sport) => setCurrentScreen(`${sport}Daily` as Screen)}
-            onDuel={handleQuickDuel}
-            onChallenge={handleChallengeFriend}
+            onDuel={handleNavigateToDuels}
             onLogin={() => setCurrentScreen('login')}
             onSignUp={() => setCurrentScreen('signup')}
             refreshKey={homeRefreshKey}
@@ -641,6 +647,8 @@ function AppContent() {
             onLogin={() => setCurrentScreen('login')}
             onQuickDuel={handleQuickDuel}
             onChallengeFriend={handleChallengeFriend}
+            autoStartDuelSport={autoStartDuelSport}
+            onClearAutoStartDuel={clearAutoStartDuel}
           />
         )}
         {currentScreen === 'nbaDaily' && (
@@ -705,6 +713,7 @@ function AppContent() {
             duel={currentDuel}
             onBack={handleBack}
             onComplete={handleDuelComplete}
+            onPlayAgain={handleQuickDuel}
             getRandomQuestionId={getRandomTriviaQuestion}
           />
         )}
@@ -789,9 +798,11 @@ export default function App() {
   }
 
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -805,7 +816,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 24,
+    paddingBottom: 170, // Account for AdBanner (60) + BottomNavBar (~100 with safe area)
   },
   // Header
   header: {

@@ -4,13 +4,14 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ActivityIndicator,
   ScrollView,
   TextInput,
   Alert,
   Image,
+  Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchUserStats, UserStats } from '../lib/statsService';
@@ -33,6 +34,7 @@ import {
 } from '../lib/friendsService';
 import { getProfile } from '../lib/profilesService';
 import { soundService } from '../lib/soundService';
+import AnimatedSplashScreen from './AnimatedSplashScreen';
 
 // Icons
 const fireIcon = require('../../assets/images/icon-fire.png');
@@ -41,6 +43,7 @@ const trophyIcon = require('../../assets/images/icon-trophy.png');
 
 // Get level title based on level number
 function getLevelTitle(level: number): string {
+  if (level >= 100) return 'Hall of Famer';
   if (level >= 50) return 'Legend';
   if (level >= 40) return 'Master';
   if (level >= 30) return 'Expert';
@@ -80,6 +83,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
   const [searching, setSearching] = useState(false);
   const [addingFriend, setAddingFriend] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
 
   // Initialize sound setting
@@ -215,7 +219,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
   const xpNeededForNext = nextLevelXP - currentLevelXP;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
         {onBack && (
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -223,7 +227,11 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
           </TouchableOpacity>
         )}
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 32 }}
+        >
           <View style={styles.profileSection}>
             <View
               style={[
@@ -321,7 +329,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     <Image source={fireIcon} style={styles.statsHeaderIcon} />
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Image source={lightningIcon} style={styles.statsHeaderIconLightning} />
+                    <Image source={trophyIcon} style={styles.statsHeaderIcon} />
                   </View>
                 </View>
 
@@ -336,16 +344,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     <Text style={styles.statsNumValue}>{stats?.nba_total_solved ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.nba_play_streak ?? 0}</Text>
-                    {(stats?.nba_best_play_streak ?? 0) > (stats?.nba_play_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.nba_best_play_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.nba_current_streak ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.nba_win_streak ?? 0}</Text>
-                    {(stats?.nba_best_win_streak ?? 0) > (stats?.nba_win_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.nba_best_win_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.nba_best_streak ?? 0}</Text>
                   </View>
                 </View>
 
@@ -360,16 +362,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     <Text style={styles.statsNumValue}>{stats?.pl_total_solved ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.pl_play_streak ?? 0}</Text>
-                    {(stats?.pl_best_play_streak ?? 0) > (stats?.pl_play_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.pl_best_play_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.pl_current_streak ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.pl_win_streak ?? 0}</Text>
-                    {(stats?.pl_best_win_streak ?? 0) > (stats?.pl_win_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.pl_best_win_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.pl_best_streak ?? 0}</Text>
                   </View>
                 </View>
 
@@ -384,16 +380,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     <Text style={styles.statsNumValue}>{stats?.nfl_total_solved ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.nfl_play_streak ?? 0}</Text>
-                    {(stats?.nfl_best_play_streak ?? 0) > (stats?.nfl_play_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.nfl_best_play_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.nfl_current_streak ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.nfl_win_streak ?? 0}</Text>
-                    {(stats?.nfl_best_win_streak ?? 0) > (stats?.nfl_win_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.nfl_best_win_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.nfl_best_streak ?? 0}</Text>
                   </View>
                 </View>
 
@@ -408,16 +398,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     <Text style={styles.statsNumValue}>{stats?.mlb_total_solved ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.mlb_play_streak ?? 0}</Text>
-                    {(stats?.mlb_best_play_streak ?? 0) > (stats?.mlb_play_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.mlb_best_play_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.mlb_current_streak ?? 0}</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Text style={styles.statsNumValue}>{stats?.mlb_win_streak ?? 0}</Text>
-                    {(stats?.mlb_best_win_streak ?? 0) > (stats?.mlb_win_streak ?? 0) && (
-                      <Text style={styles.statsBestText}>({stats?.mlb_best_win_streak})</Text>
-                    )}
+                    <Text style={styles.statsNumValue}>{stats?.mlb_best_streak ?? 0}</Text>
                   </View>
                 </View>
               </View>
@@ -547,6 +531,14 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                 : 'N/A'}
             </Text>
 
+            {/* View Splash Button (Dev) */}
+            <AnimatedButton
+              style={styles.splashButton}
+              onPress={() => setShowSplash(true)}
+            >
+              <Text style={styles.splashButtonText}>View Splash Screen</Text>
+            </AnimatedButton>
+
             {/* Log Out Button */}
             <AnimatedButton
               style={[styles.logoutButton, loggingOut && styles.buttonDisabled]}
@@ -562,6 +554,15 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
           </View>
         </ScrollView>
       </View>
+
+      {/* Splash Screen Preview Modal */}
+      <Modal
+        visible={showSplash}
+        animationType="fade"
+        onRequestClose={() => setShowSplash(false)}
+      >
+        <AnimatedSplashScreen onAnimationComplete={() => setShowSplash(false)} />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1088,5 +1089,27 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.textTertiary,
     fontFamily: 'DMSans_700Bold',
+  },
+  splashButton: {
+    backgroundColor: '#6B7280',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: borderRadius.button,
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  splashButtonText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 14,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

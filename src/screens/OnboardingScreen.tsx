@@ -6,11 +6,11 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Animated,
   Easing,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, shadows, spacing, borderRadius, borders, typography } from '../lib/theme';
 

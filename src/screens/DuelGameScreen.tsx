@@ -4,12 +4,14 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Animated,
   Easing,
   Image,
   ActivityIndicator,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getSportColor, Sport } from '../lib/theme';
 import { soundService } from '../lib/soundService';
 
@@ -20,6 +22,11 @@ const sportIcons: Record<Sport, any> = {
   nfl: require('../../assets/images/icon-football.png'),
   mlb: require('../../assets/images/icon-baseball.png'),
 };
+
+// Result icons
+const handshakeIcon = require('../../assets/images/icon-handshake.png');
+const trophyIcon = require('../../assets/images/icon-trophy.png');
+const thumbsDownIcon = require('../../assets/images/icon-thumbs-down.png');
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
@@ -59,6 +66,7 @@ interface Props {
   duel: Duel;
   onBack: () => void;
   onComplete: (won: boolean) => void;
+  onPlayAgain: (sport: 'nba' | 'pl' | 'nfl' | 'mlb') => void;
   getRandomQuestionId?: (sport: 'nba' | 'pl' | 'nfl' | 'mlb') => string;
 }
 
@@ -97,7 +105,7 @@ const getTriviaQuestions = (sport: 'nba' | 'pl' | 'nfl' | 'mlb'): TriviaQuestion
   }
 };
 
-export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, getRandomQuestionId }: Props) {
+export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, onPlayAgain, getRandomQuestionId }: Props) {
   const { user } = useAuth();
   const [duel, setDuel] = useState<Duel>(initialDuel);
   const [question, setQuestion] = useState<TriviaQuestion | null>(null);
@@ -124,6 +132,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   const [pendingAchievements, setPendingAchievements] = useState<Achievement[]>([]);
   const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
   const [showAchievementToast, setShowAchievementToast] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'reconnecting' | 'disconnected'>('connected');
+
+  // Refs for safety timeout and connection monitoring
+  const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const hasSubmittedTimeoutRef = useRef<boolean>(false);
 
   // Helper to check if this is a multi-question duel
   const isMultiQuestion = duel.question_count > 1;
@@ -155,6 +169,27 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       soundService.cleanup();
     };
   }, []);
+
+  // Handle app going to background/foreground
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      // Coming back from background
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        // If we're in playing phase and should have timed out, force submit
+        if (gamePhase === 'playing' && roundStartTime && !hasAnswered) {
+          const elapsed = (Date.now() - roundStartTime) / 1000;
+          if (elapsed >= TIMER_DURATION) {
+            console.log('App returned from background after timeout, submitting...');
+            handleTimeUp();
+          }
+        }
+      }
+      appStateRef.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [gamePhase, roundStartTime, hasAnswered]);
 
   // Find the trivia question for current round
   useEffect(() => {
@@ -218,56 +253,85 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     }
   }, [duel.status, gamePhase, isPlayer1, duel.id, duel.round_start_time]);
 
-  // Subscribe to duel updates
+  // Subscribe to duel updates with connection monitoring
   useEffect(() => {
-    channelRef.current = subscribeToDuel(duel.id, (updatedDuel) => {
-      setDuel(updatedDuel);
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    let reconnectTimer: NodeJS.Timeout | null = null;
 
-      // Update scores from duel state
-      const myCurrentScore = isPlayer1 ? updatedDuel.player1_score : updatedDuel.player2_score;
-      const oppCurrentScore = isPlayer1 ? updatedDuel.player2_score : updatedDuel.player1_score;
-      setMyScore(myCurrentScore);
-      setOpponentScore(oppCurrentScore);
+    const setupSubscription = () => {
+      channelRef.current = subscribeToDuel(duel.id, (updatedDuel) => {
+        setConnectionStatus('connected');
+        reconnectAttempts = 0;
+        setDuel(updatedDuel);
 
-      // Check if round started
-      if (updatedDuel.round_start_time && gamePhase === 'waiting') {
-        const startTime = new Date(updatedDuel.round_start_time).getTime();
-        setRoundStartTimeState(startTime);
-        setGamePhase('playing');
-      }
+        // Update scores from duel state
+        const myCurrentScore = isPlayer1 ? updatedDuel.player1_score : updatedDuel.player2_score;
+        const oppCurrentScore = isPlayer1 ? updatedDuel.player2_score : updatedDuel.player1_score;
+        setMyScore(myCurrentScore);
+        setOpponentScore(oppCurrentScore);
 
-      // Check if opponent has answered
-      const opponentAnswer = isPlayer1 ? updatedDuel.player2_answer : updatedDuel.player1_answer;
-      if (opponentAnswer !== null) {
-        setOpponentAnswered(true);
-      }
+        // Check if round started
+        if (updatedDuel.round_start_time && gamePhase === 'waiting') {
+          const startTime = new Date(updatedDuel.round_start_time).getTime();
+          setRoundStartTimeState(startTime);
+          setGamePhase('playing');
+          hasSubmittedTimeoutRef.current = false; // Reset for new round
+        }
 
-      // Check if both have answered or game is completed
-      const myAnswer = isPlayer1 ? updatedDuel.player1_answer : updatedDuel.player2_answer;
-      if (updatedDuel.status === 'completed') {
-        setGamePhase('results');
-        setShowResultModal(true);
+        // Check if opponent has answered
+        const opponentAnswer = isPlayer1 ? updatedDuel.player2_answer : updatedDuel.player1_answer;
+        if (opponentAnswer !== null) {
+          setOpponentAnswered(true);
+        }
 
-        // TODO: INTERSTITIAL AD TRIGGER POINT
-        // Show interstitial ad after duel completion
-        // Example with AdMob:
-        // import { InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
-        // const interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID);
-        // interstitial.show();
-      } else if (myAnswer !== null && opponentAnswer !== null && gamePhase === 'playing') {
-        // Both answered - handle round end
-        if (isMultiQuestion) {
-          // Show round result, then advance
-          setGamePhase('roundResult');
-        } else {
-          // Single question - show final results
+        // Check if both have answered or game is completed
+        const myAnswer = isPlayer1 ? updatedDuel.player1_answer : updatedDuel.player2_answer;
+        if (updatedDuel.status === 'completed') {
           setGamePhase('results');
           setShowResultModal(true);
+        } else if (myAnswer !== null && opponentAnswer !== null && gamePhase === 'playing') {
+          // Both answered - handle round end
+          if (isMultiQuestion) {
+            // Show round result, then advance
+            setGamePhase('roundResult');
+          } else {
+            // Single question - show final results
+            setGamePhase('results');
+            setShowResultModal(true);
+          }
         }
+      });
+
+      // Monitor channel status
+      if (channelRef.current) {
+        channelRef.current.on('system', { event: 'disconnect' }, () => {
+          console.log('Duel subscription disconnected');
+          setConnectionStatus('reconnecting');
+
+          // Attempt to reconnect
+          if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            reconnectTimer = setTimeout(() => {
+              console.log(`Reconnecting... attempt ${reconnectAttempts}`);
+              if (channelRef.current) {
+                unsubscribeFromDuel(channelRef.current);
+              }
+              setupSubscription();
+            }, 1000 * reconnectAttempts); // Exponential backoff
+          } else {
+            setConnectionStatus('disconnected');
+          }
+        });
       }
-    });
+    };
+
+    setupSubscription();
 
     return () => {
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
       if (channelRef.current) {
         unsubscribeFromDuel(channelRef.current);
       }
@@ -305,7 +369,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
     const isLastRound = currentRound >= totalQuestions;
 
-    // Wait 2 seconds to show round result, then advance
+    // Wait 1 second to show round result, then advance
     const timer = setTimeout(async () => {
       if (isLastRound) {
         // Last round - complete the duel and show final results
@@ -333,7 +397,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             player2_total_time: finalP2Time,
           };
           const { winnerId } = determineFinalWinner(finalDuel);
-          await completeDuel(duel.id, winnerId || '');
+          await completeDuel(duel.id, winnerId);
         }
 
         setGamePhase('results');
@@ -362,16 +426,37 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         setRoundStartTimeState(null);
         setRoundWon(null);
         setIsAdvancingRound(false);
+        hasSubmittedTimeoutRef.current = false; // Reset for next round
+        lastTickSecond.current = -1; // Reset tick sound tracker
         setGamePhase('waiting');
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [gamePhase, question, isPlayer1, currentRound, totalQuestions, duel, isAdvancingRound, getNewQuestionId]);
 
-  // Timer countdown with tick sounds
+  // Timer countdown with tick sounds and safety timeout
   useEffect(() => {
     if (gamePhase !== 'playing' || !roundStartTime) return;
+
+    // Calculate how much time is actually remaining based on server timestamp
+    const initialElapsed = (Date.now() - roundStartTime) / 1000;
+    const initialRemaining = Math.max(0, TIMER_DURATION - initialElapsed);
+
+    // Safety timeout: A backup setTimeout that fires slightly after timer should end
+    // This ensures we submit even if the interval timer fails or the screen freezes
+    const GRACE_PERIOD = 2000; // 2 second grace period for network latency
+    const safetyDelay = (initialRemaining * 1000) + GRACE_PERIOD;
+
+    if (safetyDelay > 0 && !hasAnswered && !hasSubmittedTimeoutRef.current) {
+      safetyTimeoutRef.current = setTimeout(() => {
+        if (!hasAnswered && !hasSubmittedTimeoutRef.current) {
+          console.log('Safety timeout triggered - forcing submission');
+          hasSubmittedTimeoutRef.current = true;
+          handleTimeUp();
+        }
+      }, safetyDelay);
+    }
 
     const updateTimer = () => {
       const elapsed = (Date.now() - roundStartTime) / 1000;
@@ -389,8 +474,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         soundService.playTick(currentSecond <= 5);
       }
 
-      if (remaining <= 0 && !hasAnswered) {
+      if (remaining <= 0 && !hasAnswered && !hasSubmittedTimeoutRef.current) {
         // Time's up - play buzzer and submit null answer
+        hasSubmittedTimeoutRef.current = true;
         soundService.playBuzzer();
         handleTimeUp();
       }
@@ -403,6 +489,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+      }
     };
   }, [gamePhase, roundStartTime, hasAnswered]);
 
@@ -410,8 +499,30 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     if (hasAnswered) return;
 
     setHasAnswered(true);
-    // Submit with empty answer (timed out)
-    await submitTriviaAnswer(duel.id, isPlayer1, '', TIMER_DURATION * 1000);
+
+    // Submit with retry logic for network failures
+    const maxRetries = 3;
+    let submitted = false;
+
+    for (let attempt = 0; attempt < maxRetries && !submitted; attempt++) {
+      try {
+        const result = await submitTriviaAnswer(duel.id, isPlayer1, '', TIMER_DURATION * 1000);
+        if (result) {
+          submitted = true;
+          console.log('Timeout answer submitted successfully');
+        } else {
+          console.log(`Timeout submission attempt ${attempt + 1} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1))); // Backoff
+        }
+      } catch (error) {
+        console.error(`Timeout submission error on attempt ${attempt + 1}:`, error);
+        await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+      }
+    }
+
+    if (!submitted) {
+      console.error('Failed to submit timeout answer after all retries');
+    }
 
     // Check if we should determine winner
     checkForGameEnd();
@@ -433,12 +544,19 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     if (p1Answered && p2Answered && latestDuel.status !== 'completed') {
       // Both have answered, determine winner
       const { winnerId } = determineWinner(latestDuel, question.correctAnswer);
-      await completeDuel(duel.id, winnerId || '');
+      await completeDuel(duel.id, winnerId);
     }
   }, [duel.id, question]);
 
   const handleSelectAnswer = async (answer: string, index: number) => {
     if (hasAnswered || gamePhase !== 'playing' || !roundStartTime || !question) return;
+
+    // Clear safety timeout since player answered manually
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+    hasSubmittedTimeoutRef.current = true; // Prevent any future timeout submissions
 
     // Animate button press
     Animated.sequence([
@@ -708,6 +826,17 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
               <Text style={styles.liveText}>LIVE</Text>
             </View>
           )}
+          {connectionStatus === 'reconnecting' && (
+            <View style={styles.reconnectingIndicator}>
+              <ActivityIndicator size="small" color="#F59E0B" />
+              <Text style={styles.reconnectingText}>Reconnecting...</Text>
+            </View>
+          )}
+          {connectionStatus === 'disconnected' && (
+            <View style={styles.disconnectedIndicator}>
+              <Text style={styles.disconnectedText}>Connection Lost</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.title}>Trivia Duel</Text>
         <View style={styles.sportBadgeContainer}>
@@ -857,9 +986,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
               Answer: {question.correctAnswer}
             </Text>
             {currentRound < totalQuestions ? (
-              <Text style={styles.roundResultNext}>Next question in 2s...</Text>
+              <Text style={styles.roundResultNext}>Next question...</Text>
             ) : (
-              <Text style={styles.roundResultNext}>Calculating final results...</Text>
+              <Text style={styles.roundResultNext}>Final results...</Text>
             )}
           </View>
         </View>
@@ -869,9 +998,15 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       {showResultModal && question && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalEmoji}>
-              {result.tie ? '🤝' : result.won ? '🎉' : '😔'}
-            </Text>
+            {/* Header Icon */}
+            {result.tie ? (
+              <Image source={handshakeIcon} style={styles.resultIcon} resizeMode="contain" />
+            ) : result.won ? (
+              <Image source={trophyIcon} style={styles.resultIcon} resizeMode="contain" />
+            ) : (
+              <Image source={thumbsDownIcon} style={styles.resultIcon} resizeMode="contain" />
+            )}
+
             <Text style={[
               styles.modalTitle,
               result.won && styles.modalTitleWin,
@@ -898,8 +1033,8 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             )}
 
             {/* XP Earned */}
-            <View style={[styles.xpBadge, { backgroundColor: `${sportColor}30` }]}>
-              <Text style={[styles.xpBadgeText, { color: sportColor }]}>
+            <View style={styles.xpBadgeYellow}>
+              <Text style={styles.xpBadgeTextBlack}>
                 +{result.xpEarned} XP
               </Text>
             </View>
@@ -907,56 +1042,68 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             {/* Question (only show for single-question duels) */}
             {!isMultiQuestion && (
               <>
-                <View style={styles.questionSummary}>
+                {/* Question & Answer Card */}
+                <View style={styles.questionAnswerCard}>
                   <Text style={styles.questionSummaryText}>{question.question}</Text>
+                  <View style={styles.correctAnswerRow}>
+                    <Text style={styles.correctAnswerLabel}>Correct Answer:</Text>
+                    <Text style={styles.correctAnswerValue}>{question.correctAnswer}</Text>
+                  </View>
                 </View>
 
-                {/* Correct Answer */}
-                <View style={styles.answerContainer}>
-                  <Text style={styles.answerLabel}>Correct Answer:</Text>
-                  <Text style={styles.answerText}>{question.correctAnswer}</Text>
-                </View>
+                {/* Players' Answers Comparison - Two Cards */}
+                <View style={styles.playersComparisonContainer}>
+                  {/* You Card */}
+                  <View style={[styles.playerCard, { marginRight: 24 }]}>
+                    <Text style={styles.playerCardLabel}>YOU</Text>
+                    <View style={styles.playerCardAnswerContainer}>
+                      <Text
+                        style={[
+                          styles.playerCardAnswer,
+                          (isPlayer1 ? duel.player1_answer : duel.player2_answer) === question.correctAnswer
+                            ? styles.correctAnswerText
+                            : styles.wrongAnswerText
+                        ]}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                      >
+                        {(isPlayer1 ? duel.player1_answer : duel.player2_answer) || 'Timed out'}
+                      </Text>
+                    </View>
+                    <Text style={styles.playerCardTime}>
+                      {(isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time)
+                        ? `${((isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time)! / 1000).toFixed(2)}s`
+                        : '--'}
+                    </Text>
+                  </View>
 
-                {/* Players' Answers Comparison */}
-                <View style={styles.answersComparison}>
-                  <View style={styles.answerColumn}>
-                    <Text style={styles.answerColumnLabel}>You</Text>
-                    <Text style={[
-                      styles.answerColumnValue,
-                      (isPlayer1 ? duel.player1_answer : duel.player2_answer) === question.correctAnswer
-                        ? styles.correctAnswerText
-                        : styles.wrongAnswerText
-                    ]}>
-                      {(isPlayer1 ? duel.player1_answer : duel.player2_answer) || 'Timed out'}
-                    </Text>
-                    {(isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time) ? (
-                      <Text style={styles.answerTime}>
-                        {((isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time)! / 1000).toFixed(2)}s
-                      </Text>
-                    ) : (
-                      <Text style={styles.answerTime}>--</Text>
-                    )}
+                  {/* VS Badge - Centered */}
+                  <View style={styles.vsBadge}>
+                    <Text style={styles.vsBadgeText}>VS</Text>
                   </View>
-                  <View style={styles.vsContainer}>
-                    <Text style={styles.vsText}>VS</Text>
-                  </View>
-                  <View style={styles.answerColumn}>
-                    <Text style={styles.answerColumnLabel}>{opponentUsername || 'Opponent'}</Text>
-                    <Text style={[
-                      styles.answerColumnValue,
-                      (isPlayer1 ? duel.player2_answer : duel.player1_answer) === question.correctAnswer
-                        ? styles.correctAnswerText
-                        : styles.wrongAnswerText
-                    ]}>
-                      {(isPlayer1 ? duel.player2_answer : duel.player1_answer) || 'Timed out'}
-                    </Text>
-                    {(isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time) ? (
-                      <Text style={styles.answerTime}>
-                        {((isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time)! / 1000).toFixed(2)}s
+
+                  {/* Opponent Card */}
+                  <View style={[styles.playerCard, { marginLeft: 24 }]}>
+                    <Text style={styles.playerCardLabel}>{opponentUsername?.toUpperCase() || 'OPPONENT'}</Text>
+                    <View style={styles.playerCardAnswerContainer}>
+                      <Text
+                        style={[
+                          styles.playerCardAnswer,
+                          (isPlayer1 ? duel.player2_answer : duel.player1_answer) === question.correctAnswer
+                            ? styles.correctAnswerText
+                            : styles.wrongAnswerText
+                        ]}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                      >
+                        {(isPlayer1 ? duel.player2_answer : duel.player1_answer) || 'Timed out'}
                       </Text>
-                    ) : (
-                      <Text style={styles.answerTime}>--</Text>
-                    )}
+                    </View>
+                    <Text style={styles.playerCardTime}>
+                      {(isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time)
+                        ? `${((isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time)! / 1000).toFixed(2)}s`
+                        : '--'}
+                    </Text>
                   </View>
                 </View>
               </>
@@ -975,22 +1122,22 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
             <View style={styles.modalButtonsRow}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: sportColor }]}
+                style={styles.playAgainButton}
                 onPress={() => {
                   setShowResultModal(false);
-                  onComplete(result.won);
+                  onPlayAgain(duel.sport);
                 }}
               >
-                <Text style={styles.modalButtonText}>Play Again</Text>
+                <Text style={styles.playAgainButtonText}>Play Again</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.modalButtonSecondary}
+                style={styles.homeButton}
                 onPress={() => {
                   setShowResultModal(false);
                   onBack();
                 }}
               >
-                <Text style={styles.modalButtonSecondaryText}>Home</Text>
+                <Text style={styles.homeButtonText}>Home</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1070,6 +1217,37 @@ const styles = StyleSheet.create({
     color: colors.live,
     fontSize: 12,
     fontFamily: 'DMSans_900Black',
+  },
+  reconnectingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    gap: 6,
+  },
+  reconnectingText: {
+    color: '#F59E0B',
+    fontSize: 11,
+    fontFamily: 'DMSans_700Bold',
+  },
+  disconnectedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(220, 38, 38, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#DC2626',
+  },
+  disconnectedText: {
+    color: '#DC2626',
+    fontSize: 11,
+    fontFamily: 'DMSans_700Bold',
   },
   title: {
     fontSize: 24,
@@ -1330,6 +1508,11 @@ const styles = StyleSheet.create({
     fontSize: 64,
     marginBottom: 16,
   },
+  resultIcon: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+  },
   modalTitle: {
     fontSize: 28,
     fontFamily: 'DMSans_900Black',
@@ -1364,6 +1547,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'DMSans_900Black',
   },
+  xpBadgeYellow: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    backgroundColor: '#F2C94C',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  xpBadgeTextBlack: {
+    fontSize: 18,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
   questionSummary: {
     backgroundColor: colors.background,
     borderRadius: 8,
@@ -1379,6 +1581,103 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  questionAnswerCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 16,
+    width: '100%',
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  correctAnswerRow: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  correctAnswerLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_500Medium',
+    color: colors.textMuted,
+    marginBottom: 4,
+  },
+  correctAnswerValue: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1ABC9C',
+    textAlign: 'center',
+  },
+  playersComparisonContainer: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    marginBottom: 16,
+    width: '100%',
+    position: 'relative',
+  },
+  playerCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 12,
+    minHeight: 100,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  playerCardLabel: {
+    fontSize: 10,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  playerCardAnswerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  playerCardAnswer: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    textAlign: 'center',
+  },
+  playerCardTime: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+  },
+  vsBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    marginLeft: -18,
+    marginTop: -18,
+    zIndex: 10,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+  },
+  vsBadgeText: {
+    fontSize: 11,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
   },
   answerContainer: {
     backgroundColor: colors.background,
@@ -1465,7 +1764,7 @@ const styles = StyleSheet.create({
   },
   modalButtonsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
     width: '100%',
   },
   modalButton: {
@@ -1501,6 +1800,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalButtonSecondaryText: {
+    color: '#1A1A1A',
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+  },
+  playAgainButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    backgroundColor: '#1ABC9C',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  playAgainButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+  },
+  homeButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    backgroundColor: '#F2C94C',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  homeButtonText: {
     color: '#1A1A1A',
     fontSize: 16,
     fontFamily: 'DMSans_900Black',

@@ -5,13 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  KeyboardAvoidingView,
   Platform,
   Modal,
   Share,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -69,6 +68,39 @@ const defaultStats: StatsData = {
   gamesWon: 0,
   lastPlayedDate: '',
 };
+
+const STREAK_KEY = 'ballrs_pl_daily_streak';
+
+interface StreakState {
+  currentStreak: number;
+  lastPlayedDate: string;
+}
+
+// Helper to calculate daily streak (only increments once per day)
+async function calculateDailyStreak(): Promise<number> {
+  const today = getTodayString();
+  const streakStored = await AsyncStorage.getItem(STREAK_KEY);
+  let newStreak = 1;
+
+  if (streakStored) {
+    const streakState: StreakState = JSON.parse(streakStored);
+    const lastDate = new Date(streakState.lastPlayedDate);
+    const todayDate = new Date(today);
+    const diffTime = todayDate.getTime() - lastDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      newStreak = streakState.currentStreak + 1;
+    } else if (diffDays === 0) {
+      newStreak = streakState.currentStreak;
+    }
+  }
+
+  const newStreakState: StreakState = { currentStreak: newStreak, lastPlayedDate: today };
+  await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(newStreakState));
+
+  return newStreak;
+}
 
 // Position groups for partial matching
 const positionGroups: Record<string, string> = {
@@ -263,7 +295,8 @@ export default function PremierLeaguePuzzleScreen({ onBack }: Props) {
           }
         }
         if (currentCloudStats && won) {
-          const updatedStats = await updateStatsAfterWin(user.id, 'pl', currentCloudStats);
+          const dailyStreak = await calculateDailyStreak();
+          const updatedStats = await updateStatsAfterWin(user.id, 'pl', currentCloudStats, dailyStreak);
           if (updatedStats) {
             setCloudStats(updatedStats);
           }
@@ -307,7 +340,8 @@ export default function PremierLeaguePuzzleScreen({ onBack }: Props) {
 
       if (currentCloudStats) {
         if (won) {
-          const updatedStats = await updateStatsAfterWin(user.id, 'pl', currentCloudStats);
+          const dailyStreak = await calculateDailyStreak();
+          const updatedStats = await updateStatsAfterWin(user.id, 'pl', currentCloudStats, dailyStreak);
           if (updatedStats) {
             setCloudStats(updatedStats);
           }
@@ -515,15 +549,14 @@ Streak: ${displayStats.currentStreak}`;
   const gameOver = solved || guessedPlayers.length >= MAX_GUESSES;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraScrollHeight={0}
+        enableAutomaticScroll={true}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
           <View style={styles.header}>
             <View style={styles.headerButtons}>
               <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -647,8 +680,7 @@ Streak: ${displayStats.currentStreak}`;
               </TouchableOpacity>
             </View>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
 
       {/* Stats Modal */}
       <Modal
@@ -761,9 +793,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  keyboardView: {
-    flex: 1,
   },
   scrollContent: {
     padding: 12,

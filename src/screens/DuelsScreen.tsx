@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -16,8 +15,10 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import { colors, getSportColor, Sport } from '../lib/theme';
+import { supabase } from '../lib/supabase';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
 
 const ACCENT_COLOR = '#1ABC9C';
@@ -53,7 +54,26 @@ import {
   declineChallenge,
   joinDuelByInviteCode,
   cancelDuel,
+  createInviteDuel,
 } from '../lib/duelService';
+import { getFriends, FriendWithProfile, sendFriendChallenge } from '../lib/friendsService';
+import { sendChallengeNotification } from '../lib/notificationService';
+import { getSmartQuestionId } from '../lib/questionSelectionService';
+import nbaTriviaData from '../../data/nba-trivia.json';
+import plTriviaData from '../../data/pl-trivia.json';
+import nflTriviaData from '../../data/nfl-trivia.json';
+import mlbTriviaData from '../../data/mlb-trivia.json';
+
+// Get trivia questions by sport
+const getTriviaQuestions = (sport: Sport): any[] => {
+  switch (sport) {
+    case 'nba': return nbaTriviaData as any[];
+    case 'pl': return plTriviaData as any[];
+    case 'nfl': return nflTriviaData as any[];
+    case 'mlb': return mlbTriviaData as any[];
+    default: return nbaTriviaData as any[];
+  }
+};
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 88;
@@ -156,12 +176,12 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress }: SwipeableDuelCardPr
           </View>
           <View style={styles.duelInfo}>
             <Text style={styles.opponentName}>
-              {duel.status === 'waiting'
+              {duel.status === 'waiting' || duel.status === 'invite'
                 ? 'Waiting for opponent...'
                 : `vs ${duel.opponent_username || 'Unknown'}`}
             </Text>
             <Text style={[styles.duelStatus, { color: getSportColor(duel.sport) }]}>
-              {duel.status === 'waiting' ? 'Waiting' : 'In Progress'}
+              {duel.status === 'waiting' || duel.status === 'invite' ? 'Waiting' : 'In Progress'}
             </Text>
           </View>
           <Text style={styles.arrowIcon}>→</Text>
@@ -176,9 +196,11 @@ interface Props {
   onLogin: () => void;
   onQuickDuel?: (sport: Sport) => void;
   onChallengeFriend?: (sport: Sport, questionCount: number) => void;
+  autoStartDuelSport?: Sport | null;
+  onClearAutoStartDuel?: () => void;
 }
 
-const QUESTION_COUNT_OPTIONS = [1, 3, 7, 10];
+const QUESTION_COUNT_OPTIONS = [1, 5, 9];
 
 const formatTime = (ms: number | null): string => {
   if (ms === null) return '--';
@@ -186,7 +208,7 @@ const formatTime = (ms: number | null): string => {
   return `${seconds}s`;
 };
 
-export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, onChallengeFriend }: Props) {
+export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, onChallengeFriend, autoStartDuelSport, onClearAutoStartDuel }: Props) {
   const { user } = useAuth();
   const [activeDuels, setActiveDuels] = useState<DuelWithOpponent[]>([]);
   const [incomingChallenges, setIncomingChallenges] = useState<DuelWithOpponent[]>([]);
@@ -201,13 +223,56 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
   const [sportSelectorAction, setSportSelectorAction] = useState<'quickDuel' | 'challenge'>('quickDuel');
   const [questionCountPickerVisible, setQuestionCountPickerVisible] = useState(false);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
-  const [selectedQuestionCount, setSelectedQuestionCount] = useState(3);
+  const [selectedQuestionCount, setSelectedQuestionCount] = useState(5);
   const [inputFocused, setInputFocused] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [duelToCancel, setDuelToCancel] = useState<DuelWithOpponent | null>(null);
   const [cancellingDuel, setCancellingDuel] = useState(false);
   const [showCancelToast, setShowCancelToast] = useState(false);
   const toastOpacity = useRef(new Animated.Value(0)).current;
+  const [startDuelModalVisible, setStartDuelModalVisible] = useState(false);
+  const [startDuelSport, setStartDuelSport] = useState<Sport | null>(null);
+
+  // Friend challenge states
+  const [friends, setFriends] = useState<FriendWithProfile[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
+  const [selectedFriendForChallenge, setSelectedFriendForChallenge] = useState<FriendWithProfile | null>(null);
+  const [confirmFriendModalVisible, setConfirmFriendModalVisible] = useState(false);
+  const [sendingFriendChallenge, setSendingFriendChallenge] = useState(false);
+  const [myUsername, setMyUsername] = useState<string>('Someone');
+
+  // Auto-open Start Duel modal when navigating from home screen
+  useEffect(() => {
+    if (autoStartDuelSport) {
+      setStartDuelSport(autoStartDuelSport);
+      setStartDuelModalVisible(true);
+      // Clear the auto-start parameter after consuming it
+      onClearAutoStartDuel?.();
+    }
+  }, [autoStartDuelSport, onClearAutoStartDuel]);
+
+  // Load friends and username when question count picker opens
+  useEffect(() => {
+    const loadFriendsAndUsername = async () => {
+      if (!questionCountPickerVisible || !user) return;
+
+      setLoadingFriends(true);
+      const friendsList = await getFriends(user.id);
+      setFriends(friendsList);
+      setLoadingFriends(false);
+
+      // Load my username for notifications
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
+      if (profile?.username) {
+        setMyUsername(profile.username);
+      }
+    };
+    loadFriendsAndUsername();
+  }, [questionCountPickerVisible, user]);
 
   const loadData = useCallback(async () => {
     if (!user) {
@@ -330,7 +395,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
     } else if (sportSelectorAction === 'challenge') {
       // Show question count picker for Challenge Friend
       setSelectedSport(sport);
-      setSelectedQuestionCount(3); // Default to 3 questions
+      setSelectedQuestionCount(5); // Default to 5 questions
       setQuestionCountPickerVisible(true);
     }
   };
@@ -347,9 +412,96 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
     }
   };
 
+  // Friend challenge handlers
+  const handleFriendSelect = (friend: FriendWithProfile) => {
+    setSelectedFriendForChallenge(friend);
+    setConfirmFriendModalVisible(true);
+  };
+
+  const handleCancelFriendConfirm = () => {
+    setSelectedFriendForChallenge(null);
+    setConfirmFriendModalVisible(false);
+  };
+
+  const handleConfirmFriendChallenge = async () => {
+    if (!selectedFriendForChallenge || !user || !selectedSport) return;
+
+    setSendingFriendChallenge(true);
+
+    try {
+      // Get a random question ID for the duel
+      const questions = getTriviaQuestions(selectedSport);
+      const questionId = getSmartQuestionId(selectedSport, questions);
+
+      // Create the duel
+      const duel = await createInviteDuel(user.id, selectedSport, questionId, selectedQuestionCount);
+
+      if (duel && duel.invite_code) {
+        // Send challenge via database
+        await sendFriendChallenge(user.id, selectedFriendForChallenge.friendUserId, duel.id);
+
+        // Send push notification
+        await sendChallengeNotification(
+          selectedFriendForChallenge.friendUserId,
+          myUsername,
+          selectedSport,
+          duel.invite_code
+        );
+
+        Alert.alert(
+          'Challenge Sent!',
+          `${selectedFriendForChallenge.username} has been notified. Waiting for them to join...`,
+          [{ text: 'OK' }]
+        );
+
+        // Close modals and navigate to the duel
+        setConfirmFriendModalVisible(false);
+        setQuestionCountPickerVisible(false);
+        setSelectedFriendForChallenge(null);
+        setSelectedSport(null);
+
+        // Navigate to the duel (waiting for opponent)
+        onNavigateToDuel(duel);
+      } else {
+        Alert.alert('Error', 'Failed to create challenge. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating friend challenge:', error);
+      Alert.alert('Error', 'Failed to send challenge. Please try again.');
+    }
+
+    setSendingFriendChallenge(false);
+  };
+
   const showCancelConfirmation = (duel: DuelWithOpponent) => {
     setDuelToCancel(duel);
     setCancelModalVisible(true);
+  };
+
+  // Start Duel modal handlers
+  const handleOpenStartDuelModal = () => {
+    if (!user) {
+      onLogin();
+      return;
+    }
+    setSportSelectorAction('quickDuel');
+    setSportSelectorVisible(true);
+  };
+
+  const handlePlayStranger = () => {
+    if (startDuelSport && onQuickDuel) {
+      setStartDuelModalVisible(false);
+      onQuickDuel(startDuelSport);
+    }
+  };
+
+  const handleChallengeFriendFromModal = () => {
+    if (startDuelSport) {
+      setStartDuelModalVisible(false);
+      setSelectedSport(startDuelSport);
+      setSelectedQuestionCount(5);
+      setQuestionCountPickerVisible(true);
+    }
   };
 
   const handleCancelDuel = async () => {
@@ -390,7 +542,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.title}>Duels</Text>
           <Text style={styles.subtitle}>Challenge friends and compete</Text>
@@ -410,7 +562,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.title}>Duels</Text>
           <Text style={styles.subtitle}>Challenge friends and compete</Text>
@@ -423,7 +575,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -684,7 +836,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
           onPress={() => setQuestionCountPickerVisible(false)}
         >
           <TouchableOpacity
-            style={styles.modalContent}
+            style={styles.questionCountModalContent}
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
@@ -714,18 +866,101 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Friends Section */}
+            <Text style={styles.friendsSectionLabel}>TAP A FRIEND TO CHALLENGE</Text>
+            {loadingFriends ? (
+              <ActivityIndicator size="small" color={ACCENT_COLOR} style={{ marginVertical: 16 }} />
+            ) : friends.length === 0 ? (
+              <Text style={styles.noFriendsHint}>No friends yet. Use the code below to invite someone!</Text>
+            ) : (
+              <ScrollView style={styles.friendsScrollView} showsVerticalScrollIndicator={false}>
+                {friends.map((friend) => (
+                  <TouchableOpacity
+                    key={friend.id}
+                    style={styles.friendOptionCard}
+                    onPress={() => handleFriendSelect(friend)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.friendOptionAvatar}>
+                      <Text style={styles.friendOptionAvatarText}>
+                        {friend.username.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={styles.friendOptionUsername}>{friend.username}</Text>
+                    <Text style={styles.friendOptionArrow}>→</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
+            {/* Divider */}
+            <View style={styles.orDivider}>
+              <View style={styles.orDividerLine} />
+              <Text style={styles.orDividerText}>OR</Text>
+              <View style={styles.orDividerLine} />
+            </View>
+
             <AnimatedButton
-              style={[styles.confirmChallengeButton, { backgroundColor: selectedSport ? getSportColor(selectedSport) : ACCENT_COLOR }]}
+              style={styles.confirmChallengeButton}
               onPress={handleConfirmChallenge}
             >
-              <Text style={styles.confirmChallengeButtonText}>Create Challenge</Text>
+              <Text style={styles.confirmChallengeButtonText}>GET INVITE CODE</Text>
             </AnimatedButton>
             <TouchableOpacity
-              style={styles.modalCancelButton}
+              style={styles.questionCountCancelButton}
               onPress={() => setQuestionCountPickerVisible(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.questionCountCancelText}>CANCEL</Text>
             </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Confirm Friend Challenge Modal */}
+      <Modal
+        visible={confirmFriendModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelFriendConfirm}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={handleCancelFriendConfirm}
+        >
+          <TouchableOpacity
+            style={styles.confirmFriendModalContent}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.confirmFriendTitle}>
+              Challenge {selectedFriendForChallenge?.username}?
+            </Text>
+            <Text style={styles.confirmFriendSubtitle}>
+              They will receive a notification to join your {selectedSport && sportNames[selectedSport]} trivia duel ({selectedQuestionCount} question{selectedQuestionCount > 1 ? 's' : ''}).
+            </Text>
+
+            <View style={styles.confirmFriendButtons}>
+              <TouchableOpacity
+                style={styles.confirmFriendNoButton}
+                onPress={handleCancelFriendConfirm}
+                disabled={sendingFriendChallenge}
+              >
+                <Text style={styles.confirmFriendNoText}>NO</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmFriendYesButton, { backgroundColor: selectedSport ? getSportColor(selectedSport) : ACCENT_COLOR }]}
+                onPress={handleConfirmFriendChallenge}
+                disabled={sendingFriendChallenge}
+              >
+                {sendingFriendChallenge ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmFriendYesText}>YES</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -777,6 +1012,64 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
         </TouchableOpacity>
       </Modal>
 
+      {/* Start Duel Modal */}
+      <Modal
+        visible={startDuelModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStartDuelModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setStartDuelModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.startDuelModalContent}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Sport Badge */}
+            {startDuelSport && (
+              <View style={[styles.startDuelSportBadge, { backgroundColor: getSportColor(startDuelSport) }]}>
+                <Image source={sportIcons[startDuelSport]} style={styles.startDuelSportIcon} resizeMode="contain" />
+                <Text style={styles.startDuelSportText}>{sportNames[startDuelSport]}</Text>
+              </View>
+            )}
+
+            <Text style={styles.startDuelTitle}>Start Duel</Text>
+            <Text style={styles.startDuelSubtitle}>How do you want to play?</Text>
+
+            <View style={styles.startDuelOptions}>
+              <TouchableOpacity
+                style={[styles.startDuelOption, { backgroundColor: ACCENT_COLOR }]}
+                onPress={handlePlayStranger}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.startDuelOptionText}>Play a Stranger</Text>
+                <Text style={styles.startDuelOptionSubtext}>Quick matchmaking</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.startDuelOption, { backgroundColor: '#F2C94C' }]}
+                onPress={handleChallengeFriendFromModal}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.startDuelOptionText, { color: '#1A1A1A' }]}>Challenge a Friend</Text>
+                <Text style={[styles.startDuelOptionSubtext, { color: '#1A1A1A' }]}>Send an invite code</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.startDuelCloseButton}
+              onPress={() => setStartDuelModalVisible(false)}
+            >
+              <Text style={styles.startDuelCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Toast Notification */}
       {showCancelToast && (
         <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
@@ -797,7 +1090,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 24,
+    paddingBottom: 170, // Account for AdBanner + BottomNavBar
   },
   header: {
     padding: 24,
@@ -1256,7 +1549,6 @@ const styles = StyleSheet.create({
   sportOptionIcon: {
     width: 32,
     height: 32,
-    tintColor: '#FFFFFF',
     marginRight: 12,
   },
   sportOptionText: {
@@ -1318,7 +1610,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   questionCountOptionSelected: {
-    backgroundColor: ACCENT_COLOR,
+    backgroundColor: '#1A1A1A',
   },
   questionCountText: {
     fontSize: 20,
@@ -1330,6 +1622,177 @@ const styles = StyleSheet.create({
   },
   confirmChallengeButton: {
     width: '100%',
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    backgroundColor: ACCENT_COLOR,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  confirmChallengeButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  questionCountCancelButton: {
+    marginTop: 12,
+    backgroundColor: '#F2C94C',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  questionCountCancelText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    letterSpacing: 0.5,
+  },
+  questionCountModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
+    margin: 24,
+    width: '85%',
+    maxHeight: '80%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  friendsSectionLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#888888',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: 16,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  noFriendsHint: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  friendsScrollView: {
+    maxHeight: 180,
+    marginBottom: 8,
+  },
+  friendOptionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  friendOptionAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  friendOptionAvatarText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  friendOptionUsername: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  friendOptionArrow: {
+    fontSize: 18,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+  },
+  orDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  orDividerLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: '#E0E0E0',
+  },
+  orDividerText: {
+    marginHorizontal: 16,
+    fontSize: 12,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+  },
+  // Confirm Friend Modal
+  confirmFriendModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
+    margin: 24,
+    width: '85%',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  confirmFriendTitle: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  confirmFriendSubtitle: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  confirmFriendButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  confirmFriendNoButton: {
+    flex: 1,
+    backgroundColor: '#F2C94C',
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 2,
@@ -1341,12 +1804,28 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 2,
   },
-  confirmChallengeButtonText: {
-    fontSize: 12,
+  confirmFriendNoText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  confirmFriendYesButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  confirmFriendYesText: {
+    fontSize: 14,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   // Section header with hint
   sectionHeader: {
@@ -1499,5 +1978,97 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'DMSans_700Bold',
     color: '#FFFFFF',
+  },
+  // Start Duel Modal
+  startDuelModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
+    margin: 24,
+    width: '85%',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  startDuelSportBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  startDuelSportIcon: {
+    width: 24,
+    height: 24,
+  },
+  startDuelSportText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  startDuelTitle: {
+    fontSize: 24,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  startDuelSubtitle: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    marginBottom: 20,
+  },
+  startDuelOptions: {
+    width: '100%',
+    gap: 12,
+  },
+  startDuelOption: {
+    width: '100%',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  startDuelOptionText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  startDuelOptionSubtext: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 2,
+  },
+  startDuelCloseButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  startDuelCloseText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#888888',
   },
 });

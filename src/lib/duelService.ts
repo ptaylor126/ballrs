@@ -277,8 +277,8 @@ export async function updateDuelGuesses(
   return data;
 }
 
-// Complete a duel with a winner
-export async function completeDuel(duelId: string, winnerId: string): Promise<Duel | null> {
+// Complete a duel with a winner (null for tie)
+export async function completeDuel(duelId: string, winnerId: string | null): Promise<Duel | null> {
   const { data, error } = await supabase
     .from('duels')
     .update({
@@ -396,11 +396,13 @@ export interface DuelWithOpponent extends Duel {
 
 // Get active duels for a user (waiting or active)
 export async function getActiveDuels(userId: string): Promise<DuelWithOpponent[]> {
+  // Only show duels that are waiting for opponent to join
+  // Once both players have joined and played, it goes to history
   const { data, error } = await supabase
     .from('duels')
     .select('*')
-    .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
-    .in('status', ['waiting', 'active'])
+    .eq('player1_id', userId)
+    .in('status', ['waiting', 'invite'])
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -513,16 +515,25 @@ export async function getDuelHistory(userId: string, limit: number = 20): Promis
   return duelsWithOpponents;
 }
 
-// Decline (delete) a challenge
+// Decline a challenge by updating status to 'declined'
 export async function declineChallenge(duelId: string): Promise<boolean> {
-  const { error } = await supabase
+  // Update status to 'declined' instead of deleting
+  // This prevents re-fetching issues and works with RLS
+  const { data, error } = await supabase
     .from('duels')
-    .delete()
+    .update({ status: 'declined' })
     .eq('id', duelId)
-    .eq('status', 'invite');
+    .in('status', ['invite', 'waiting'])
+    .select();
 
   if (error) {
     console.error('Error declining challenge:', error);
+    return false;
+  }
+
+  // Check if any rows were actually updated
+  if (!data || data.length === 0) {
+    console.error('No duel found to decline or already processed');
     return false;
   }
 

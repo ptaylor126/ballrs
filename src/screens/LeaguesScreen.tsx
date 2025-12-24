@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
@@ -15,6 +14,7 @@ import {
   Easing,
   LayoutChangeEvent,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ACCENT_COLOR = '#1ABC9C';
 
@@ -116,6 +116,7 @@ export default function LeaguesScreen({
   const [sportFilter, setSportFilter] = useState<SportFilter>('all');
   const [leagues, setLeagues] = useState<LeagueWithMemberCount[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -137,17 +138,30 @@ export default function LeaguesScreen({
   }, [user]);
 
   const loadLeaderboard = useCallback(async () => {
+    // Fetch leaderboard data using RPC function (bypasses RLS)
     const { data, error } = await supabase
-      .from('leaderboard')
-      .select('*')
-      .limit(50);
+      .rpc('get_global_leaderboard', { limit_count: 50 });
 
     if (error) {
       console.error('Error fetching leaderboard:', error);
       return;
     }
 
-    setLeaderboard(data || []);
+    // Add rank to each entry based on sorted order
+    const rankedData = (data || []).map((entry: LeaderboardEntry, index: number) => ({
+      ...entry,
+      rank: index + 1,
+    }));
+
+    setLeaderboard(rankedData);
+
+    // Fetch total user count using RPC function
+    const { data: countData, error: countError } = await supabase
+      .rpc('get_total_users');
+
+    if (!countError && countData !== null) {
+      setTotalUsers(countData);
+    }
   }, []);
 
   const loadData = useCallback(async () => {
@@ -237,8 +251,8 @@ export default function LeaguesScreen({
     return { color: colors.textSecondary };
   };
 
-  const getSolvedCount = (entry: LeaderboardEntry) => {
-    switch (sportFilter) {
+  const getSolvedCountForEntry = (entry: LeaderboardEntry, filter: SportFilter) => {
+    switch (filter) {
       case 'nba': return entry.nba_total_solved || 0;
       case 'pl': return entry.pl_total_solved || 0;
       case 'nfl': return entry.nfl_total_solved || 0;
@@ -247,8 +261,12 @@ export default function LeaguesScreen({
     }
   };
 
-  const getBestStreak = (entry: LeaderboardEntry) => {
-    switch (sportFilter) {
+  const getSolvedCount = (entry: LeaderboardEntry) => {
+    return getSolvedCountForEntry(entry, sportFilter);
+  };
+
+  const getBestStreakForEntry = (entry: LeaderboardEntry, filter: SportFilter) => {
+    switch (filter) {
       case 'nba': return entry.nba_best_streak || 0;
       case 'pl': return entry.pl_best_streak || 0;
       case 'nfl': return entry.nfl_best_streak || 0;
@@ -261,6 +279,23 @@ export default function LeaguesScreen({
       );
     }
   };
+
+  const getBestStreak = (entry: LeaderboardEntry) => {
+    return getBestStreakForEntry(entry, sportFilter);
+  };
+
+  // Sort and rank leaderboard based on current sport filter
+  const sortedLeaderboard = [...leaderboard]
+    .sort((a, b) => {
+      const aCount = getSolvedCountForEntry(a, sportFilter);
+      const bCount = getSolvedCountForEntry(b, sportFilter);
+      if (bCount !== aCount) return bCount - aCount;
+      // Tie-breaker: best streak
+      const aStreak = getBestStreakForEntry(a, sportFilter);
+      const bStreak = getBestStreakForEntry(b, sportFilter);
+      return bStreak - aStreak;
+    })
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
   const getRankMedal = (rank: number) => {
     if (rank === 1) return { icon: goldIcon };
@@ -479,6 +514,14 @@ export default function LeaguesScreen({
   const renderGlobalContent = () => (
     <>
       {renderSportFilterTabs()}
+      {/* Total Users Count */}
+      {totalUsers > 0 && (
+        <View style={styles.totalUsersContainer}>
+          <Text style={styles.totalUsersText}>
+            {totalUsers} {totalUsers === 1 ? 'player' : 'players'} worldwide
+          </Text>
+        </View>
+      )}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -487,7 +530,7 @@ export default function LeaguesScreen({
         <>
           {renderLeaderboardHeader()}
           <FlatList
-            data={leaderboard}
+            data={sortedLeaderboard}
             renderItem={renderLeaderboardItem}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.leaderboardListContent}
@@ -514,7 +557,7 @@ export default function LeaguesScreen({
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -718,6 +761,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingTop: spacing.sm,
     paddingRight: spacing.lg + 2, // Extra space for shadow offset
+    paddingBottom: 170, // Account for AdBanner + BottomNavBar
   },
   leagueCard: {
     backgroundColor: '#FFFFFF',
@@ -1000,5 +1044,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'DMSans_700Bold',
     color: colors.text,
+  },
+  totalUsersContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
+  },
+  totalUsersText: {
+    fontSize: 13,
+    fontFamily: 'DMSans_600SemiBold',
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });

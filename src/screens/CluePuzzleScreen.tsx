@@ -5,9 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
-  KeyboardAvoidingView,
   Platform,
   Animated,
   Share,
@@ -17,14 +15,17 @@ import {
   LayoutChangeEvent,
   Keyboard,
   Dimensions,
+  InteractionManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { colors, shadows, getSportColor, Sport, borders, borderRadius } from '../lib/theme';
 import { AnimatedButton } from '../components/AnimatedComponents';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXP, calculateLevel, XPAwardResult } from '../lib/xpService';
-import { fetchUserStats, getPlayStreak, getWinStreak, UserStats } from '../lib/statsService';
+import { fetchUserStats, getPlayStreak, getWinStreak, UserStats, updateStatsAfterWin, updateStatsAfterLoss } from '../lib/statsService';
 import XPEarnedModal from '../components/XPEarnedModal';
 import JerseyReveal, { getFullTeamName } from '../components/JerseyReveal';
 import nbaPlayersData from '../../data/nba-players-clues.json';
@@ -80,11 +81,42 @@ interface GameState {
   wrongGuesses: number;
   solved: boolean;
   pointsEarned: number;
+  gaveUp?: boolean;
 }
 
 interface StreakState {
   currentStreak: number;
   lastPlayedDate: string;
+}
+
+// Helper to calculate daily streak (only increments once per day)
+async function calculateDailyStreak(sport: string): Promise<number> {
+  const today = getTodayString();
+  const streakStored = await AsyncStorage.getItem(getStreakKey(sport));
+  let newStreak = 1;
+
+  if (streakStored) {
+    const streakState: StreakState = JSON.parse(streakStored);
+    const lastDate = new Date(streakState.lastPlayedDate);
+    const todayDate = new Date(today);
+    const diffTime = todayDate.getTime() - lastDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      // Next day - increment streak
+      newStreak = streakState.currentStreak + 1;
+    } else if (diffDays === 0) {
+      // Same day - keep same streak
+      newStreak = streakState.currentStreak;
+    }
+    // More than 1 day - reset to 1 (default)
+  }
+
+  // Save the new streak state
+  const newStreakState: StreakState = { currentStreak: newStreak, lastPlayedDate: today };
+  await AsyncStorage.setItem(getStreakKey(sport), JSON.stringify(newStreakState));
+
+  return newStreak;
 }
 
 function getTodayString(): string {
@@ -152,6 +184,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [wrongGuesses, setWrongGuesses] = useState(0);
   const [solved, setSolved] = useState(false);
+  const [gaveUp, setGaveUp] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
   const [showWrongMessage, setShowWrongMessage] = useState(false);
   const [showNotInPuzzleMessage, setShowNotInPuzzleMessage] = useState(false);
@@ -168,7 +201,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   const [xpEarned, setXpEarned] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiRef = useRef<any>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<any>(null);
   const [cluesContainerY, setCluesContainerY] = useState(0);
   const [inputContainerY, setInputContainerY] = useState(0);
   const [inputFocused, setInputFocused] = useState(false);
@@ -199,7 +232,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   const potentialPoints = Math.max(0, 6 - currentClueIndex);
   const revealedClues = mysteryPlayer?.clues.slice(0, currentClueIndex + 1) || [];
   const isLastClue = currentClueIndex >= 5;
-  const gameOver = solved || (isLastClue && wrongGuesses > 0 && !solved);
+  const gameOver = solved || gaveUp;
 
   useEffect(() => {
     loadGameState();
@@ -219,6 +252,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
           setCurrentClueIndex(state.currentClueIndex);
           setWrongGuesses(state.wrongGuesses);
           setSolved(state.solved);
+          setGaveUp(state.gaveUp || false);
           setPointsEarned(state.pointsEarned);
         }
       }
@@ -248,7 +282,8 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
     wrong: number,
     isSolved: boolean,
     points: number,
-    updateStreak: boolean = false
+    updateStreak: boolean = false,
+    didGiveUp: boolean = false
   ) {
     if (!mysteryPlayer) return;
     try {
@@ -259,6 +294,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
         wrongGuesses: wrong,
         solved: isSolved,
         pointsEarned: points,
+        gaveUp: didGiveUp,
       };
       await AsyncStorage.setItem(getStorageKey(sport), JSON.stringify(state));
 
@@ -330,8 +366,11 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       triggerCelebration();
       saveGameState(currentClueIndex, wrongGuesses, true, points, true);
 
-      // Show confetti
-      setShowConfetti(true);
+      // Scroll to top to show jersey reveal
+      scrollViewRef.current?.scrollToPosition(0, 0, true);
+
+      // Delay confetti to let UI render first
+      setTimeout(() => setShowConfetti(true), 300);
 
       // TODO: INTERSTITIAL AD TRIGGER POINT
       // Show interstitial ad after puzzle completion (before showing results)
@@ -341,19 +380,36 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       // interstitial.show();
 
       // Award XP (points earned = XP earned in clue puzzle)
+      // Defer database operations to prevent UI freeze
       if (user) {
         const xpAmount = points * 10; // 10 XP per point earned
         setXpEarned(xpAmount);
-        awardXP(user.id, xpAmount).then((result) => {
-          if (result) {
-            setXpResult(result);
-            // Show XP modal after confetti finishes (delay 1.5s)
-            setTimeout(() => {
-              setShowXPModal(true);
-            }, 1500);
+
+        InteractionManager.runAfterInteractions(() => {
+          awardXP(user.id, xpAmount).then((result) => {
+            if (result) {
+              setXpResult(result);
+              // Show XP modal after confetti finishes (delay 1.5s)
+              setTimeout(() => {
+                setShowXPModal(true);
+              }, 1500);
+            }
+          }).catch((err) => {
+            console.error('Error awarding XP:', err);
+          });
+
+          // Update stats with daily streak (only increments once per day)
+          if (userStats) {
+            calculateDailyStreak(sport).then((dailyStreak) => {
+              updateStatsAfterWin(user.id, sport, userStats, dailyStreak).then((updatedStats) => {
+                if (updatedStats) {
+                  setUserStats(updatedStats);
+                }
+              }).catch((err) => {
+                console.error('Error updating stats:', err);
+              });
+            });
           }
-        }).catch((err) => {
-          console.error('Error awarding XP:', err);
         });
       }
     } else if (!isInMysteryPool) {
@@ -379,6 +435,17 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       //   showInterstitialAd();
       // }
 
+      // If this was the last clue and they got it wrong, update stats (loss)
+      if (currentClueIndex >= 5 && user) {
+        updateStatsAfterLoss(user.id, sport, userStats ?? undefined).then((updatedStats) => {
+          if (updatedStats) {
+            setUserStats(updatedStats);
+          }
+        }).catch((err) => {
+          console.error('Error updating stats after loss:', err);
+        });
+      }
+
       setTimeout(() => setShowWrongMessage(false), 2000);
     }
   }
@@ -392,10 +459,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
         // Each clue card is approximately 80px tall with margins
         const clueHeight = 90;
         const targetY = cluesContainerY + (currentClueIndex * clueHeight);
-        scrollViewRef.current.scrollTo({
-          y: targetY,
-          animated: true,
-        });
+        scrollViewRef.current.scrollToPosition(0, targetY, true);
       }
     }, 100);
   };
@@ -412,20 +476,28 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
         if (scrollViewRef.current) {
           const clueHeight = 90;
           const targetY = cluesContainerY + (newIndex * clueHeight);
-          scrollViewRef.current.scrollTo({
-            y: targetY,
-            animated: true,
-          });
+          scrollViewRef.current.scrollToPosition(0, targetY, true);
         }
       }, 150);
     }
   }
 
   function handleGiveUp() {
+    setGaveUp(true);
     setSolved(false);
     setPointsEarned(0);
-    setCurrentClueIndex(5);
-    saveGameState(5, wrongGuesses, false, 0);
+    saveGameState(currentClueIndex, wrongGuesses, false, 0, false, true);
+
+    // Update stats (play streak continues, win streak resets)
+    if (user) {
+      updateStatsAfterLoss(user.id, sport, userStats ?? undefined).then((updatedStats) => {
+        if (updatedStats) {
+          setUserStats(updatedStats);
+        }
+      }).catch((err) => {
+        console.error('Error updating stats after loss:', err);
+      });
+    }
   }
 
   async function handleReset() {
@@ -435,6 +507,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
     setCurrentClueIndex(0);
     setWrongGuesses(0);
     setSolved(false);
+    setGaveUp(false);
     setPointsEarned(0);
     setGuess('');
     setShowWrongMessage(false);
@@ -467,40 +540,14 @@ ${clueText}
 ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš¡ ${winStreakValue}`;
   }
 
-  // Handle input focus - scroll to keep input visible above keyboard
+  // Handle input focus - KeyboardAwareScrollView handles scrolling automatically
   const handleInputFocus = () => {
     setInputFocused(true);
-    if (scrollViewRef.current && inputContainerY > 0) {
-      const screenHeight = Dimensions.get('window').height;
-      // Position input in lower third of visible area (accounting for keyboard ~300px)
-      const keyboardHeight = Platform.OS === 'ios' ? 300 : 250;
-      const visibleHeight = screenHeight - keyboardHeight;
-      const targetScrollY = inputContainerY - (visibleHeight * 0.4);
-
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({
-          y: Math.max(0, targetScrollY),
-          animated: true,
-        });
-      }, 100);
-    }
   };
 
-  // Handle keyboard dismiss - scroll back to show clues
+  // Handle keyboard dismiss
   const handleInputBlur = () => {
     setInputFocused(false);
-    // Only scroll back if we're not in a solved/answer state
-    if (!solved && !showAnswer && scrollViewRef.current) {
-      setTimeout(() => {
-        // Scroll to show current clue
-        const clueHeight = 90;
-        const targetY = cluesContainerY + (currentClueIndex * clueHeight);
-        scrollViewRef.current?.scrollTo({
-          y: Math.max(0, targetY - 100),
-          animated: true,
-        });
-      }, 100);
-    }
   };
 
   async function handleShare() {
@@ -529,19 +576,18 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
     );
   }
 
-  const showAnswer = isLastClue && !solved;
+  const showAnswer = gaveUp && !solved;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <KeyboardAwareScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraScrollHeight={0}
+        enableAutomaticScroll={true}
       >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerTopRow}>
@@ -743,20 +789,6 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
               style={styles.inputWrapper}
               onLayout={(e: LayoutChangeEvent) => setInputContainerY(e.nativeEvent.layout.y)}
             >
-              {showSuggestions && filteredPlayers.length > 0 && (
-                <View style={styles.suggestionsContainer}>
-                  {filteredPlayers.map((player, index) => (
-                    <TouchableOpacity
-                      key={`${player.id}-${index}`}
-                      style={styles.suggestionItem}
-                      onPress={() => handleSelectPlayer(player)}
-                    >
-                      <Text style={styles.suggestionName}>{player.name}</Text>
-                      <Text style={styles.suggestionTeam}>{player.team}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
               <TextInput
                 ref={inputRef}
                 style={[styles.input, inputFocused && styles.inputFocused]}
@@ -772,6 +804,20 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
                 autoCapitalize="words"
                 autoCorrect={false}
               />
+              {showSuggestions && filteredPlayers.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  {filteredPlayers.map((player, index) => (
+                    <TouchableOpacity
+                      key={`${player.id}-${index}`}
+                      style={styles.suggestionItem}
+                      onPress={() => handleSelectPlayer(player)}
+                    >
+                      <Text style={styles.suggestionName}>{player.name}</Text>
+                      <Text style={styles.suggestionTeam}>{player.team}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           )}
 
@@ -810,20 +856,19 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
               </TouchableOpacity>
             </View>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
 
       {/* Confetti */}
       {showConfetti && (
         <ConfettiCannon
           ref={confettiRef}
-          count={200}
+          count={50}
           origin={{ x: -10, y: 0 }}
           autoStart={true}
           fadeOut={true}
-          fallSpeed={3000}
-          explosionSpeed={350}
-          colors={[sportColor, '#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4']}
+          fallSpeed={2000}
+          explosionSpeed={250}
+          colors={[sportColor, '#FFD700', '#4ECDC4']}
           onAnimationEnd={() => setShowConfetti(false)}
         />
       )}
@@ -850,13 +895,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  keyboardView: {
-    flex: 1,
-  },
   scrollContent: {
     padding: 20,
     paddingTop: 12,
-    paddingBottom: 32,
+    paddingBottom: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -1151,6 +1193,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
+    marginTop: 8,
     marginBottom: 8,
     zIndex: 100,
     overflow: 'hidden',

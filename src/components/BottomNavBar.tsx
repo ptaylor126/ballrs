@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { colors } from '../lib/theme';
 import { AnimatedNavIcon } from './AnimatedComponents';
@@ -34,8 +35,10 @@ const tabs: { name: TabName }[] = [
 ];
 
 export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 0 }: Props) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
       <View style={styles.navContent}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.name;
@@ -73,7 +76,6 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
-    paddingBottom: 24,
     paddingHorizontal: 24,
   },
   navContent: {

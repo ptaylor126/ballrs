@@ -22,6 +22,7 @@ interface LevelTier {
 }
 
 const LEVEL_TIERS: LevelTier[] = [
+  { name: 'Hall of Famer', minLevel: 100, maxLevel: 999 },
   { name: 'Legend', minLevel: 50, maxLevel: 99 },
   { name: 'Master', minLevel: 40, maxLevel: 49 },
   { name: 'Expert', minLevel: 30, maxLevel: 39 },
@@ -169,7 +170,7 @@ export default function LevelProgressionModal({
                             future && styles.tierRangeFuture,
                           ]}
                         >
-                          ({tier.minLevel}-{tier.maxLevel})
+                          ({tier.minLevel}{tier.maxLevel === 999 ? '+' : `-${tier.maxLevel}`})
                         </Text>
                       </View>
                       <View style={styles.tierStatus}>
