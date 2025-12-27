@@ -190,20 +190,33 @@ export default function SetUsernameScreen({ onComplete }: Props) {
           {/* Input */}
           <View style={styles.inputContainer}>
             <View style={styles.inputRow}>
-              <TextInput
-                style={styles.input}
-                placeholder="Username"
-                placeholderTextColor="#999999"
-                value={username}
-                onChangeText={(text) => {
-                  setUsername(text);
-                  setError('');
-                }}
-                autoCapitalize="none"
-                autoCorrect={false}
-                maxLength={MAX_USERNAME_LENGTH}
-                selectionColor="#1ABC9C"
-              />
+              <View style={styles.inputWithHint}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Username"
+                  placeholderTextColor="#999999"
+                  value={username}
+                  onChangeText={(text) => {
+                    setUsername(text);
+                    setError('');
+                  }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  maxLength={MAX_USERNAME_LENGTH}
+                  selectionColor="#1ABC9C"
+                />
+                <View style={styles.hintRow}>
+                  <Text style={styles.hint}>
+                    3-10 characters
+                  </Text>
+                  <Text style={[
+                    styles.charCounter,
+                    username.length >= MAX_USERNAME_LENGTH && styles.charCounterLimit
+                  ]}>
+                    {username.length}/{MAX_USERNAME_LENGTH}
+                  </Text>
+                </View>
+              </View>
               <TouchableOpacity
                 style={styles.randomButton}
                 onPress={handleRandomUsername}
@@ -216,17 +229,6 @@ export default function SetUsernameScreen({ onComplete }: Props) {
                   <Text style={styles.randomButtonText}>🎲</Text>
                 )}
               </TouchableOpacity>
-            </View>
-            <View style={styles.hintRow}>
-              <Text style={styles.hint}>
-                3-10 characters, letters and numbers only
-              </Text>
-              <Text style={[
-                styles.charCounter,
-                username.length >= MAX_USERNAME_LENGTH && styles.charCounterLimit
-              ]}>
-                {username.length}/{MAX_USERNAME_LENGTH}
-              </Text>
             </View>
           </View>
 
@@ -384,6 +386,9 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     gap: 10,
+  },
+  inputWithHint: {
+    flex: 1,
   },
   input: {
     flex: 1,

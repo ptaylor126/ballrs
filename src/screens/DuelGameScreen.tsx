@@ -122,7 +122,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   const [hasAnswered, setHasAnswered] = useState(false);
   const [opponentAnswered, setOpponentAnswered] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(TIMER_DURATION);
-  const [gamePhase, setGamePhase] = useState<'waiting' | 'playing' | 'roundResult' | 'results'>('waiting');
+  const [gamePhase, setGamePhase] = useState<'waiting' | 'countdown' | 'playing' | 'roundResult' | 'results'>('waiting');
+  const [countdownNumber, setCountdownNumber] = useState(3);
+  const countdownScaleAnim = useRef(new Animated.Value(0)).current;
   const [showResultModal, setShowResultModal] = useState(false);
   const [roundStartTime, setRoundStartTimeState] = useState<number | null>(null);
 
@@ -231,6 +233,50 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     };
   }, []);
 
+  // Countdown effect - runs 3-2-1 before starting the game
+  useEffect(() => {
+    if (gamePhase !== 'countdown') return;
+
+    // Animate the countdown number
+    const animateNumber = () => {
+      countdownScaleAnim.setValue(0);
+      Animated.sequence([
+        Animated.spring(countdownScaleAnim, {
+          toValue: 1,
+          friction: 4,
+          tension: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(countdownScaleAnim, {
+          toValue: 0.8,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    };
+
+    animateNumber();
+
+    // Countdown timer
+    const timer = setTimeout(() => {
+      if (countdownNumber > 1) {
+        setCountdownNumber(countdownNumber - 1);
+      } else {
+        // Countdown finished, start playing
+        // For async mode, set roundStartTime now
+        // For sync mode, roundStartTime is already set from server (with +3s offset)
+        if (isAsyncMode) {
+          setRoundStartTimeState(Date.now());
+        }
+        setGamePhase('playing');
+        hasSubmittedTimeoutRef.current = false;
+        setCountdownNumber(3); // Reset for next round
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [gamePhase, countdownNumber, isAsyncMode]);
+
   // Handle app going to background/foreground
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -293,10 +339,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         setShowResultModal(true);
         return;
       }
-      // For async duels, start immediately without waiting for opponent
-      setRoundStartTimeState(Date.now());
-      setGamePhase('playing');
-      hasSubmittedTimeoutRef.current = false;
+      // For async duels, start with countdown
+      setCountdownNumber(3);
+      setGamePhase('countdown');
     }
   }, [isAsyncMode, duel.status]);
 
@@ -337,10 +382,13 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
         // Check if round started
         if (updatedDuel.round_start_time && gamePhase === 'waiting') {
-          const startTime = new Date(updatedDuel.round_start_time).getTime();
-          setRoundStartTimeState(startTime);
-          setGamePhase('playing');
-          hasSubmittedTimeoutRef.current = false; // Reset for new round
+          // For sync mode, start countdown before playing
+          // Store the server time but add countdown duration to account for countdown
+          const serverStartTime = new Date(updatedDuel.round_start_time).getTime();
+          // Add 3 seconds to account for countdown (so timer starts correctly after countdown)
+          setRoundStartTimeState(serverStartTime + 3000);
+          setCountdownNumber(3);
+          setGamePhase('countdown');
         }
 
         // Check if opponent has answered
@@ -1084,7 +1132,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   return (
     <SafeAreaView style={styles.container}>
       {/* Minimal Sticky Header - only round/score and timer */}
-      {gamePhase !== 'waiting' && (
+      {gamePhase !== 'waiting' && gamePhase !== 'countdown' && (
         <View style={styles.stickyHeader}>
           {/* Combined Round + Score Card */}
           <View style={styles.roundScoreCard}>
@@ -1155,8 +1203,40 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         </View>
       )}
 
+      {/* Countdown State */}
+      {gamePhase === 'countdown' && (
+        <View style={styles.countdownContainer}>
+          {/* Sport Badge */}
+          <View style={[styles.waitingSportBadge, { backgroundColor: sportColor }]}>
+            <Image source={sportIcons[duel.sport as Sport]} style={styles.waitingSportIcon} resizeMode="contain" />
+          </View>
+
+          {/* Title */}
+          <Text style={styles.countdownTitle}>Get Ready!</Text>
+
+          {/* Countdown Number */}
+          <Animated.View
+            style={[
+              styles.countdownNumberContainer,
+              {
+                transform: [{ scale: countdownScaleAnim }],
+              },
+            ]}
+          >
+            <Text style={[styles.countdownNumber, { color: sportColor }]}>
+              {countdownNumber}
+            </Text>
+          </Animated.View>
+
+          {/* Subtitle */}
+          <Text style={styles.countdownSubtext}>
+            Answer quickly and correctly to win!
+          </Text>
+        </View>
+      )}
+
       {/* Scrollable Question and Options */}
-      {gamePhase !== 'waiting' && question && (
+      {gamePhase !== 'waiting' && gamePhase !== 'countdown' && question && (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -1711,6 +1791,45 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 32,
+  },
+  // Countdown styles
+  countdownContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  countdownTitle: {
+    fontSize: 28,
+    fontFamily: 'DMSans_900Black',
+    color: colors.textDark,
+    marginBottom: 32,
+  },
+  countdownNumberContainer: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 4,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+    marginBottom: 32,
+  },
+  countdownNumber: {
+    fontSize: 80,
+    fontFamily: 'DMSans_900Black',
+  },
+  countdownSubtext: {
+    fontSize: 16,
+    fontFamily: 'DMSans_500Medium',
+    color: colors.textMuted,
+    textAlign: 'center',
   },
   cancelButton: {
     backgroundColor: '#F2C94C',

@@ -626,10 +626,24 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
 
         // Award leaderboard points (6 points for 1 clue, down to 1 point for 6 clues)
         const cluesUsed = currentClueIndex + 1;
-        awardPuzzlePoints(user.id, cluesUsed);
+
+        // Wrap in try-catch to prevent crashes
+        try {
+          awardPuzzlePoints(user.id, cluesUsed).catch((err) => {
+            console.error('Error awarding puzzle points:', err);
+          });
+        } catch (err) {
+          console.error('Error calling awardPuzzlePoints:', err);
+        }
 
         // Award league points
-        awardLeaguePoints(user.id, sport, cluesUsed, true);
+        try {
+          awardLeaguePoints(user.id, sport, cluesUsed, true).catch((err) => {
+            console.error('Error awarding league points:', err);
+          });
+        } catch (err) {
+          console.error('Error calling awardLeaguePoints:', err);
+        }
 
         InteractionManager.runAfterInteractions(() => {
           awardXP(user.id, xpAmount).then((result) => {
@@ -654,6 +668,8 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
               }).catch((err) => {
                 console.error('Error updating stats:', err);
               });
+            }).catch((err) => {
+              console.error('Error calculating daily streak:', err);
             });
           }
         });
@@ -1132,7 +1148,7 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
           onClose={() => {
             setShowXPModal(false);
             // Show Level Up modal if user leveled up
-            if (xpResult.leveledUp) {
+            if (xpResult && xpResult.leveledUp) {
               setTimeout(() => setShowLevelUpModal(true), 300);
             } else {
               checkAndShowLinkEmailPrompt();

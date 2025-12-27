@@ -63,3 +63,8 @@ class SoundService {
 
 // Singleton instance
 export const soundService = new SoundService();
+
+// Helper function for convenience (used by components like XPEarnedModal)
+export async function playSound(soundName: SoundType): Promise<void> {
+  return soundService.play(soundName);
+}

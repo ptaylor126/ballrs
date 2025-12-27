@@ -13,6 +13,10 @@ import {
   AppState,
   AppStateStatus,
 } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep native splash screen visible until we're ready
+SplashScreen.preventAutoHideAsync();
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -432,6 +436,8 @@ function AppContent() {
 
   const handleOnboardingComplete = () => {
     setHasSeenOnboarding(true);
+    // Splash already played during onboarding, don't show again
+    setShowAnimatedSplash(false);
   };
 
   const handleReplayOnboarding = () => {
@@ -793,13 +799,9 @@ function AppContent() {
     'linkEmail',
   ].includes(currentScreen);
 
-  // Show loading while checking onboarding status
+  // Keep native splash visible while checking onboarding status
   if (hasSeenOnboarding === null) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
+    return null;
   }
 
   // Show onboarding for first-time users (with splash overlay during transition)
@@ -1038,12 +1040,9 @@ export default function App() {
     DMSans_900Black,
   });
 
+  // Keep native splash visible while fonts are loading
   if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
+    return null;
   }
 
   return (

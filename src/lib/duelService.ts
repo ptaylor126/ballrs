@@ -949,10 +949,19 @@ export async function submitOpponentResult(
       challengerResult = 'tie';
     }
 
-    // For multi-question duels, use the stored scores
+    // For multi-question duels, calculate scores from player results
     if (duel.question_count > 1) {
-      challengerScore = duel.player1_score || 0;
-      opponentScore = duel.player2_score || 0;
+      // For async duels, player results contain JSON-stringified array of round results
+      try {
+        const p1RoundResults = JSON.parse(p1Result.answer) as PlayerResult[];
+        const p2RoundResults = JSON.parse(p2Result.answer) as PlayerResult[];
+        challengerScore = p1RoundResults.filter(r => r.correct).length;
+        opponentScore = p2RoundResults.filter(r => r.correct).length;
+      } catch (parseError) {
+        // Fallback to stored scores if parsing fails
+        challengerScore = duel.player1_score || 0;
+        opponentScore = duel.player2_score || 0;
+      }
     } else {
       // For single-question duels, score is 1 or 0 based on correct answer
       challengerScore = p1Result.correct ? 1 : 0;
