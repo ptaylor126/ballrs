@@ -32,6 +32,7 @@ import {
 } from '../lib/statsService';
 import { awardLeaguePoints } from '../lib/leaguesService';
 import { calculatePuzzleXP, awardXP, XPAwardResult } from '../lib/xpService';
+import { awardPuzzlePoints } from '../lib/pointsService';
 import { checkPuzzleAchievements, Achievement } from '../lib/achievementsService';
 import LevelUpModal from '../components/LevelUpModal';
 import XPEarnedModal from '../components/XPEarnedModal';
@@ -376,6 +377,9 @@ export default function PremierLeaguePuzzleScreen({ onBack }: Props) {
       if (user) {
         awardLeaguePoints(user.id, 'pl', guessCount, true);
 
+        // Award leaderboard points (6 points for 1 guess, down to 1 point for 6 guesses)
+        awardPuzzlePoints(user.id, guessCount);
+
         // Award XP for solving puzzle
         const streakDay = (cloudStats?.pl_current_streak || stats.currentStreak) + 1;
         const { total: xpAmount } = calculatePuzzleXP(guessCount, streakDay);
@@ -608,6 +612,7 @@ Streak: ${displayStats.currentStreak}`;
                 placeholderTextColor={colors.textMuted}
                 autoCapitalize="words"
                 autoCorrect={false}
+                selectionColor="#1ABC9C"
               />
               {showSuggestions && filteredPlayers.length > 0 && (
                 <View style={styles.suggestionsContainer}>

@@ -13,6 +13,7 @@ import {
   Animated,
   Easing,
   LayoutChangeEvent,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,6 +26,7 @@ const trophyIcon = require('../../assets/images/icon-trophy.png');
 const goldIcon = require('../../assets/images/icon-gold.png');
 const silverIcon = require('../../assets/images/icon-silver.png');
 const bronzeIcon = require('../../assets/images/icon-bronze.png');
+const globeIcon = require('../../assets/images/icon-globe.png');
 
 // Sport icons
 const sportIcons: Record<string, any> = {
@@ -386,37 +388,42 @@ export default function LeaguesScreen({
     );
   };
 
-  const renderLeaderboardItem = ({ item }: { item: LeaderboardEntry }) => {
+  const renderLeaderboardItem = ({ item, index }: { item: LeaderboardEntry; index: number }) => {
     const isCurrentUser = user?.id === item.id;
     const medal = getRankMedal(item.rank);
+    const isAltRow = index % 2 === 1;
 
     return (
-      <View style={[styles.leaderboardRow, isCurrentUser && styles.currentUserRow]}>
-        <View style={styles.rankContainer}>
+      <View style={[
+        styles.tableRow,
+        isAltRow && styles.tableRowAlt,
+        isCurrentUser && styles.tableRowHighlight,
+      ]}>
+        <View style={styles.rankColumn}>
           {medal ? (
             <Image source={medal.icon} style={styles.medalIcon} />
           ) : (
-            <Text style={styles.rank}>
-              {item.rank}
-            </Text>
+            <Text style={styles.rankText}>#{item.rank}</Text>
           )}
         </View>
-        <View style={styles.userAvatar}>
-          <Text style={styles.userAvatarText}>
-            {item.username.charAt(0).toUpperCase()}
-          </Text>
+        <View style={styles.playerColumn}>
+          <View style={styles.playerAvatar}>
+            <Text style={styles.playerAvatarText}>
+              {item.username.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.playerNameContainer}>
+            <Text style={styles.playerName} numberOfLines={1}>
+              {item.username}
+            </Text>
+            {isCurrentUser && <Text style={styles.youLabel}>(You)</Text>}
+          </View>
         </View>
-        <View style={styles.userInfo}>
-          <Text style={[styles.username, isCurrentUser && styles.highlightedText]}>
-            {item.username}
-            {isCurrentUser && ' (You)'}
-          </Text>
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{getSolvedCount(item)}</Text>
         </View>
-        <View style={styles.statValueContainer}>
-          <Text style={styles.statValueOnly}>{getSolvedCount(item)}</Text>
-        </View>
-        <View style={styles.statValueContainer}>
-          <Text style={styles.statValueOnly}>{getBestStreak(item)}</Text>
+        <View style={styles.statColumn}>
+          <Text style={styles.statValue}>{getBestStreak(item)}</Text>
         </View>
       </View>
     );
@@ -428,15 +435,15 @@ export default function LeaguesScreen({
         <TouchableOpacity
           key={filter}
           style={[
-            styles.sportFilterTab,
-            sportFilter === filter && styles.sportFilterTabActive,
+            styles.sportFilterPill,
+            sportFilter === filter && styles.sportFilterPillActive,
           ]}
           onPress={() => setSportFilter(filter)}
         >
           <Text
             style={[
-              styles.sportFilterText,
-              sportFilter === filter && styles.sportFilterTextActive,
+              styles.sportFilterPillText,
+              sportFilter === filter && styles.sportFilterPillTextActive,
             ]}
           >
             {filter === 'all' ? 'ALL' : filter === 'pl' ? 'EPL' : filter.toUpperCase()}
@@ -447,20 +454,30 @@ export default function LeaguesScreen({
   );
 
   const renderLeaderboardHeader = () => (
-    <View style={styles.leaderboardHeaderRow}>
-      <View style={styles.rankContainer}>
-        <Text style={styles.leaderboardHeaderText}>#</Text>
+    <>
+      {/* Player count row */}
+      <View style={styles.tableTopRow}>
+        <Image source={globeIcon} style={styles.globeIcon} resizeMode="contain" />
+        <Text style={styles.tableTopRowText}>
+          {totalUsers} {totalUsers === 1 ? 'player' : 'players'} worldwide
+        </Text>
       </View>
-      <View style={styles.playerHeaderContainer}>
-        <Text style={styles.leaderboardHeaderText}>PLAYER</Text>
+      {/* Column headers */}
+      <View style={styles.tableHeader}>
+        <View style={styles.rankColumn}>
+          <Text style={styles.tableHeaderText}>#</Text>
+        </View>
+        <View style={styles.playerColumn}>
+          <Text style={styles.tableHeaderText}>PLAYER</Text>
+        </View>
+        <View style={styles.statColumn}>
+          <Text style={styles.tableHeaderText}>PTS</Text>
+        </View>
+        <View style={styles.statColumn}>
+          <Text style={styles.tableHeaderText}>STREAK</Text>
+        </View>
       </View>
-      <View style={styles.headerIconContainer}>
-        <Image source={trophyIcon} style={styles.headerIconTrophy} />
-      </View>
-      <View style={styles.headerIconContainer}>
-        <Image source={fireIcon} style={styles.headerIconFire} />
-      </View>
-    </View>
+    </>
   );
 
   const renderMyLeaguesContent = () => (
@@ -502,7 +519,7 @@ export default function LeaguesScreen({
               <Image source={leaguesIcon} style={styles.emptyIcon} />
               <Text style={styles.emptyText}>No leagues yet</Text>
               <Text style={styles.emptySubtext}>
-                Create a league or join one with an invite code
+                Create your own or join with an invite code
               </Text>
             </View>
           }
@@ -512,48 +529,46 @@ export default function LeaguesScreen({
   );
 
   const renderGlobalContent = () => (
-    <>
+    <ScrollView
+      style={styles.globalScrollView}
+      contentContainerStyle={styles.globalScrollContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+        />
+      }
+    >
+      {/* Sport Filter Pills */}
       {renderSportFilterTabs()}
-      {/* Total Users Count */}
-      {totalUsers > 0 && (
-        <View style={styles.totalUsersContainer}>
-          <Text style={styles.totalUsersText}>
-            {totalUsers} {totalUsers === 1 ? 'player' : 'players'} worldwide
-          </Text>
-        </View>
-      )}
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
-        <>
+        <View style={styles.tableCard}>
           {renderLeaderboardHeader()}
-          <FlatList
-            data={sortedLeaderboard}
-            renderItem={renderLeaderboardItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.leaderboardListContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={colors.primary}
-              />
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Image source={leaguesIcon} style={styles.emptyIcon} />
-                <Text style={styles.emptyText}>No rankings yet</Text>
-                <Text style={styles.emptySubtext}>
-                  Be the first to climb the ranks!
-                </Text>
+          {sortedLeaderboard.length === 0 ? (
+            <View style={styles.tableEmptyContainer}>
+              <Text style={styles.tableEmptyText}>
+                No players yet for {sportFilter === 'all' ? 'all sports' : sportFilter === 'pl' ? 'EPL' : sportFilter.toUpperCase()}
+              </Text>
+              <Text style={styles.tableEmptySubtext}>
+                Start playing to climb the leaderboard!
+              </Text>
+            </View>
+          ) : (
+            sortedLeaderboard.map((item, index) => (
+              <View key={item.id}>
+                {renderLeaderboardItem({ item, index })}
               </View>
-            }
-          />
-        </>
+            ))
+          )}
+        </View>
       )}
-    </>
+    </ScrollView>
   );
 
   return (
@@ -616,7 +631,7 @@ export default function LeaguesScreen({
           }}
         >
           <Text style={[styles.tabText, activeTab === 'global' && styles.activeTabText]}>
-            Global
+            Leaderboard
           </Text>
         </TouchableOpacity>
       </View>
@@ -880,11 +895,11 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: 32,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
-    marginHorizontal: spacing.lg,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
@@ -907,152 +922,189 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  // Sport filter tabs
+  // Global leaderboard scroll view
+  globalScrollView: {
+    flex: 1,
+  },
+  globalScrollContent: {
+    paddingBottom: 170, // Account for bottom nav + ad banner
+  },
+  // Player count top row inside table
+  tableTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    backgroundColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  globeIcon: {
+    width: 14,
+    height: 14,
+  },
+  tableTopRowText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888888',
+  },
+  // Sport filter pills
   sportFilterContainer: {
     flexDirection: 'row',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    gap: 6,
+    marginTop: 8,
+    marginBottom: 20,
+    gap: 10,
   },
-  sportFilterTab: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#000000',
-  },
-  sportFilterTabActive: {
-    backgroundColor: '#F2C94C',
-  },
-  sportFilterText: {
-    fontSize: 11,
-    fontFamily: 'DMSans_700Bold',
-    color: '#1A1A1A',
-  },
-  sportFilterTextActive: {
-    color: '#1A1A1A',
-  },
-  // Leaderboard styles
-  leaderboardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
+  sportFilterPill: {
+    paddingHorizontal: 16,
     paddingVertical: 10,
+    borderRadius: 20,
     backgroundColor: '#FFFFFF',
-    marginHorizontal: spacing.lg,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E0',
+  },
+  sportFilterPillActive: {
+    backgroundColor: '#F2C94C',
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
   },
-  leaderboardHeaderText: {
-    fontSize: 10,
-    fontFamily: 'DMSans_700Bold',
-    color: '#888888',
-    textTransform: 'uppercase',
+  sportFilterPillText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
     letterSpacing: 0.5,
   },
-  playerHeaderContainer: {
-    flex: 1,
-    marginLeft: 44,
+  sportFilterPillTextActive: {
+    color: '#1A1A1A',
   },
-  headerIconContainer: {
-    width: 44,
-    alignItems: 'center',
+  // Table card
+  tableCard: {
+    marginHorizontal: spacing.lg,
+    marginRight: spacing.lg + 3, // Account for shadow
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
-  headerIconTrophy: {
-    width: 18,
-    height: 18,
-  },
-  headerIconFire: {
-    width: 14,
-    height: 18,
-  },
-  leaderboardListContent: {
-    paddingBottom: spacing.lg,
-  },
-  leaderboardRow: {
+  tableHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
+  tableHeaderText: {
+    fontSize: 11,
+    fontFamily: 'DMSans_900Black',
+    color: '#888888',
+    letterSpacing: 1,
+  },
+  tableContent: {
+    // No extra padding
+  },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E0',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: spacing.lg,
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderLeftColor: '#000000',
-    borderRightColor: '#000000',
   },
-  currentUserRow: {
-    backgroundColor: '#E0F7F4',
+  tableRowAlt: {
+    backgroundColor: '#FAFAF8',
   },
-  rankContainer: {
-    width: 28,
+  tableRowHighlight: {
+    backgroundColor: 'rgba(26, 188, 156, 0.15)',
+  },
+  tableEmptyContainer: {
+    padding: 48,
     alignItems: 'center',
   },
-  rank: {
+  tableEmptyText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#888888',
+    textAlign: 'center',
+  },
+  tableEmptySubtext: {
     fontSize: 14,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: 8,
+    opacity: 0.7,
+  },
+  rankColumn: {
+    width: 48,
+    alignItems: 'center',
+  },
+  rankText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
     color: '#888888',
   },
-  medalIcon: {
-    width: 22,
-    height: 22,
+  playerColumn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  userAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: ACCENT_COLOR,
+  playerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1A1A1A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
-    marginRight: 10,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  userAvatarText: {
+  playerAvatarText: {
     fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
     color: '#FFFFFF',
-    fontFamily: 'DMSans_700Bold',
   },
-  userInfo: {
+  playerNameContainer: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  username: {
+  playerName: {
     fontSize: 14,
-    fontFamily: 'DMSans_600SemiBold',
-    color: colors.text,
-  },
-  highlightedText: {
-    color: ACCENT_COLOR,
     fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
   },
-  statValueContainer: {
-    width: 44,
+  youLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: ACCENT_COLOR,
+  },
+  statColumn: {
+    width: 52,
     alignItems: 'center',
   },
-  statValueOnly: {
+  statValue: {
     fontSize: 14,
     fontFamily: 'DMSans_700Bold',
-    color: colors.text,
+    color: '#1A1A1A',
   },
-  totalUsersContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  totalUsersText: {
-    fontSize: 13,
-    fontFamily: 'DMSans_600SemiBold',
-    color: colors.textSecondary,
-    textAlign: 'center',
+  medalIcon: {
+    width: 28,
+    height: 28,
   },
 });

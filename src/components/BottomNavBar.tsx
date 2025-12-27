@@ -10,31 +10,33 @@ import { colors } from '../lib/theme';
 import { AnimatedNavIcon } from './AnimatedComponents';
 
 const ACCENT_COLOR = '#1ABC9C';
+const FRIENDS_BADGE_COLOR = '#F2C94C'; // Yellow for pending friend requests
 
-export type TabName = 'home' | 'duels' | 'leagues' | 'profile';
+export type TabName = 'home' | 'duels' | 'leagues' | 'friends';
 
 interface Props {
   activeTab: TabName;
   onTabPress: (tab: TabName) => void;
   duelsBadgeCount?: number;
+  friendsBadgeCount?: number; // Pending friend requests count
 }
 
 // Icon images for each tab (using same icon for both states, active state uses filled background)
-const tabIcons = {
+const tabIcons: Record<TabName, any> = {
   home: require('../../assets/images/icon-home.png'),
   duels: require('../../assets/images/icon-duel.png'),
   leagues: require('../../assets/images/icon-leagues.png'),
-  profile: require('../../assets/images/icon-profile.png'),
+  friends: require('../../assets/images/icon-friends.png'),
 };
 
 const tabs: { name: TabName }[] = [
   { name: 'home' },
   { name: 'duels' },
   { name: 'leagues' },
-  { name: 'profile' },
+  { name: 'friends' },
 ];
 
-export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 0 }: Props) {
+export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 0, friendsBadgeCount = 0 }: Props) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -42,7 +44,8 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
       <View style={styles.navContent}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.name;
-          const showBadge = tab.name === 'duels' && duelsBadgeCount > 0;
+          const showDuelsBadge = tab.name === 'duels' && duelsBadgeCount > 0;
+          const showFriendsBadge = tab.name === 'friends' && friendsBadgeCount > 0;
 
           return (
             <AnimatedNavIcon
@@ -57,10 +60,17 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
                   resizeMode="contain"
                   accessible={false}
                 />
-                {showBadge && (
+                {showDuelsBadge && (
                   <View style={styles.badge}>
                     <Svg width={10} height={10} viewBox="0 0 10 10">
                       <Circle cx={5} cy={5} r={5} fill={ACCENT_COLOR} />
+                    </Svg>
+                  </View>
+                )}
+                {showFriendsBadge && (
+                  <View style={styles.badge}>
+                    <Svg width={10} height={10} viewBox="0 0 10 10">
+                      <Circle cx={5} cy={5} r={5} fill={FRIENDS_BADGE_COLOR} />
                     </Svg>
                   </View>
                 )}

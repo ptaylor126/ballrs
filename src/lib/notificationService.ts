@@ -2,7 +2,10 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
+
+const NOTIFICATION_PROMPT_KEY = 'notificationPromptDismissedAt';
 
 // Configure how notifications appear when app is in foreground
 Notifications.setNotificationHandler({
@@ -109,6 +112,12 @@ export async function sendPushNotification(
   body: string,
   data?: Record<string, any>
 ): Promise<boolean> {
+  // Skip on web - CORS blocks direct API calls to Expo push service
+  if (Platform.OS === 'web') {
+    console.log('Push notifications not supported on web');
+    return false;
+  }
+
   const message = {
     to: expoPushToken,
     sound: 'default',
@@ -196,4 +205,206 @@ export function addNotificationListeners(
     receivedSubscription.remove();
     responseSubscription.remove();
   };
+}
+
+// Check if notifications are already enabled
+export async function areNotificationsEnabled(): Promise<boolean> {
+  if (!Device.isDevice) return false;
+
+  const { status } = await Notifications.getPermissionsAsync();
+  return status === 'granted';
+}
+
+// Check if we should show the notification prompt
+// Returns true if: notifications not enabled AND (never dismissed OR dismissed > 7 days ago)
+export async function shouldShowNotificationPrompt(): Promise<boolean> {
+  // First check if notifications are already enabled
+  const enabled = await areNotificationsEnabled();
+  if (enabled) return false;
+
+  // Check if user dismissed the prompt recently
+  try {
+    const dismissedAt = await AsyncStorage.getItem(NOTIFICATION_PROMPT_KEY);
+    if (!dismissedAt) return true; // Never dismissed
+
+    const dismissedDate = new Date(dismissedAt);
+    const now = new Date();
+    const daysSinceDismissed = (now.getTime() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    return daysSinceDismissed >= 7; // Show again after 7 days
+  } catch {
+    return true; // On error, show the prompt
+  }
+}
+
+// Mark the notification prompt as dismissed
+export async function dismissNotificationPrompt(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(NOTIFICATION_PROMPT_KEY, new Date().toISOString());
+  } catch (error) {
+    console.error('Error saving notification prompt dismissal:', error);
+  }
+}
+
+// Request notification permissions and save token
+export async function requestAndSaveNotifications(userId: string): Promise<boolean> {
+  const token = await registerForPushNotifications();
+  if (token) {
+    await savePushToken(userId, token);
+    return true;
+  }
+  return false;
+}
+
+// Sport name mapping
+const sportNames: Record<string, string> = {
+  nba: 'NBA',
+  pl: 'EPL',
+  nfl: 'NFL',
+  mlb: 'MLB',
+};
+
+// Send notification when a duel challenge is created
+export async function sendDuelChallengeNotification(
+  opponentUserId: string,
+  challengerUsername: string,
+  sport: string,
+  duelId: string
+): Promise<boolean> {
+  const pushToken = await getUserPushToken(opponentUserId);
+
+  if (!pushToken) {
+    console.log('Opponent does not have push notifications enabled');
+    return false;
+  }
+
+  const sportName = sportNames[sport] || sport.toUpperCase();
+
+  return sendPushNotification(
+    pushToken,
+    'New Challenge! ⚔️',
+    `${challengerUsername} challenged you to ${sportName} trivia!`,
+    {
+      type: 'duel_challenge',
+      duelId,
+      sport,
+    }
+  );
+}
+
+// Send notification when duel results are ready
+export async function sendDuelResultNotification(
+  recipientUserId: string,
+  result: 'win' | 'loss' | 'tie',
+  opponentUsername: string,
+  yourScore: number,
+  theirScore: number,
+  sport: string,
+  duelId: string
+): Promise<boolean> {
+  const pushToken = await getUserPushToken(recipientUserId);
+
+  if (!pushToken) {
+    console.log('Recipient does not have push notifications enabled');
+    return false;
+  }
+
+  const sportName = sportNames[sport] || sport.toUpperCase();
+  let title: string;
+  let body: string;
+
+  switch (result) {
+    case 'win':
+      title = 'You Won! 🎉';
+      body = `Beat ${opponentUsername} ${yourScore}-${theirScore} in ${sportName}. Tap to see results.`;
+      break;
+    case 'loss':
+      title = 'Duel Complete';
+      body = `${opponentUsername} won ${theirScore}-${yourScore} in ${sportName}. Tap to see results.`;
+      break;
+    case 'tie':
+      title = "It's a Tie! 🤝";
+      body = `You and ${opponentUsername} tied ${yourScore}-${theirScore} in ${sportName}. Tap to see results.`;
+      break;
+  }
+
+  return sendPushNotification(
+    pushToken,
+    title,
+    body,
+    {
+      type: 'duel_complete',
+      duelId,
+      result,
+    }
+  );
+}
+
+// Send notification when a friend request is received
+export async function sendFriendRequestNotification(
+  recipientUserId: string,
+  senderUsername: string,
+  requestId: string,
+  senderUserId: string
+): Promise<boolean> {
+  const pushToken = await getUserPushToken(recipientUserId);
+
+  if (!pushToken) {
+    console.log('Recipient does not have push notifications enabled');
+    return false;
+  }
+
+  return sendPushNotification(
+    pushToken,
+    'Friend Request 👋',
+    `${senderUsername} wants to be friends!`,
+    {
+      type: 'friend_request',
+      from_user_id: senderUserId,
+      request_id: requestId,
+    }
+  );
+}
+
+// Send notification when a friend request is accepted
+export async function sendFriendAcceptedNotification(
+  recipientUserId: string,
+  accepterUsername: string,
+  friendId: string
+): Promise<boolean> {
+  const pushToken = await getUserPushToken(recipientUserId);
+
+  if (!pushToken) {
+    console.log('Recipient does not have push notifications enabled');
+    return false;
+  }
+
+  return sendPushNotification(
+    pushToken,
+    'Request Accepted ✓',
+    `${accepterUsername} accepted your friend request!`,
+    {
+      type: 'friend_accepted',
+      friend_id: friendId,
+    }
+  );
+}
+
+// Legacy function - kept for backwards compatibility
+export async function sendAsyncDuelCompletedNotification(
+  challengerUserId: string,
+  opponentUsername: string,
+  duelId: string,
+  challengerWon: boolean
+): Promise<boolean> {
+  // Use the new function with appropriate parameters
+  return sendDuelResultNotification(
+    challengerUserId,
+    challengerWon ? 'win' : 'loss',
+    opponentUsername,
+    challengerWon ? 1 : 0, // Simple scores for single-question duels
+    challengerWon ? 0 : 1,
+    'nba', // Default sport - will be updated when called with proper context
+    duelId
+  );
 }

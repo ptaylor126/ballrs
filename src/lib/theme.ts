@@ -10,8 +10,8 @@ export const colors = {
 
   // App accent color (non-sport-specific UI)
   accent: '#1ABC9C',             // Teal
-  accentDisabled: '#E8E8E8',     // Light gray (disabled state)
-  accentDisabledText: '#999999', // Gray text (disabled state)
+  accentDisabled: '#F9EECC',     // Faded yellow (disabled state)
+  accentDisabledText: '#AAAAAA', // Muted gray text (disabled state)
 
   // Borders
   border: '#000000',             // Black borders (neubrutalist)
@@ -209,6 +209,12 @@ export const getSportEmoji = (sport: Sport): string => {
     case 'nfl': return '🏈';
     case 'mlb': return '⚾';
   }
+};
+
+// Truncate username to max 10 characters for display
+export const truncateUsername = (username: string | null | undefined, maxLength: number = 10): string => {
+  if (!username) return '';
+  return username.length > maxLength ? username.slice(0, maxLength) : username;
 };
 
 // Common styles for neubrutalist info cards (non-tappable)

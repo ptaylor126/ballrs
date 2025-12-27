@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Modal,
   Share,
   Image,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -28,6 +29,7 @@ import {
 } from '../lib/statsService';
 import { awardLeaguePoints } from '../lib/leaguesService';
 import { calculatePuzzleXP, awardXP, XPAwardResult } from '../lib/xpService';
+import { awardPuzzlePoints } from '../lib/pointsService';
 import { checkPuzzleAchievements, Achievement } from '../lib/achievementsService';
 import LevelUpModal from '../components/LevelUpModal';
 import XPEarnedModal from '../components/XPEarnedModal';
@@ -179,6 +181,8 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
   const [pendingAchievements, setPendingAchievements] = useState<Achievement[]>([]);
   const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
   const [showAchievementToast, setShowAchievementToast] = useState(false);
+  const [wrongGuessMessage, setWrongGuessMessage] = useState('');
+  const toastAnim = useRef(new Animated.Value(100)).current;
 
   const filteredPlayers = guess.trim().length > 0
     ? players
@@ -336,6 +340,9 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
         const guessCount = revealedClues;
         awardLeaguePoints(user.id, 'nba', guessCount, true);
 
+        // Award leaderboard points (6 points for 1 clue, down to 1 point for 6 clues)
+        awardPuzzlePoints(user.id, guessCount);
+
         // Award XP for solving puzzle
         const streakDay = (cloudStats?.nba_current_streak || stats.currentStreak) + 1;
         const { total: xpAmount } = calculatePuzzleXP(guessCount, streakDay);
@@ -371,6 +378,7 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
           awardLeaguePoints(user.id, 'nba', MAX_GUESSES, false);
         }
       } else {
+        showWrongGuessToast(selectedPlayer.name, MAX_GUESSES - newWrongGuesses);
         saveGameState(revealedClues, newWrongGuesses, false, false);
       }
     }
@@ -401,6 +409,16 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
       setPendingAchievements([]);
       setCurrentAchievement(null);
     }
+  }
+
+  function showWrongGuessToast(playerName: string, remaining: number) {
+    const message = `Not ${playerName}! ${remaining} guess${remaining !== 1 ? 'es' : ''} left`;
+    setWrongGuessMessage(message);
+
+    // Hide after delay
+    setTimeout(() => {
+      setWrongGuessMessage('');
+    }, 2500);
   }
 
   function getShareText() {
@@ -550,6 +568,7 @@ Points: ${solved ? calculatePoints(revealedClues) : 0}`;
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
                 autoCorrect={false}
+                selectionColor="#1ABC9C"
               />
               {showSuggestions && filteredPlayers.length > 0 && (
                 <View style={styles.suggestionsContainer}>
@@ -638,6 +657,13 @@ Points: ${solved ? calculatePoints(revealedClues) : 0}`;
         visible={showAchievementToast}
         onDismiss={handleAchievementDismiss}
       />
+
+      {/* Wrong Guess Toast */}
+      {wrongGuessMessage !== '' && (
+        <View style={styles.wrongGuessToast}>
+          <Text style={styles.wrongGuessToastText}>{wrongGuessMessage}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1047,5 +1073,29 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 14,
     fontFamily: 'DMSans_600SemiBold',
+  },
+  wrongGuessToast: {
+    position: 'absolute',
+    bottom: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: colors.wrong,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.border,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 10,
+  },
+  wrongGuessToastText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
 });

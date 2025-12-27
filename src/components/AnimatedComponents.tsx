@@ -16,6 +16,7 @@ import {
 // ============================================
 // ANIMATED BUTTON
 // Press animation: button moves into shadow
+// Cross-platform shadow using background View
 // ============================================
 
 interface AnimatedButtonProps {
@@ -24,6 +25,7 @@ interface AnimatedButtonProps {
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
   shadowColor?: string;
+  shadowOffset?: number;
 }
 
 export function AnimatedButton({
@@ -32,6 +34,7 @@ export function AnimatedButton({
   style,
   disabled = false,
   shadowColor = '#000000',
+  shadowOffset = 2,
 }: AnimatedButtonProps) {
   const pressAnim = useRef(new Animated.Value(0)).current;
 
@@ -55,15 +58,15 @@ export function AnimatedButton({
 
   const translateX = pressAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 2],
+    outputRange: [0, shadowOffset],
   });
 
   const translateY = pressAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 2],
+    outputRange: [0, shadowOffset],
   });
 
-  // Extract width/flex properties for the TouchableOpacity container
+  // Extract style properties
   const flatStyle = StyleSheet.flatten(style) || {};
   const containerStyle: any = {};
   const innerStyle: any = { ...flatStyle };
@@ -81,6 +84,29 @@ export function AnimatedButton({
     containerStyle.alignSelf = flatStyle.alignSelf;
     delete innerStyle.alignSelf;
   }
+  if (flatStyle.marginBottom) {
+    containerStyle.marginBottom = flatStyle.marginBottom;
+    delete innerStyle.marginBottom;
+  }
+  if (flatStyle.marginTop) {
+    containerStyle.marginTop = flatStyle.marginTop;
+    delete innerStyle.marginTop;
+  }
+  if (flatStyle.marginLeft) {
+    containerStyle.marginLeft = flatStyle.marginLeft;
+    delete innerStyle.marginLeft;
+  }
+  if (flatStyle.marginRight) {
+    containerStyle.marginRight = flatStyle.marginRight;
+    delete innerStyle.marginRight;
+  }
+  if (flatStyle.margin) {
+    containerStyle.margin = flatStyle.margin;
+    delete innerStyle.margin;
+  }
+
+  // Get border radius for shadow
+  const borderRadius = flatStyle.borderRadius || 8;
 
   return (
     <TouchableOpacity
@@ -89,18 +115,26 @@ export function AnimatedButton({
       onPressOut={disabled ? undefined : handlePressOut}
       activeOpacity={1}
       disabled={disabled}
-      style={containerStyle}
+      style={[containerStyle, { position: 'relative' }]}
     >
+      {/* Shadow layer - positioned behind */}
+      <View
+        style={{
+          position: 'absolute',
+          top: shadowOffset,
+          left: shadowOffset,
+          right: -shadowOffset,
+          bottom: -shadowOffset,
+          backgroundColor: shadowColor,
+          borderRadius: borderRadius,
+        }}
+      />
+      {/* Content layer */}
       <Animated.View
         style={[
           innerStyle,
           {
             transform: [{ translateX }, { translateY }],
-            shadowColor,
-            shadowOffset: { width: 2, height: 2 },
-            shadowOpacity: 1,
-            shadowRadius: 0,
-            elevation: 2,
           },
           disabled && { opacity: 0.6 },
         ]}
@@ -114,6 +148,7 @@ export function AnimatedButton({
 // ============================================
 // ANIMATED CARD
 // Scale animation on press
+// Cross-platform shadow using background View
 // ============================================
 
 interface AnimatedCardProps {
@@ -121,6 +156,8 @@ interface AnimatedCardProps {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
+  shadowColor?: string;
+  shadowOffset?: number;
 }
 
 export function AnimatedCard({
@@ -128,6 +165,8 @@ export function AnimatedCard({
   onPress,
   style,
   disabled = false,
+  shadowColor = '#000000',
+  shadowOffset = 2,
 }: AnimatedCardProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -149,8 +188,66 @@ export function AnimatedCard({
     }).start();
   };
 
+  // Extract style properties
+  const flatStyle = StyleSheet.flatten(style) || {};
+  const containerStyle: any = {};
+  const innerStyle: any = { ...flatStyle };
+
+  // Move layout properties to container
+  if (flatStyle.marginBottom) {
+    containerStyle.marginBottom = flatStyle.marginBottom;
+    delete innerStyle.marginBottom;
+  }
+  if (flatStyle.marginTop) {
+    containerStyle.marginTop = flatStyle.marginTop;
+    delete innerStyle.marginTop;
+  }
+  if (flatStyle.margin) {
+    containerStyle.margin = flatStyle.margin;
+    delete innerStyle.margin;
+  }
+  if (flatStyle.width) {
+    containerStyle.width = flatStyle.width;
+    delete innerStyle.width;
+  }
+  if (flatStyle.alignSelf) {
+    containerStyle.alignSelf = flatStyle.alignSelf;
+    delete innerStyle.alignSelf;
+  }
+
+  // Get border radius for shadow
+  const borderRadius = flatStyle.borderRadius || 12;
+
+  // Remove iOS shadow props from inner style (they're replaced by fake shadow)
+  delete innerStyle.shadowColor;
+  delete innerStyle.shadowOffset;
+  delete innerStyle.shadowOpacity;
+  delete innerStyle.shadowRadius;
+  delete innerStyle.elevation;
+
+  const cardContent = (
+    <View style={[containerStyle, { position: 'relative' }]}>
+      {/* Shadow layer - positioned behind */}
+      <View
+        style={{
+          position: 'absolute',
+          top: shadowOffset,
+          left: shadowOffset,
+          right: -shadowOffset,
+          bottom: -shadowOffset,
+          backgroundColor: shadowColor,
+          borderRadius: borderRadius,
+        }}
+      />
+      {/* Content layer */}
+      <View style={innerStyle}>
+        {children}
+      </View>
+    </View>
+  );
+
   if (!onPress) {
-    return <View style={style}>{children}</View>;
+    return cardContent;
   }
 
   return (
@@ -161,15 +258,98 @@ export function AnimatedCard({
     >
       <Animated.View
         style={[
-          style,
-          {
-            transform: [{ scale: scaleAnim }],
-          },
+          containerStyle,
+          { position: 'relative' },
+          { transform: [{ scale: scaleAnim }] },
         ]}
       >
-        {children}
+        {/* Shadow layer - positioned behind */}
+        <View
+          style={{
+            position: 'absolute',
+            top: shadowOffset,
+            left: shadowOffset,
+            right: -shadowOffset,
+            bottom: -shadowOffset,
+            backgroundColor: shadowColor,
+            borderRadius: borderRadius,
+          }}
+        />
+        {/* Content layer */}
+        <View style={innerStyle}>
+          {children}
+        </View>
       </Animated.View>
     </TouchableWithoutFeedback>
+  );
+}
+
+// ============================================
+// CARD (Non-animated)
+// Simple card with cross-platform shadow
+// ============================================
+
+interface CardProps {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  shadowColor?: string;
+  shadowOffset?: number;
+}
+
+export function Card({
+  children,
+  style,
+  shadowColor = '#000000',
+  shadowOffset = 2,
+}: CardProps) {
+  // Extract style properties
+  const flatStyle = StyleSheet.flatten(style) || {};
+  const containerStyle: any = {};
+  const innerStyle: any = { ...flatStyle };
+
+  // Move layout properties to container
+  if (flatStyle.marginBottom) {
+    containerStyle.marginBottom = flatStyle.marginBottom;
+    delete innerStyle.marginBottom;
+  }
+  if (flatStyle.marginTop) {
+    containerStyle.marginTop = flatStyle.marginTop;
+    delete innerStyle.marginTop;
+  }
+  if (flatStyle.margin) {
+    containerStyle.margin = flatStyle.margin;
+    delete innerStyle.margin;
+  }
+
+  // Get border radius for shadow
+  const borderRadius = flatStyle.borderRadius || 12;
+
+  // Remove iOS shadow props
+  delete innerStyle.shadowColor;
+  delete innerStyle.shadowOffset;
+  delete innerStyle.shadowOpacity;
+  delete innerStyle.shadowRadius;
+  delete innerStyle.elevation;
+
+  return (
+    <View style={[containerStyle, { position: 'relative' }]}>
+      {/* Shadow layer - positioned behind */}
+      <View
+        style={{
+          position: 'absolute',
+          top: shadowOffset,
+          left: shadowOffset,
+          right: -shadowOffset,
+          bottom: -shadowOffset,
+          backgroundColor: shadowColor,
+          borderRadius: borderRadius,
+        }}
+      />
+      {/* Content layer */}
+      <View style={innerStyle}>
+        {children}
+      </View>
+    </View>
   );
 }
 

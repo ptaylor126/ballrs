@@ -226,6 +226,20 @@ const getLastName = (fullName: string): string => {
   return parts[parts.length - 1].toUpperCase();
 };
 
+// Check if a hex color is light (R, G, B all > 230)
+const isLightColor = (hexColor: string): boolean => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+
+  // Parse RGB values
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  // Check if all RGB values are above 230 (very light)
+  return r > 230 && g > 230 && b > 230;
+};
+
 // Confetti particle component
 function ConfettiParticle({ delay, color, startX }: { delay: number; color: string; startX: number }) {
   const translateY = useRef(new Animated.Value(-50)).current;
@@ -303,9 +317,19 @@ function Jersey({
 }) {
   const lastName = getLastName(playerName);
   const jerseyImage = jerseyImages[sport];
+  const needsOutline = isLightColor(primaryColor);
 
   return (
     <View style={styles.jerseyContainer}>
+      {/* Black outline layer for light jerseys (rendered underneath) */}
+      {needsOutline && (
+        <Image
+          source={jerseyImage}
+          style={[styles.jerseyImageOutline, { tintColor: '#000000' }]}
+          resizeMode="contain"
+        />
+      )}
+
       {/* Jersey image with team color tint */}
       <Image
         source={jerseyImage}
@@ -493,6 +517,13 @@ const styles = StyleSheet.create({
     width: JERSEY_WIDTH,
     height: JERSEY_HEIGHT,
     position: 'absolute',
+  },
+  jerseyImageOutline: {
+    width: JERSEY_WIDTH + 4,
+    height: JERSEY_HEIGHT + 4,
+    position: 'absolute',
+    left: -2,
+    top: -2,
   },
   nameOverlay: {
     position: 'absolute',

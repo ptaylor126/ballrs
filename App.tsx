@@ -10,6 +10,8 @@ import {
   Image,
   Animated,
   Easing,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -35,10 +37,9 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import CluePuzzleScreen from './src/screens/CluePuzzleScreen';
-import LoginScreen from './src/screens/LoginScreen';
-import SignUpScreen from './src/screens/SignUpScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SetUsernameScreen from './src/screens/SetUsernameScreen';
+import CountryPickerScreen from './src/screens/CountryPickerScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import WaitingForOpponentScreen from './src/screens/WaitingForOpponentScreen';
 import DuelGameScreen from './src/screens/DuelGameScreen';
@@ -48,6 +49,8 @@ import LeaguesScreen from './src/screens/LeaguesScreen';
 import LeagueDetailScreen from './src/screens/LeagueDetailScreen';
 import AchievementsScreen from './src/screens/AchievementsScreen';
 import CustomizeProfileScreen from './src/screens/CustomizeProfileScreen';
+import LinkEmailScreen from './src/screens/LinkEmailScreen';
+import FriendsScreen from './src/screens/FriendsScreen';
 import FriendChallengeListener from './src/components/FriendChallengeListener';
 import AdBanner from './src/components/AdBanner';
 import CreateLeagueModal from './src/components/CreateLeagueModal';
@@ -56,8 +59,12 @@ import BottomNavBar, { TabName } from './src/components/BottomNavBar';
 import LevelProgressionModal from './src/components/LevelProgressionModal';
 import DuelsScreen from './src/screens/DuelsScreen';
 import AnimatedSplashScreen from './src/screens/AnimatedSplashScreen';
-import { getProfile } from './src/lib/profilesService';
-import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges } from './src/lib/duelService';
+import { getProfile, updateLastActive } from './src/lib/profilesService';
+import { joinPresence, leavePresence } from './src/lib/presenceService';
+import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getPendingAsyncChallengesCount, createInviteDuel } from './src/lib/duelService';
+import { getPendingFriendRequestsCount, subscribeToFriendRequests, unsubscribeFromFriendRequests } from './src/lib/friendsService';
+import { addNotificationListeners } from './src/lib/notificationService';
+import { getDuelById } from './src/lib/duelService';
 import { getCompletedSportsToday } from './src/lib/dailyPuzzleService';
 import { LeagueWithMemberCount } from './src/lib/leaguesService';
 import nbaTriviaData from './data/nba-trivia.json';
@@ -137,18 +144,17 @@ function AnimatedFireIcon({ totalStreak }: { totalStreak: number }) {
 // Check icon for completed sports
 const checkIcon = require('./assets/images/icon-check.png');
 
-type Screen = 'home' | 'nba' | 'pl' | 'nfl' | 'mlb' | 'nbaDaily' | 'plDaily' | 'nflDaily' | 'mlbDaily' | 'login' | 'signup' | 'profile' | 'setUsername' | 'leaderboard' | 'waitingForOpponent' | 'duelGame' | 'inviteFriend' | 'challengeSetup' | 'leagues' | 'leagueDetail' | 'achievements' | 'customizeProfile';
+type Screen = 'home' | 'nba' | 'pl' | 'nfl' | 'mlb' | 'nbaDaily' | 'plDaily' | 'nflDaily' | 'mlbDaily' | 'profile' | 'setUsername' | 'selectCountry' | 'leaderboard' | 'waitingForOpponent' | 'duelGame' | 'asyncDuelGame' | 'inviteFriend' | 'challengeSetup' | 'leagues' | 'leagueDetail' | 'achievements' | 'customizeProfile' | 'linkEmail';
 
 interface HomeScreenProps {
   onDailyPuzzle: (sport: Sport) => void;
   onDuel: (sport: Sport) => void;
-  onLogin: () => void;
-  onSignUp: () => void;
+  onProfilePress: () => void;
   refreshKey?: number;
 }
 
-function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: HomeScreenProps) {
-  const { user, loading } = useAuth();
+function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeScreenProps) {
+  const { user, loading: authLoading } = useAuth();
   const [xp, setXP] = useState(0);
   const [level, setLevel] = useState(1);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -157,6 +163,14 @@ function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: Ho
 
   // Animated XP bar
   const xpBarAnim = useRef(new Animated.Value(0)).current;
+
+  // Staggered card entrance animations
+  const cardAnims = useRef(
+    [0, 1, 2, 3].map(() => ({
+      opacity: new Animated.Value(0),
+      translateY: new Animated.Value(15),
+    }))
+  ).current;
 
   useEffect(() => {
     const loadData = async () => {
@@ -214,6 +228,29 @@ function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: Ho
     outputRange: ['0%', '100%'],
   });
 
+  // Trigger staggered card entrance animation on mount
+  useEffect(() => {
+    const animations = cardAnims.map((anim, index) =>
+      Animated.parallel([
+        Animated.timing(anim.opacity, {
+          toValue: 1,
+          duration: 300,
+          delay: index * 100,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim.translateY, {
+          toValue: 0,
+          duration: 300,
+          delay: index * 100,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    Animated.parallel(animations).start();
+  }, []);
+
   const sportCards: { sport: Sport; name: string }[] = [
     { sport: 'nba', name: 'NBA' },
     { sport: 'pl', name: 'EPL' },
@@ -231,18 +268,28 @@ function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: Ho
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>BALLRS</Text>
-          {!loading && !user ? (
-            <View style={styles.authButtons}>
-              <AnimatedButton style={styles.loginButton} onPress={onLogin}>
-                <Text style={styles.loginButtonText}>LOG IN</Text>
-              </AnimatedButton>
-            </View>
-          ) : (
-            <AnimatedFireIcon totalStreak={totalStreak} />
-          )}
+          <TouchableOpacity style={styles.headerAvatar} onPress={onProfilePress} activeOpacity={0.7}>
+            <Image source={require('./assets/images/icon-profile.png')} style={styles.headerAvatarIcon} resizeMode="contain" />
+          </TouchableOpacity>
         </View>
 
         {/* Level & XP Bar */}
+        {authLoading && (
+          <View style={styles.levelSection}>
+            <View style={[styles.combinedLevelBadge, { backgroundColor: '#E8E8E8' }]}>
+              <ActivityIndicator size="small" color="#888" style={{ marginHorizontal: 16, marginVertical: 6 }} />
+            </View>
+          </View>
+        )}
+        {!authLoading && !user && (
+          <View style={styles.levelSection}>
+            <View style={[styles.combinedLevelBadge, { backgroundColor: '#FFE0E0' }]}>
+              <Text style={[styles.levelBadgeText, { paddingHorizontal: 12, paddingVertical: 6, color: '#E53935' }]}>
+                Not signed in - check console
+              </Text>
+            </View>
+          </View>
+        )}
         {user && (
           <View style={styles.levelSection}>
             <TouchableOpacity
@@ -254,8 +301,13 @@ function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: Ho
                 <Text style={styles.levelBadgeText}>LEVEL {level}</Text>
               </View>
               <View style={styles.levelDivider} />
-              <View style={styles.levelSection_right}>
+              <View style={styles.levelSection_middle}>
                 <Text style={styles.levelTitleText}>{getLevelTitle(level)}</Text>
+              </View>
+              <View style={styles.levelDivider} />
+              <View style={styles.levelSection_right}>
+                <Image source={fireIcon} style={styles.levelFireIcon} resizeMode="contain" />
+                <Text style={styles.levelStreakText}>{totalStreak}</Text>
               </View>
             </TouchableOpacity>
             <Text style={styles.xpLabel}>{xpIntoLevel}/{xpNeededForNext} XP</Text>
@@ -274,12 +326,20 @@ function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: Ho
 
         {/* Sport Grid */}
         <View style={styles.sportGrid}>
-          {sportCards.map((card) => {
+          {sportCards.map((card, index) => {
             const sportColor = getSportColor(card.sport);
             const isCompleted = completedToday.has(card.sport);
 
             return (
-              <AnimatedCard key={card.sport} style={styles.sportCard}>
+              <Animated.View
+                key={card.sport}
+                style={{
+                  width: '47%',
+                  opacity: cardAnims[index].opacity,
+                  transform: [{ translateY: cardAnims[index].translateY }],
+                }}
+              >
+                <AnimatedCard style={[styles.sportCard, { width: '100%' }]}>
                 {/* Status Indicator - Top Right */}
                 <View style={styles.statusIndicator}>
                   {isCompleted ? (
@@ -317,7 +377,8 @@ function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: Ho
                     <Text style={styles.secondaryButtonText}>DUEL</Text>
                   </AnimatedButton>
                 </View>
-              </AnimatedCard>
+                </AnimatedCard>
+              </Animated.View>
             );
           })}
         </View>
@@ -335,7 +396,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onLogin, onSignUp, refreshKey }: Ho
 }
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, loading: authLoading, signInAnonymously } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [activeTab, setActiveTab] = useState<TabName>('home');
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
@@ -348,8 +409,12 @@ function AppContent() {
   const [currentLeague, setCurrentLeague] = useState<LeagueWithMemberCount | null>(null);
   const [homeRefreshKey, setHomeRefreshKey] = useState(0);
   const [incomingChallengesCount, setIncomingChallengesCount] = useState(0);
+  const [pendingAsyncChallengesCount, setPendingAsyncChallengesCount] = useState(0);
+  const [pendingFriendRequestsCount, setPendingFriendRequestsCount] = useState(0);
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
   const [autoStartDuelSport, setAutoStartDuelSport] = useState<Sport | null>(null);
+  const [isAsyncDuel, setIsAsyncDuel] = useState(false);
+  const [isAsyncChallenger, setIsAsyncChallenger] = useState(false);
 
   // Check if onboarding has been completed
   useEffect(() => {
@@ -373,13 +438,64 @@ function AppContent() {
     setHasSeenOnboarding(false);
   };
 
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Debug auth state
+  useEffect(() => {
+    console.log('Auth state:', { hasSeenOnboarding, authLoading, user: user?.id, isAnonymous: user?.is_anonymous });
+  }, [hasSeenOnboarding, authLoading, user]);
+
+  // Auto sign in anonymously when onboarding is complete and no user exists
+  useEffect(() => {
+    const autoSignIn = async () => {
+      if (hasSeenOnboarding && !authLoading && !user) {
+        console.log('Auto signing in anonymously...');
+        setAuthError(null);
+        const { error } = await signInAnonymously();
+        if (error) {
+          console.error('Anonymous sign in error:', error);
+          setAuthError(error.message || 'Failed to sign in. Please check if anonymous auth is enabled in Supabase.');
+          Alert.alert(
+            'Sign In Error',
+            'Could not sign in anonymously. Please make sure Anonymous auth is enabled in your Supabase dashboard (Authentication → Providers → Anonymous).',
+            [{ text: 'OK' }]
+          );
+        } else {
+          console.log('Anonymous sign in successful!');
+        }
+      }
+    };
+    autoSignIn();
+  }, [hasSeenOnboarding, authLoading, user, signInAnonymously]);
+
   const refreshChallengesCount = useCallback(async () => {
     if (user) {
-      const challenges = await getIncomingChallenges(user.id);
+      const [challenges, asyncCount, friendRequestsCount] = await Promise.all([
+        getIncomingChallenges(user.id),
+        getPendingAsyncChallengesCount(user.id),
+        getPendingFriendRequestsCount(user.id),
+      ]);
       setIncomingChallengesCount(challenges.length);
+      setPendingAsyncChallengesCount(asyncCount);
+      setPendingFriendRequestsCount(friendRequestsCount);
     } else {
       setIncomingChallengesCount(0);
+      setPendingAsyncChallengesCount(0);
+      setPendingFriendRequestsCount(0);
     }
+  }, [user]);
+
+  // Subscribe to real-time friend request updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = subscribeToFriendRequests(user.id, (count) => {
+      setPendingFriendRequestsCount(count);
+    });
+
+    return () => {
+      unsubscribeFromFriendRequests(channel);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -402,6 +518,8 @@ function AppContent() {
         if (!profile) {
           setCurrentScreen('setUsername');
         }
+        // Update last_active for online status tracking
+        updateLastActive(user.id);
       } else {
         setHasProfile(null);
       }
@@ -409,8 +527,100 @@ function AppContent() {
     checkProfile();
   }, [user]);
 
+  // Manage presence for real-time online status
+  useEffect(() => {
+    if (!user) {
+      leavePresence();
+      return;
+    }
+
+    // Join presence when user is logged in
+    joinPresence(user.id);
+
+    // Handle app state changes (foreground/background)
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        // App came to foreground - rejoin presence
+        joinPresence(user.id);
+        updateLastActive(user.id);
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // App went to background - leave presence
+        leavePresence();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+      leavePresence();
+    };
+  }, [user]);
+
+  // Handle notification taps - navigate to duel results when async duel is completed
+  useEffect(() => {
+    const cleanup = addNotificationListeners(
+      // On notification received (while app is open)
+      undefined,
+      // On notification tap
+      async (response) => {
+        const data = response.notification.request.content.data;
+        console.log('Notification tapped:', data);
+
+        // Handle duel_complete notification (new format)
+        if (data?.type === 'duel_complete' && data?.duelId) {
+          const duel = await getDuelById(data.duelId as string);
+          if (duel) {
+            setCurrentDuel(duel);
+            setIsAsyncDuel(true);
+            setIsAsyncChallenger(duel.player1_id === user?.id);
+            setCurrentScreen('asyncDuelGame');
+          }
+        }
+        // Handle duel_challenge notification (new format)
+        else if (data?.type === 'duel_challenge' && data?.duelId) {
+          const duel = await getDuelById(data.duelId as string);
+          if (duel) {
+            setCurrentDuel(duel);
+            setIsAsyncDuel(true);
+            setIsAsyncChallenger(false); // Recipient is player2
+            setCurrentScreen('asyncDuelGame');
+          }
+        }
+        // Legacy: async_duel_completed
+        else if (data?.type === 'async_duel_completed' && data?.duelId) {
+          const duel = await getDuelById(data.duelId as string);
+          if (duel) {
+            setCurrentDuel(duel);
+            setIsAsyncDuel(true);
+            setIsAsyncChallenger(duel.player1_id === user?.id);
+            setCurrentScreen('asyncDuelGame');
+          }
+        }
+        // Legacy: challenge with invite code
+        else if (data?.type === 'challenge' && data?.inviteCode) {
+          setActiveTab('duels');
+          setCurrentScreen('home');
+        }
+        // Handle friend request notification
+        else if (data?.type === 'friend_request') {
+          setActiveTab('friends');
+          setCurrentScreen('home');
+        }
+        // Handle friend accepted notification
+        else if (data?.type === 'friend_accepted') {
+          setActiveTab('friends');
+          setCurrentScreen('home');
+        }
+      }
+    );
+
+    return cleanup;
+  }, [user]);
+
   const handleBack = () => {
     setCurrentDuel(null);
+    setActiveTab('home');
     setCurrentScreen('home');
     setHomeRefreshKey(prev => prev + 1);
   };
@@ -421,6 +631,10 @@ function AppContent() {
 
   const handleUsernameSet = () => {
     setHasProfile(true);
+    setCurrentScreen('selectCountry');
+  };
+
+  const handleCountrySelected = () => {
     setCurrentScreen('home');
   };
 
@@ -458,13 +672,7 @@ function AppContent() {
   };
 
   const handleQuickDuel = async (sport: Sport) => {
-    if (!user) {
-      Alert.alert('Login Required', 'Please log in to play Trivia Duel', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Log In', onPress: () => setCurrentScreen('login') },
-      ]);
-      return;
-    }
+    if (!user) return;
 
     try {
       setDuelSport(sport);
@@ -504,24 +712,29 @@ function AppContent() {
 
   const handleDuelComplete = () => {
     setCurrentDuel(null);
+    setActiveTab('home');
     setCurrentScreen('home');
   };
 
-  const handleChallengeFriend = (sport: Sport, questionCount: number = 1) => {
-    if (!user) {
-      Alert.alert('Login Required', 'Please log in to challenge a friend', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Log In', onPress: () => setCurrentScreen('login') },
-      ]);
-      return;
-    }
+  const handleChallengeFriend = async (sport: Sport, questionCount: number = 1) => {
+    if (!user) return;
 
     try {
       setDuelSport(sport);
       setDuelQuestionCount(questionCount);
       // Reset duel session for fresh question selection
       resetDuelSession(sport);
-      setCurrentScreen('challengeSetup');
+
+      // Create the duel immediately with invite code
+      const questionId = getRandomTriviaQuestion(sport);
+      const duel = await createInviteDuel(user.id, sport, questionId, questionCount);
+
+      if (duel) {
+        setCurrentDuel(duel);
+        setCurrentScreen('inviteFriend');
+      } else {
+        Alert.alert('Error', 'Failed to create duel. Please try again.');
+      }
     } catch (error) {
       console.error('Error in handleChallengeFriend:', error);
       Alert.alert('Error', 'Something went wrong. Please try again.');
@@ -531,6 +744,13 @@ function AppContent() {
   const handleDuelCreated = (duel: Duel) => {
     setCurrentDuel(duel);
     setCurrentScreen('inviteFriend');
+  };
+
+  const handleAsyncDuelCreated = (duel: Duel) => {
+    setCurrentDuel(duel);
+    setIsAsyncDuel(true);
+    setIsAsyncChallenger(true);
+    setCurrentScreen('asyncDuelGame');
   };
 
   const handleAcceptFriendChallenge = async (duel: Duel) => {
@@ -552,12 +772,6 @@ function AppContent() {
       return;
     }
 
-    // If not logged in and trying to access profile, go to login
-    if (tab === 'profile' && !user) {
-      setCurrentScreen('login');
-      return;
-    }
-
     // Switch to the new tab and reset to main screen
     setActiveTab(tab);
     setCurrentScreen('home');
@@ -566,17 +780,17 @@ function AppContent() {
   // Only hide nav bar during active gameplay (duel game) and auth flows
   const hideNavBar = [
     'duelGame',
-    'login',
-    'signup',
     'setUsername',
+    'selectCountry',
+    'linkEmail',
   ].includes(currentScreen);
 
   // Show ads on all screens except active duel game and auth flows
   const showAdBanner = ![
     'duelGame',
-    'login',
-    'signup',
     'setUsername',
+    'selectCountry',
+    'linkEmail',
   ].includes(currentScreen);
 
   // Show loading while checking onboarding status
@@ -588,22 +802,27 @@ function AppContent() {
     );
   }
 
-  // Show animated splash screen on app launch
+  // Show onboarding for first-time users (with splash overlay during transition)
+  if (!hasSeenOnboarding) {
+    return (
+      <>
+        <StatusBar style="dark" />
+        {/* Onboarding renders underneath */}
+        <OnboardingScreen onComplete={handleOnboardingComplete} />
+        {/* Splash renders on top and fades out to reveal onboarding */}
+        {showAnimatedSplash && (
+          <AnimatedSplashScreen onAnimationComplete={() => setShowAnimatedSplash(false)} />
+        )}
+      </>
+    );
+  }
+
+  // Show animated splash for returning users
   if (showAnimatedSplash) {
     return (
       <>
         <StatusBar style="dark" />
         <AnimatedSplashScreen onAnimationComplete={() => setShowAnimatedSplash(false)} />
-      </>
-    );
-  }
-
-  // Show onboarding for first-time users
-  if (!hasSeenOnboarding) {
-    return (
-      <>
-        <StatusBar style="dark" />
-        <OnboardingScreen onComplete={handleOnboardingComplete} />
       </>
     );
   }
@@ -614,7 +833,6 @@ function AppContent() {
         <StatusBar style="dark" />
         <SetUsernameScreen
           onComplete={handleUsernameSet}
-          onLogin={() => setCurrentScreen('login')}
         />
       </>
     );
@@ -628,8 +846,7 @@ function AppContent() {
           <HomeScreen
             onDailyPuzzle={(sport) => setCurrentScreen(`${sport}Daily` as Screen)}
             onDuel={handleNavigateToDuels}
-            onLogin={() => setCurrentScreen('login')}
-            onSignUp={() => setCurrentScreen('signup')}
+            onProfilePress={() => setCurrentScreen('profile')}
             refreshKey={homeRefreshKey}
           />
         )}
@@ -638,51 +855,60 @@ function AppContent() {
             onNavigateToDuel={(duel) => {
               setDuelSport(duel.sport);
               setCurrentDuel(duel);
-              if (duel.status === 'waiting') {
+              // Check if this is an async friend duel (opponent needs to play)
+              if (duel.status === 'invite' && duel.player2_id === user?.id && duel.player1_completed_at) {
+                setIsAsyncDuel(true);
+                setIsAsyncChallenger(false);
+                setCurrentScreen('asyncDuelGame');
+              } else if (duel.status === 'waiting') {
                 setCurrentScreen('waitingForOpponent');
               } else if (duel.status === 'active') {
                 setCurrentScreen('duelGame');
               }
             }}
-            onLogin={() => setCurrentScreen('login')}
             onQuickDuel={handleQuickDuel}
             onChallengeFriend={handleChallengeFriend}
+            onAsyncDuelCreated={handleAsyncDuelCreated}
             autoStartDuelSport={autoStartDuelSport}
             onClearAutoStartDuel={clearAutoStartDuel}
           />
         )}
         {currentScreen === 'nbaDaily' && (
-          <CluePuzzleScreen sport="nba" onBack={handleBack} />
+          <CluePuzzleScreen sport="nba" onBack={handleBack} onLinkEmail={() => setCurrentScreen('linkEmail')} />
         )}
         {currentScreen === 'plDaily' && (
-          <CluePuzzleScreen sport="pl" onBack={handleBack} />
+          <CluePuzzleScreen sport="pl" onBack={handleBack} onLinkEmail={() => setCurrentScreen('linkEmail')} />
         )}
         {currentScreen === 'nflDaily' && (
-          <CluePuzzleScreen sport="nfl" onBack={handleBack} />
+          <CluePuzzleScreen sport="nfl" onBack={handleBack} onLinkEmail={() => setCurrentScreen('linkEmail')} />
         )}
         {currentScreen === 'mlbDaily' && (
-          <CluePuzzleScreen sport="mlb" onBack={handleBack} />
+          <CluePuzzleScreen sport="mlb" onBack={handleBack} onLinkEmail={() => setCurrentScreen('linkEmail')} />
         )}
-        {currentScreen === 'login' && (
-          <LoginScreen
-            onBack={handleBack}
-            onLoginSuccess={handleAuthSuccess}
-            onGoToSignUp={() => setCurrentScreen('signup')}
+        {activeTab === 'friends' && currentScreen === 'home' && (
+          <FriendsScreen
+            onNavigateToAsyncDuel={(duel, isChallenger) => {
+              setCurrentDuel(duel);
+              setDuelSport(duel.sport as Sport);
+              setIsAsyncDuel(true);
+              setIsAsyncChallenger(isChallenger);
+              setCurrentScreen('asyncDuelGame');
+            }}
           />
         )}
-        {currentScreen === 'signup' && (
-          <SignUpScreen
-            onBack={handleBack}
-            onSignUpSuccess={handleAuthSuccess}
-            onGoToLogin={() => setCurrentScreen('login')}
-          />
-        )}
-        {activeTab === 'profile' && currentScreen === 'home' && user && (
+        {currentScreen === 'profile' && user && (
           <ProfileScreen
             onLogout={handleBack}
             onNavigateToAchievements={() => setCurrentScreen('achievements')}
             onNavigateToCustomize={() => setCurrentScreen('customizeProfile')}
             onReplayOnboarding={handleReplayOnboarding}
+            onLinkEmail={() => setCurrentScreen('linkEmail')}
+          />
+        )}
+        {currentScreen === 'linkEmail' && (
+          <LinkEmailScreen
+            onBack={() => setCurrentScreen('profile')}
+            onSuccess={() => setCurrentScreen('profile')}
           />
         )}
         {currentScreen === 'achievements' && (
@@ -694,7 +920,12 @@ function AppContent() {
         {currentScreen === 'setUsername' && (
           <SetUsernameScreen
             onComplete={handleUsernameSet}
-            onLogin={() => setCurrentScreen('login')}
+          />
+        )}
+        {currentScreen === 'selectCountry' && (
+          <CountryPickerScreen
+            onComplete={handleCountrySelected}
+            onSkip={handleCountrySelected}
           />
         )}
         {currentScreen === 'leaderboard' && (
@@ -717,6 +948,22 @@ function AppContent() {
             getRandomQuestionId={getRandomTriviaQuestion}
           />
         )}
+        {currentScreen === 'asyncDuelGame' && currentDuel && (
+          <DuelGameScreen
+            key={`async-${currentDuel.id}`}
+            duel={currentDuel}
+            onBack={() => {
+              setIsAsyncDuel(false);
+              setIsAsyncChallenger(false);
+              handleBack();
+            }}
+            onComplete={handleDuelComplete}
+            onPlayAgain={handleQuickDuel}
+            getRandomQuestionId={getRandomTriviaQuestion}
+            isAsyncMode={true}
+            isChallenger={isAsyncChallenger}
+          />
+        )}
         {currentScreen === 'inviteFriend' && currentDuel && (
           <InviteFriendScreen
             duel={currentDuel}
@@ -731,6 +978,7 @@ function AppContent() {
             questionCount={duelQuestionCount}
             onCancel={handleBack}
             onDuelCreated={handleDuelCreated}
+            onAsyncDuelCreated={handleAsyncDuelCreated}
             getRandomQuestionId={getRandomTriviaQuestion}
           />
         )}
@@ -774,6 +1022,7 @@ function AppContent() {
           activeTab={activeTab}
           onTabPress={handleTabPress}
           duelsBadgeCount={incomingChallengesCount}
+          friendsBadgeCount={pendingFriendRequestsCount + pendingAsyncChallengesCount}
         />
       )}
     </View>
@@ -832,28 +1081,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_900Black',
     color: colors.text,
   },
-  authButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  loginButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#000000',
-    backgroundColor: '#1ABC9C',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
-  },
-  loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'DMSans_900Black',
-  },
   // Streak Box
   streakBox: {
     flexDirection: 'row',
@@ -879,6 +1106,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
+  },
+  // Header Profile Avatar
+  headerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  headerAvatarIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#FFFFFF',
   },
   // Level Section
   levelSection: {
@@ -912,12 +1160,29 @@ const styles = StyleSheet.create({
     width: 2,
     backgroundColor: '#000000',
   },
+  levelSection_middle: {
+    backgroundColor: '#F5F2EB',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
   levelSection_right: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: '#F5F2EB',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderTopRightRadius: 6,
     borderBottomRightRadius: 6,
+  },
+  levelFireIcon: {
+    width: 16,
+    height: 18,
+  },
+  levelStreakText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
   },
   levelBadgeText: {
     fontSize: 14,

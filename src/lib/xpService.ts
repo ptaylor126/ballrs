@@ -1,26 +1,69 @@
 import { supabase } from './supabase';
 
-// Level thresholds: ~1500 XP per level (about 2 weeks of casual play)
-// Assuming casual play = 1-2 puzzles/day = ~100 XP/day = 1400 XP in 2 weeks
-// Level 1: 0 XP
-// Level 2: 500 XP
-// Level 3: 2000 XP
-// Level 4: 3500 XP
-// Level 5: 5000 XP
-// Level 6: 6500 XP
-// etc. (+1500 per level after level 2)
+// Level thresholds: exponential curve with ~20% more XP per level
+// Stored as lookup array for easy tweaking
+// Index = level - 1 (so LEVEL_THRESHOLDS[0] = Level 1 = 0 XP)
+const LEVEL_THRESHOLDS = [
+  0,        // Level 1  (500 to next)
+  500,      // Level 2  (500 to next)
+  1000,     // Level 3  (700 to next)
+  1700,     // Level 4  (850 to next)
+  2550,     // Level 5  (1,000 to next)
+  3550,     // Level 6  (1,200 to next)
+  4750,     // Level 7  (1,500 to next)
+  6250,     // Level 8  (1,800 to next)
+  8050,     // Level 9  (2,150 to next)
+  10200,    // Level 10 (2,600 to next)
+  12800,    // Level 11 (2,700 to next)
+  15500,    // Level 12 (2,800 to next)
+  18300,    // Level 13 (2,900 to next)
+  21200,    // Level 14 (2,800 to next)
+  24000,    // Level 15 (5,000 to next)
+  29000,    // Level 16 (5,000 to next)
+  34000,    // Level 17 (5,500 to next)
+  39500,    // Level 18 (5,500 to next)
+  45000,    // Level 19 (5,000 to next)
+  50000,    // Level 20 (10,000 to next)
+  60000,    // Level 21 (8,000 to next)
+  68000,    // Level 22 (7,000 to next)
+  75000,    // Level 23 (7,000 to next)
+  82000,    // Level 24 (8,000 to next)
+  90000,    // Level 25 (18,000 to next)
+  108000,   // Level 26 (12,000 to next)
+  120000,   // Level 27 (12,000 to next)
+  132000,   // Level 28 (10,000 to next)
+  142000,   // Level 29 (8,000 to next)
+  150000,   // Level 30
+];
+
+// For levels beyond 30, add ~15,000 XP per level
+const BEYOND_30_INCREMENT = 15000;
 
 export function getXPForLevel(level: number): number {
   if (level <= 1) return 0;
-  if (level === 2) return 500;
-  // Level 3+: 500 + (level - 2) * 1500
-  return 500 + (level - 2) * 1500;
+  if (level <= LEVEL_THRESHOLDS.length) {
+    return LEVEL_THRESHOLDS[level - 1];
+  }
+  // Beyond level 30: continue with fixed increment
+  const levelsAfter30 = level - LEVEL_THRESHOLDS.length;
+  return LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1] + (levelsAfter30 * BEYOND_30_INCREMENT);
 }
 
 export function calculateLevel(xp: number): number {
-  if (xp < 500) return 1;
-  // For level 2+: level = 2 + floor((xp - 500) / 1500)
-  return 2 + Math.floor((xp - 500) / 1500);
+  // Check lookup array first
+  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (xp >= LEVEL_THRESHOLDS[i]) {
+      // Check if beyond max defined level
+      if (i === LEVEL_THRESHOLDS.length - 1) {
+        // Calculate levels beyond 30
+        const xpAfterMax = xp - LEVEL_THRESHOLDS[i];
+        const additionalLevels = Math.floor(xpAfterMax / BEYOND_30_INCREMENT);
+        return i + 1 + additionalLevels;
+      }
+      return i + 1;
+    }
+  }
+  return 1;
 }
 
 export function getXPProgressInLevel(xp: number): { current: number; required: number; percentage: number } {

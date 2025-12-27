@@ -116,6 +116,7 @@ export default function EnterCodeModal({ visible, onClose, onJoin }: Props) {
             autoCorrect={false}
             maxLength={6}
             autoFocus
+            selectionColor="#1ABC9C"
           />
 
           {error && <Text style={styles.error}>{error}</Text>}

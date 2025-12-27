@@ -17,13 +17,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
-import { colors, getSportColor, Sport } from '../lib/theme';
+import { colors, getSportColor, Sport, truncateUsername } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
+import { usePresence } from '../hooks/usePresence';
 
 const ACCENT_COLOR = '#1ABC9C';
-const DISABLED_BG = '#E8E8E8';
-const DISABLED_TEXT = '#999999';
+const DISABLED_BG = '#F9EECC';
+const DISABLED_TEXT = '#AAAAAA';
 
 // Icons
 const swordsIcon = require('../../assets/images/icon-duel.png');
@@ -38,9 +39,17 @@ const sportIcons: Record<Sport, any> = {
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
-  pl: 'Premier League',
+  pl: 'EPL',
   nfl: 'NFL',
   mlb: 'MLB',
+};
+
+// Sport colors for the grid
+const sportColors: Record<Sport, string> = {
+  nba: '#E07A3D',  // Orange
+  pl: '#A17FFF',   // Purple
+  nfl: '#3BA978',  // Green
+  mlb: '#7A93D2',  // Blue
 };
 import {
   Duel,
@@ -55,6 +64,7 @@ import {
   joinDuelByInviteCode,
   cancelDuel,
   createInviteDuel,
+  createAsyncDuel,
 } from '../lib/duelService';
 import { getFriends, FriendWithProfile, sendFriendChallenge } from '../lib/friendsService';
 import { sendChallengeNotification } from '../lib/notificationService';
@@ -76,18 +86,22 @@ const getTriviaQuestions = (sport: Sport): any[] => {
 };
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = 88;
+const SWIPE_THRESHOLD = 100;
 
 // Swipeable Duel Card Component
 interface SwipeableDuelCardProps {
   duel: DuelWithOpponent;
   onPress: () => void;
   onCancelPress: () => void;
+  onAnimatedCancel?: () => void;
 }
 
-function SwipeableDuelCard({ duel, onPress, onCancelPress }: SwipeableDuelCardProps) {
+function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: SwipeableDuelCardProps) {
   const translateX = useRef(new Animated.Value(0)).current;
+  const cardHeight = useRef(new Animated.Value(1)).current;
+  const cardOpacity = useRef(new Animated.Value(1)).current;
   const [isSwiped, setIsSwiped] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -141,20 +155,62 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress }: SwipeableDuelCardPr
     }
   };
 
-  const handleCancelPress = () => {
-    resetSwipe();
-    onCancelPress();
+  // Animate the card sliding out to the left and collapsing
+  const animateCancelOut = (callback: () => void) => {
+    setIsAnimatingOut(true);
+    Animated.parallel([
+      // Slide card off to the left
+      Animated.timing(translateX, {
+        toValue: -SCREEN_WIDTH,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      // Fade out
+      Animated.timing(cardOpacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Collapse height after slide out
+      Animated.timing(cardHeight, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start(callback);
+    });
   };
 
+  const handleCancelPress = () => {
+    // If we have an animated cancel handler, use the animation
+    if (onAnimatedCancel) {
+      animateCancelOut(onAnimatedCancel);
+    } else {
+      resetSwipe();
+      onCancelPress();
+    }
+  };
+
+  const heightInterpolate = cardHeight.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 80], // Approximate card height including margin
+  });
+
   return (
-    <View style={styles.swipeableContainer}>
+    <Animated.View
+      style={[
+        styles.swipeableContainer,
+        isAnimatingOut && { height: heightInterpolate, marginBottom: 0 },
+        { opacity: cardOpacity },
+      ]}
+    >
       {/* Cancel Button (behind the card) */}
       <View style={styles.cancelButtonContainer}>
         <TouchableOpacity
           style={styles.swipeCancelButton}
           onPress={handleCancelPress}
         >
-          <Text style={styles.swipeCancelButtonText}>Cancel</Text>
+          <Text style={styles.swipeCancelButtonText}>CANCEL</Text>
         </TouchableOpacity>
       </View>
 
@@ -178,7 +234,7 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress }: SwipeableDuelCardPr
             <Text style={styles.opponentName}>
               {duel.status === 'waiting' || duel.status === 'invite'
                 ? 'Waiting for opponent...'
-                : `vs ${duel.opponent_username || 'Unknown'}`}
+                : `vs ${truncateUsername(duel.opponent_username) || 'Unknown'}`}
             </Text>
             <Text style={[styles.duelStatus, { color: getSportColor(duel.sport) }]}>
               {duel.status === 'waiting' || duel.status === 'invite' ? 'Waiting' : 'In Progress'}
@@ -187,15 +243,15 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress }: SwipeableDuelCardPr
           <Text style={styles.arrowIcon}>→</Text>
         </TouchableOpacity>
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 }
 
 interface Props {
   onNavigateToDuel: (duel: Duel) => void;
-  onLogin: () => void;
   onQuickDuel?: (sport: Sport) => void;
   onChallengeFriend?: (sport: Sport, questionCount: number) => void;
+  onAsyncDuelCreated?: (duel: Duel) => void;
   autoStartDuelSport?: Sport | null;
   onClearAutoStartDuel?: () => void;
 }
@@ -208,8 +264,9 @@ const formatTime = (ms: number | null): string => {
   return `${seconds}s`;
 };
 
-export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, onChallengeFriend, autoStartDuelSport, onClearAutoStartDuel }: Props) {
+export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallengeFriend, onAsyncDuelCreated, autoStartDuelSport, onClearAutoStartDuel }: Props) {
   const { user } = useAuth();
+  const onlineUserIds = usePresence();
   const [activeDuels, setActiveDuels] = useState<DuelWithOpponent[]>([]);
   const [incomingChallenges, setIncomingChallenges] = useState<DuelWithOpponent[]>([]);
   const [duelHistory, setDuelHistory] = useState<DuelWithOpponent[]>([]);
@@ -230,6 +287,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
   const [cancellingDuel, setCancellingDuel] = useState(false);
   const [showCancelToast, setShowCancelToast] = useState(false);
   const toastOpacity = useRef(new Animated.Value(0)).current;
+  const toastTranslateY = useRef(new Animated.Value(50)).current;
   const [startDuelModalVisible, setStartDuelModalVisible] = useState(false);
   const [startDuelSport, setStartDuelSport] = useState<Sport | null>(null);
 
@@ -310,10 +368,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
   }, [loadData]);
 
   const handleJoinByCode = async () => {
-    if (!user) {
-      onLogin();
-      return;
-    }
+    if (!user) return;
 
     if (!inviteCode.trim()) {
       Alert.alert('Error', 'Please enter an invite code');
@@ -343,6 +398,16 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
     if (!user) return;
 
     setProcessingDuelId(duel.id);
+
+    // Check if this is an async friend duel (already has player2_id and challenger completed)
+    if (duel.player2_id === user.id && duel.player1_completed_at) {
+      // This is an async duel - don't call joinDuel, just navigate
+      setProcessingDuelId(null);
+      onNavigateToDuel(duel);
+      return;
+    }
+
+    // Regular invite duel - join and make active
     const joinedDuel = await joinDuel(duel.id, user.id);
     setProcessingDuelId(null);
 
@@ -371,19 +436,13 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
   };
 
   const handleQuickDuelPress = () => {
-    if (!user) {
-      onLogin();
-      return;
-    }
+    if (!user) return;
     setSportSelectorAction('quickDuel');
     setSportSelectorVisible(true);
   };
 
   const handleChallengeFriendPress = () => {
-    if (!user) {
-      onLogin();
-      return;
-    }
+    if (!user) return;
     setSportSelectorAction('challenge');
     setSportSelectorVisible(true);
   };
@@ -433,35 +492,20 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
       const questions = getTriviaQuestions(selectedSport);
       const questionId = getSmartQuestionId(selectedSport, questions);
 
-      // Create the duel
-      const duel = await createInviteDuel(user.id, selectedSport, questionId, selectedQuestionCount);
+      // Create async duel for friend challenges - challenger plays first
+      const duel = await createAsyncDuel(user.id, selectedFriendForChallenge.friendUserId, selectedSport, questionId, selectedQuestionCount);
 
-      if (duel && duel.invite_code) {
-        // Send challenge via database
-        await sendFriendChallenge(user.id, selectedFriendForChallenge.friendUserId, duel.id);
-
-        // Send push notification
-        await sendChallengeNotification(
-          selectedFriendForChallenge.friendUserId,
-          myUsername,
-          selectedSport,
-          duel.invite_code
-        );
-
-        Alert.alert(
-          'Challenge Sent!',
-          `${selectedFriendForChallenge.username} has been notified. Waiting for them to join...`,
-          [{ text: 'OK' }]
-        );
-
-        // Close modals and navigate to the duel
+      if (duel) {
+        // Close modals
         setConfirmFriendModalVisible(false);
         setQuestionCountPickerVisible(false);
         setSelectedFriendForChallenge(null);
         setSelectedSport(null);
 
-        // Navigate to the duel (waiting for opponent)
-        onNavigateToDuel(duel);
+        // Navigate to async duel game to play immediately
+        if (onAsyncDuelCreated) {
+          onAsyncDuelCreated(duel);
+        }
       } else {
         Alert.alert('Error', 'Failed to create challenge. Please try again.');
       }
@@ -478,12 +522,21 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
     setCancelModalVisible(true);
   };
 
+  // Direct animated cancel (without modal)
+  const handleAnimatedCancel = async (duel: DuelWithOpponent) => {
+    const success = await cancelDuel(duel.id);
+    if (success) {
+      setActiveDuels((prev) => prev.filter((d) => d.id !== duel.id));
+      showToast();
+    } else {
+      Alert.alert('Error', 'Failed to cancel duel. Please try again.');
+      loadData(); // Refresh to restore the card
+    }
+  };
+
   // Start Duel modal handlers
   const handleOpenStartDuelModal = () => {
-    if (!user) {
-      onLogin();
-      return;
-    }
+    if (!user) return;
     setSportSelectorAction('quickDuel');
     setSportSelectorVisible(true);
   };
@@ -523,44 +576,46 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
 
   const showToast = () => {
     setShowCancelToast(true);
+    // Reset values
+    toastOpacity.setValue(0);
+    toastTranslateY.setValue(50);
+
     Animated.sequence([
-      Animated.timing(toastOpacity, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
+      // Slide up and fade in
+      Animated.parallel([
+        Animated.timing(toastOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.spring(toastTranslateY, {
+          toValue: 0,
+          friction: 8,
+          tension: 80,
+          useNativeDriver: true,
+        }),
+      ]),
       Animated.delay(2000),
-      Animated.timing(toastOpacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
+      // Slide down and fade out
+      Animated.parallel([
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(toastTranslateY, {
+          toValue: 50,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start(() => {
       setShowCancelToast(false);
     });
   };
 
-  if (!user) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Duels</Text>
-          <Text style={styles.subtitle}>Challenge friends and compete</Text>
-        </View>
-        <View style={styles.loginPrompt}>
-          <View style={styles.loginIconCircle}>
-            <Text style={styles.loginIcon}>D</Text>
-          </View>
-          <Text style={styles.loginText}>Log in to view your duels</Text>
-          <AnimatedButton style={styles.loginButton} onPress={onLogin}>
-            <Text style={styles.loginButtonText}>Log In</Text>
-          </AnimatedButton>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (loading) {
+  // Only show full loading screen if not auto-starting a duel modal
+  if ((loading || !user) && !autoStartDuelSport && !startDuelModalVisible) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
@@ -605,7 +660,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>WIN %</Text>
-            <Text style={styles.statValue}>{stats?.winRate || 0}%</Text>
+            <Text style={styles.statValue}>{stats?.winRate || 0}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>STREAK</Text>
@@ -650,6 +705,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
                 duel={duel}
                 onPress={() => handleActiveDuelPress(duel)}
                 onCancelPress={() => showCancelConfirmation(duel)}
+                onAnimatedCancel={() => handleAnimatedCancel(duel)}
               />
             ))
           )}
@@ -667,7 +723,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
                   </View>
                   <View style={styles.challengeInfo}>
                     <Text style={styles.challengerName}>
-                      {duel.opponent_username || 'Someone'} challenged you!
+                      {truncateUsername(duel.opponent_username) || 'Someone'} challenged you!
                     </Text>
                     <Text style={styles.challengeSport}>
                       {duel.sport.toUpperCase()} Trivia
@@ -702,35 +758,37 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
         {/* Join by Code Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>JOIN BY CODE</Text>
-          <View style={styles.codeCard}>
+          <View style={styles.codeRow}>
             <TextInput
               style={[styles.codeInput, inputFocused && styles.codeInputFocused]}
               placeholder="Enter invite code"
-              placeholderTextColor="#F2C94C"
+              placeholderTextColor="#999999"
               value={inviteCode}
               onChangeText={setInviteCode}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
               autoCapitalize="characters"
               maxLength={6}
+              selectionColor="#1ABC9C"
             />
-            <AnimatedButton
+            <TouchableOpacity
               style={[
                 styles.joinButton,
                 !inviteCode.trim() && styles.joinButtonDisabled,
               ]}
               onPress={handleJoinByCode}
               disabled={joiningCode || !inviteCode.trim()}
+              activeOpacity={0.8}
             >
               {joiningCode ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color={inviteCode.trim() ? '#1A1A1A' : '#999999'} />
               ) : (
                 <Text style={[
                   styles.joinButtonText,
                   !inviteCode.trim() && styles.joinButtonTextDisabled,
                 ]}>JOIN</Text>
               )}
-            </AnimatedButton>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -767,7 +825,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
                         {tie ? 'TIE' : won ? 'WIN' : 'LOSS'}
                       </Text>
                       <Text style={styles.historyOpponent}>
-                        vs {duel.opponent_username || 'Unknown'}
+                        vs {truncateUsername(duel.opponent_username) || 'Unknown'}
                       </Text>
                     </View>
                   </View>
@@ -800,21 +858,21 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
             onPress={(e) => e.stopPropagation()}
           >
             <Text style={styles.modalTitle}>Select a sport category</Text>
-            <View style={styles.sportOptions}>
+            <View style={styles.sportGrid}>
               {(['nba', 'pl', 'nfl', 'mlb'] as Sport[]).map((sport) => (
                 <TouchableOpacity
                   key={sport}
-                  style={[styles.sportOption, { backgroundColor: getSportColor(sport) }]}
+                  style={[styles.sportGridOption, { backgroundColor: sportColors[sport] }]}
                   onPress={() => handleSportSelect(sport)}
-                  activeOpacity={0.8}
+                  activeOpacity={0.7}
                 >
-                  <Image source={sportIcons[sport]} style={styles.sportOptionIcon} />
-                  <Text style={styles.sportOptionText}>{sportNames[sport]}</Text>
+                  <Image source={sportIcons[sport]} style={styles.sportGridIcon} resizeMode="contain" />
+                  <Text style={styles.sportGridText}>{sportNames[sport]}</Text>
                 </TouchableOpacity>
               ))}
             </View>
             <TouchableOpacity
-              style={styles.modalCancelButton}
+              style={styles.modalCancelButtonYellow}
               onPress={() => setSportSelectorVisible(false)}
             >
               <Text style={styles.modalCancelText}>Cancel</Text>
@@ -884,10 +942,10 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
                   >
                     <View style={styles.friendOptionAvatar}>
                       <Text style={styles.friendOptionAvatarText}>
-                        {friend.username.charAt(0).toUpperCase()}
+                        {truncateUsername(friend.username).charAt(0).toUpperCase()}
                       </Text>
                     </View>
-                    <Text style={styles.friendOptionUsername}>{friend.username}</Text>
+                    <Text style={styles.friendOptionUsername}>{truncateUsername(friend.username)}</Text>
                     <Text style={styles.friendOptionArrow}>→</Text>
                   </TouchableOpacity>
                 ))}
@@ -935,11 +993,20 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
             onPress={(e) => e.stopPropagation()}
           >
             <Text style={styles.confirmFriendTitle}>
-              Challenge {selectedFriendForChallenge?.username}?
+              Challenge {truncateUsername(selectedFriendForChallenge?.username)}?
             </Text>
-            <Text style={styles.confirmFriendSubtitle}>
-              They will receive a notification to join your {selectedSport && sportNames[selectedSport]} trivia duel ({selectedQuestionCount} question{selectedQuestionCount > 1 ? 's' : ''}).
-            </Text>
+            {selectedFriendForChallenge && onlineUserIds.has(selectedFriendForChallenge.friendUserId) ? (
+              <View style={styles.onlineSubtitleContainer}>
+                <View style={styles.onlineDotSmall} />
+                <Text style={styles.confirmFriendSubtitleOnline}>
+                  {truncateUsername(selectedFriendForChallenge.username)} is online —{'\n'}they might play right away!
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.confirmFriendSubtitle}>
+                You'll both play on your own time.{'\n'}Winner announced when both finish.
+              </Text>
+            )}
 
             <View style={styles.confirmFriendButtons}>
               <TouchableOpacity
@@ -950,7 +1017,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
                 <Text style={styles.confirmFriendNoText}>NO</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.confirmFriendYesButton, { backgroundColor: selectedSport ? getSportColor(selectedSport) : ACCENT_COLOR }]}
+                style={styles.confirmFriendYesButton}
                 onPress={handleConfirmFriendChallenge}
                 disabled={sendingFriendChallenge}
               >
@@ -983,7 +1050,7 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
             onPress={(e) => e.stopPropagation()}
           >
             <Text style={styles.cancelModalTitle}>
-              Cancel this duel{duelToCancel?.opponent_username ? ` with ${duelToCancel.opponent_username}` : ''}?
+              Cancel this duel{duelToCancel?.opponent_username ? ` with ${truncateUsername(duelToCancel.opponent_username)}` : ''}?
             </Text>
             <Text style={styles.cancelModalSubtitle}>
               This action cannot be undone.
@@ -1046,8 +1113,8 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
                 onPress={handlePlayStranger}
                 activeOpacity={0.8}
               >
-                <Text style={styles.startDuelOptionText}>Play a Stranger</Text>
-                <Text style={styles.startDuelOptionSubtext}>Quick matchmaking</Text>
+                <Text style={styles.startDuelOptionText}>Quick Duel</Text>
+                <Text style={styles.startDuelOptionSubtext}>Get matched instantly</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1072,7 +1139,16 @@ export default function DuelsScreen({ onNavigateToDuel, onLogin, onQuickDuel, on
 
       {/* Toast Notification */}
       {showCancelToast && (
-        <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
+        <Animated.View
+          style={[
+            styles.toast,
+            {
+              opacity: toastOpacity,
+              transform: [{ translateY: toastTranslateY }],
+            },
+          ]}
+        >
+          <Text style={styles.toastCheckmark}>✓</Text>
           <Text style={styles.toastText}>Duel cancelled</Text>
         </Animated.View>
       )}
@@ -1255,7 +1331,7 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
@@ -1371,44 +1447,37 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   // Join by Code
-  codeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#000000',
-    paddingVertical: 16,
-    paddingLeft: 16,
-    paddingRight: 18,
+  codeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
   },
   codeInput: {
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'DMSans_700Bold',
     color: '#1A1A1A',
     textAlign: 'center',
     borderWidth: 2,
     borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   codeInputFocused: {
     borderColor: '#1ABC9C',
   },
   joinButton: {
     backgroundColor: '#F2C94C',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
     alignItems: 'center',
@@ -1420,15 +1489,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   joinButtonDisabled: {
-    backgroundColor: '#E8E8E8',
+    backgroundColor: '#F9EECC',
+    shadowOpacity: 0.4,
   },
   joinButtonText: {
     fontSize: 14,
-    fontFamily: 'DMSans_900Black',
+    fontFamily: 'DMSans_700Bold',
     color: '#1A1A1A',
+    textTransform: 'uppercase',
   },
   joinButtonTextDisabled: {
-    color: '#999999',
+    color: '#AAAAAA',
   },
   // History Cards
   historyCard: {
@@ -1558,11 +1629,57 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  // 2x2 Grid Sport Selector
+  sportGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  sportGridOption: {
+    width: '45%',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  sportGridIcon: {
+    width: 40,
+    height: 40,
+    marginBottom: 8,
+  },
+  sportGridText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
   modalCancelButton: {
     marginTop: 16,
     backgroundColor: '#F2C94C',
     paddingVertical: 12,
     paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  modalCancelButtonYellow: {
+    marginTop: 16,
+    backgroundColor: '#F2C94C',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
@@ -1736,7 +1853,7 @@ const styles = StyleSheet.create({
   friendOptionArrow: {
     fontSize: 18,
     fontFamily: 'DMSans_700Bold',
-    color: '#888888',
+    color: '#1ABC9C',
   },
   orDivider: {
     flexDirection: 'row',
@@ -1785,6 +1902,30 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     lineHeight: 20,
   },
+  onlineSubtitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  onlineDotSmall: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#22C55E',
+    marginRight: 8,
+  },
+  confirmFriendSubtitleOnline: {
+    fontSize: 14,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#15803D',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   confirmFriendButtons: {
     flexDirection: 'row',
     gap: 12,
@@ -1815,6 +1956,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
+    backgroundColor: '#1ABC9C',
     alignItems: 'center',
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
@@ -1842,24 +1984,23 @@ const styles = StyleSheet.create({
   swipeableContainer: {
     marginBottom: 12,
     position: 'relative',
-    overflow: 'hidden',
     borderRadius: 8,
   },
   cancelButtonContainer: {
     position: 'absolute',
     right: 0,
     top: 0,
-    bottom: 0,
-    width: SWIPE_THRESHOLD,
+    bottom: 12, // Account for marginBottom
+    width: SWIPE_THRESHOLD + 4, // Extra space for shadow
     justifyContent: 'center',
     alignItems: 'center',
-    paddingLeft: 8,
+    paddingRight: 4, // Space for shadow
   },
   swipeCancelButton: {
     backgroundColor: '#E53935',
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -1874,7 +2015,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   duelCardWrapper: {
@@ -1958,26 +2098,35 @@ const styles = StyleSheet.create({
   // Toast
   toast: {
     position: 'absolute',
-    bottom: 16,
+    bottom: 135, // Just above ad banner + nav bar
     left: 24,
     right: 24,
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
+    backgroundColor: '#F2C94C',
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 4,
   },
+  toastCheckmark: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1A1A1A',
+  },
   toastText: {
-    fontSize: 14,
-    fontFamily: 'DMSans_700Bold',
-    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    letterSpacing: 0.3,
   },
   // Start Duel Modal
   startDuelModalContent: {

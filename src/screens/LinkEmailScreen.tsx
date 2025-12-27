@@ -3,48 +3,76 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import { AnimatedButton } from '../components/AnimatedComponents';
+import { colors, shadows, borders, borderRadius } from '../lib/theme';
 
 interface Props {
   onBack: () => void;
-  onLoginSuccess: () => void;
-  onGoToSignUp: () => void;
+  onSuccess: () => void;
 }
 
-export default function LoginScreen({ onBack, onLoginSuccess, onGoToSignUp }: Props) {
-  const { signIn } = useAuth();
+export default function LinkEmailScreen({ onBack, onSuccess }: Props) {
+  const { linkEmail } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const handleLinkEmail = async () => {
+    setError('');
+
+    if (!email || !password || !confirmPassword) {
       setError('Please fill in all fields');
       return;
     }
 
-    setLoading(true);
-    setError('');
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
 
-    const { error } = await signIn(email, password);
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await linkEmail(email, password);
+
+    setLoading(false);
 
     if (error) {
-      setError(error.message);
-      setLoading(false);
+      setError(error.message || 'Failed to link email. Please try again.');
     } else {
-      onLoginSuccess();
+      Alert.alert(
+        'Email Linked!',
+        'Your account is now linked to your email. You can use this to recover your account.',
+        [{ text: 'OK', onPress: onSuccess }]
+      );
     }
   };
 
@@ -65,12 +93,12 @@ export default function LoginScreen({ onBack, onLoginSuccess, onGoToSignUp }: Pr
           </AnimatedButton>
 
           <View style={styles.content}>
-            {/* Logo */}
-            <Text style={styles.logo}>BALLRS</Text>
-
             {/* Title */}
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Log in to continue</Text>
+            <Text style={styles.title}>Link Email</Text>
+            <Text style={styles.subtitle}>
+              Add an email to your account for recovery.{'\n'}
+              This lets you sign in on other devices.
+            </Text>
 
             {error ? (
               <View style={styles.errorContainer}>
@@ -99,7 +127,7 @@ export default function LoginScreen({ onBack, onLoginSuccess, onGoToSignUp }: Pr
                 style={[styles.input, passwordFocused && styles.inputFocused]}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Enter your password"
+                placeholder="Create a password"
                 placeholderTextColor="#999999"
                 secureTextEntry
                 onFocus={() => setPasswordFocused(true)}
@@ -107,25 +135,35 @@ export default function LoginScreen({ onBack, onLoginSuccess, onGoToSignUp }: Pr
                 selectionColor="#1ABC9C"
               />
 
+              <Text style={styles.label}>CONFIRM PASSWORD</Text>
+              <TextInput
+                style={[styles.input, confirmPasswordFocused && styles.inputFocused]}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirm your password"
+                placeholderTextColor="#999999"
+                secureTextEntry
+                onFocus={() => setConfirmPasswordFocused(true)}
+                onBlur={() => setConfirmPasswordFocused(false)}
+                selectionColor="#1ABC9C"
+              />
+
               <AnimatedButton
                 style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleLogin}
+                onPress={handleLinkEmail}
                 disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.buttonText}>Log In</Text>
+                  <Text style={styles.buttonText}>Link Email</Text>
                 )}
               </AnimatedButton>
             </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account?</Text>
-              <TouchableOpacity onPress={onGoToSignUp}>
-                <Text style={styles.linkText}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.infoText}>
+              Your current progress and stats will be preserved.
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -136,7 +174,7 @@ export default function LoginScreen({ onBack, onLoginSuccess, onGoToSignUp }: Pr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F2EB',
+    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -151,17 +189,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    ...shadows.card,
     marginBottom: 24,
   },
   backButtonText: {
-    color: '#1A1A1A',
+    color: colors.text,
     fontSize: 12,
     fontFamily: 'DMSans_900Black',
     textTransform: 'uppercase',
@@ -171,33 +205,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  logo: {
-    fontSize: 32,
-    fontFamily: 'DMSans_900Black',
-    color: '#1A1A1A',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'DMSans_900Black',
-    color: '#1A1A1A',
+    color: colors.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
     fontFamily: 'DMSans_400Regular',
-    color: '#666666',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
+    lineHeight: 20,
   },
   errorContainer: {
     backgroundColor: '#FFEBEE',
-    borderRadius: 8,
+    borderRadius: borderRadius.card,
     padding: 12,
     marginBottom: 16,
-    borderWidth: 2,
+    borderWidth: borders.card,
     borderColor: '#E53935',
   },
   errorText: {
@@ -210,7 +238,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
-    color: '#1A1A1A',
+    color: colors.text,
     fontSize: 12,
     fontFamily: 'DMSans_900Black',
     marginBottom: 4,
@@ -218,36 +246,28 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
     padding: 16,
     fontSize: 16,
     fontFamily: 'DMSans_400Regular',
-    color: '#1A1A1A',
-    borderWidth: 2,
-    borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
+    color: colors.text,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    ...shadows.card,
   },
   inputFocused: {
-    borderColor: '#1ABC9C',
+    borderColor: colors.primary,
   },
   button: {
-    backgroundColor: '#1ABC9C',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 24,
-    borderWidth: 2,
-    borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    ...shadows.card,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -259,21 +279,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 24,
-    gap: 8,
-  },
-  footerText: {
-    color: '#666666',
-    fontSize: 14,
+  infoText: {
+    fontSize: 12,
     fontFamily: 'DMSans_400Regular',
-  },
-  linkText: {
-    color: '#1ABC9C',
-    fontSize: 14,
-    fontFamily: 'DMSans_900Black',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 24,
   },
 });

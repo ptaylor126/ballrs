@@ -102,6 +102,7 @@ export default function JoinLeagueModal({ visible, onClose, onLeagueJoined }: Pr
             autoCorrect={false}
             maxLength={6}
             autoFocus
+            selectionColor="#1ABC9C"
           />
 
           {error && <Text style={styles.error}>{error}</Text>}
@@ -126,7 +127,10 @@ export default function JoinLeagueModal({ visible, onClose, onLeagueJoined }: Pr
               {joining ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.joinButtonText}>JOIN</Text>
+                <Text style={[
+                  styles.joinButtonText,
+                  (code.length !== 6) && styles.buttonDisabledText,
+                ]}>JOIN</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -214,14 +218,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    backgroundColor: colors.nba,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    backgroundColor: '#1ABC9C',
     alignItems: 'center',
-    ...shadows.cardSmall,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    backgroundColor: '#F9EECC',
+    shadowOpacity: 0.4,
+  },
+  buttonDisabledText: {
+    color: '#AAAAAA',
   },
   joinButtonText: {
     ...typography.button,

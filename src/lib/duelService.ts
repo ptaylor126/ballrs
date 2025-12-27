@@ -1,5 +1,16 @@
 import { supabase } from './supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { sendDuelChallengeNotification, sendDuelResultNotification } from './notificationService';
+
+// Duel status types
+export type DuelStatus = 'waiting' | 'active' | 'completed' | 'invite' | 'declined' | 'waiting_for_p2' | 'expired';
+
+// Player result for async duels
+export interface PlayerResult {
+  answer: string;
+  time: number;
+  correct: boolean;
+}
 
 export interface Duel {
   id: string;
@@ -14,7 +25,7 @@ export interface Duel {
   player1_answer_time: number | null; // ms timestamp when answered
   player2_answer_time: number | null;
   winner_id: string | null;
-  status: 'waiting' | 'active' | 'completed' | 'invite';
+  status: DuelStatus;
   invite_code: string | null;
   created_at: string;
   round_start_time: string | null; // When the round started (for timer sync)
@@ -24,6 +35,12 @@ export interface Duel {
   player2_score: number; // Player 2's score (correct answers)
   player1_total_time: number; // Player 1's total answer time across all rounds
   player2_total_time: number; // Player 2's total answer time across all rounds
+  // Async duel fields
+  player1_completed_at: string | null;
+  player2_completed_at: string | null;
+  expires_at: string | null;
+  player1_result: PlayerResult | null;
+  player2_result: PlayerResult | null;
 }
 
 export type QuestionCategory = 'records' | 'history' | 'current' | 'awards' | 'transfers' | 'moments' | 'team';
@@ -46,6 +63,22 @@ function generateInviteCode(): string {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
+}
+
+// Get a duel by ID
+export async function getDuelById(duelId: string): Promise<Duel | null> {
+  const { data, error } = await supabase
+    .from('duels')
+    .select('*')
+    .eq('id', duelId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching duel by ID:', error);
+    return null;
+  }
+
+  return data;
 }
 
 // Find a waiting duel for a sport
@@ -435,16 +468,19 @@ export async function getActiveDuels(userId: string): Promise<DuelWithOpponent[]
   return duelsWithOpponents;
 }
 
-// Get incoming challenges for a user (invite duels where they are player2)
+// Get incoming challenges for a user (invite duels they can join)
 export async function getIncomingChallenges(userId: string): Promise<DuelWithOpponent[]> {
-  // For incoming challenges, we need to find duels where this user was challenged
-  // This would require tracking who was challenged - for now, show all invite duels
-  // where the user could potentially join (not their own)
+  // Get invite duels where:
+  // 1. User is not the creator
+  // 2. Either open to anyone (player2_id is null) OR specifically for this user
+  // 3. Exclude async duels that have player1_completed_at (those show in FriendsScreen)
   const { data, error } = await supabase
     .from('duels')
     .select('*')
     .eq('status', 'invite')
     .neq('player1_id', userId)
+    .or(`player2_id.is.null,player2_id.eq.${userId}`)
+    .is('player1_completed_at', null) // Exclude async duels where challenger completed
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -742,4 +778,308 @@ export function getCurrentQuestionId(duel: Duel): string {
   // current_round is 1-indexed, so we need index = current_round - 1
   const index = Math.min(duel.current_round - 1, questionIds.length - 1);
   return questionIds[index];
+}
+
+// ============================================
+// ASYNC FRIEND DUEL FUNCTIONS
+// ============================================
+
+// Create an async duel (challenger plays first, friend has 48h to respond)
+export async function createAsyncDuel(
+  challengerId: string,
+  friendId: string,
+  sport: 'nba' | 'pl' | 'nfl' | 'mlb',
+  questionId: string,
+  questionCount: number = 1
+): Promise<Duel | null> {
+  // Try with expires_at first (if migration has been applied)
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 48);
+
+  let { data, error } = await supabase
+    .from('duels')
+    .insert({
+      player1_id: challengerId,
+      player2_id: friendId,
+      sport,
+      mystery_player_id: questionId,
+      status: 'invite', // Use 'invite' status which should exist
+      question_count: questionCount,
+      current_round: 1,
+      player1_score: 0,
+      player2_score: 0,
+      player1_total_time: 0,
+      player2_total_time: 0,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating async duel:', error);
+    return null;
+  }
+
+  // Send challenge notification to the friend
+  if (data) {
+    try {
+      // Get challenger's username
+      const { data: challengerProfile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', challengerId)
+        .single();
+
+      const challengerUsername = challengerProfile?.username || 'Someone';
+
+      // Send notification asynchronously (don't block on it)
+      sendDuelChallengeNotification(
+        friendId,
+        challengerUsername,
+        sport,
+        data.id
+      ).catch(err => console.log('Failed to send challenge notification:', err));
+    } catch (notifError) {
+      console.log('Error preparing challenge notification:', notifError);
+    }
+  }
+
+  return data;
+}
+
+// Submit challenger's result (player1) after playing
+export async function submitChallengerResult(
+  duelId: string,
+  result: PlayerResult
+): Promise<Duel | null> {
+  const { data, error } = await supabase
+    .from('duels')
+    .update({
+      player1_result: result,
+      player1_completed_at: new Date().toISOString(),
+    })
+    .eq('id', duelId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error submitting challenger result:', error);
+    return null;
+  }
+
+  return data;
+}
+
+// Submit opponent's result (player2) and determine winner
+export async function submitOpponentResult(
+  duelId: string,
+  result: PlayerResult
+): Promise<Duel | null> {
+  // First get the duel to access player1's result
+  const { data: duel, error: fetchError } = await supabase
+    .from('duels')
+    .select('*')
+    .eq('id', duelId)
+    .single();
+
+  if (fetchError || !duel) {
+    console.error('Error fetching duel for opponent result:', fetchError);
+    return null;
+  }
+
+  const p1Result = duel.player1_result as PlayerResult;
+  const p2Result = result;
+
+  // Determine winner
+  let winnerId: string | null = null;
+
+  if (p1Result.correct && !p2Result.correct) {
+    winnerId = duel.player1_id;
+  } else if (!p1Result.correct && p2Result.correct) {
+    winnerId = duel.player2_id;
+  } else if (p1Result.correct && p2Result.correct) {
+    // Both correct - faster wins
+    if (p1Result.time < p2Result.time) {
+      winnerId = duel.player1_id;
+    } else if (p2Result.time < p1Result.time) {
+      winnerId = duel.player2_id;
+    }
+    // If times are equal, winnerId stays null (tie)
+  }
+  // If both wrong, winnerId stays null (tie)
+
+  // Update duel with result and complete it
+  const { data: completedDuel, error: updateError } = await supabase
+    .from('duels')
+    .update({
+      player2_result: result,
+      player2_completed_at: new Date().toISOString(),
+      winner_id: winnerId,
+      status: 'completed',
+    })
+    .eq('id', duelId)
+    .select()
+    .single();
+
+  if (updateError) {
+    console.error('Error completing async duel:', updateError);
+    return null;
+  }
+
+  // Send notification to challenger (player1) that duel is complete
+  try {
+    // Get opponent's username (player2)
+    const { data: opponentProfile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', duel.player2_id)
+      .single();
+
+    const opponentUsername = opponentProfile?.username || 'Your opponent';
+
+    // Determine result from challenger's perspective and calculate scores
+    let challengerResult: 'win' | 'loss' | 'tie';
+    let challengerScore: number;
+    let opponentScore: number;
+
+    if (winnerId === duel.player1_id) {
+      challengerResult = 'win';
+    } else if (winnerId === duel.player2_id) {
+      challengerResult = 'loss';
+    } else {
+      challengerResult = 'tie';
+    }
+
+    // For multi-question duels, use the stored scores
+    if (duel.question_count > 1) {
+      challengerScore = duel.player1_score || 0;
+      opponentScore = duel.player2_score || 0;
+    } else {
+      // For single-question duels, score is 1 or 0 based on correct answer
+      challengerScore = p1Result.correct ? 1 : 0;
+      opponentScore = p2Result.correct ? 1 : 0;
+    }
+
+    // Send notification asynchronously (don't block on it)
+    sendDuelResultNotification(
+      duel.player1_id,
+      challengerResult,
+      opponentUsername,
+      challengerScore,
+      opponentScore,
+      duel.sport,
+      duelId
+    ).catch(err => console.log('Failed to send duel result notification:', err));
+  } catch (notifError) {
+    console.log('Error preparing duel result notification:', notifError);
+  }
+
+  return completedDuel;
+}
+
+// Get pending async challenges for a user (duels where they need to play)
+export async function getPendingAsyncChallenges(userId: string): Promise<DuelWithOpponent[]> {
+  const { data, error } = await supabase
+    .from('duels')
+    .select('*')
+    .eq('player2_id', userId)
+    .eq('status', 'invite')
+    .not('player1_completed_at', 'is', null)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching pending async challenges:', error);
+    return [];
+  }
+
+  // Add opponent info (challenger is player1)
+  const duelsWithOpponents = await Promise.all((data || []).map(async (duel) => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', duel.player1_id)
+      .single();
+
+    return {
+      ...duel,
+      opponent_id: duel.player1_id,
+      opponent_username: profile?.username || null,
+    };
+  }));
+
+  return duelsWithOpponents;
+}
+
+// Get count of pending async challenges (for badge)
+export async function getPendingAsyncChallengesCount(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('duels')
+    .select('*', { count: 'exact', head: true })
+    .eq('player2_id', userId)
+    .eq('status', 'invite')
+    .not('player1_completed_at', 'is', null);
+
+  if (error) {
+    console.error('Error fetching pending async challenges count:', error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+// Get async duels that user created and are waiting for opponent
+export async function getWaitingAsyncDuels(userId: string): Promise<DuelWithOpponent[]> {
+  const { data, error } = await supabase
+    .from('duels')
+    .select('*')
+    .eq('player1_id', userId)
+    .eq('status', 'invite')
+    .not('player1_completed_at', 'is', null)
+    .is('player2_completed_at', null)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching waiting async duels:', error);
+    return [];
+  }
+
+  // Add opponent info (opponent is player2)
+  const duelsWithOpponents = await Promise.all((data || []).map(async (duel) => {
+    let opponentUsername = null;
+    if (duel.player2_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', duel.player2_id)
+        .single();
+      opponentUsername = profile?.username || null;
+    }
+
+    return {
+      ...duel,
+      opponent_id: duel.player2_id,
+      opponent_username: opponentUsername,
+    };
+  }));
+
+  return duelsWithOpponents;
+}
+
+// Calculate time remaining until async duel expires
+export function getTimeRemaining(expiresAt: string | null): { hours: number; minutes: number; expired: boolean } {
+  if (!expiresAt) {
+    return { hours: 0, minutes: 0, expired: true };
+  }
+
+  const now = new Date().getTime();
+  const expiry = new Date(expiresAt).getTime();
+  const diff = expiry - now;
+
+  if (diff <= 0) {
+    return { hours: 0, minutes: 0, expired: true };
+  }
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  return { hours, minutes, expired: false };
 }

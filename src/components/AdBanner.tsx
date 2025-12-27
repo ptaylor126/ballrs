@@ -15,7 +15,7 @@ import {
  */
 
 // Ad banner image
-const adBannerImage = require('../../assets/images/ad-banner.png');
+const adBannerImage = require('../../assets/images/ad-banner-parlays.png');
 
 interface AdBannerProps {
   url?: string;

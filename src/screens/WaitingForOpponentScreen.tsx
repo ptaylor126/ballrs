@@ -5,8 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Animated,
-  Easing,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,30 +36,6 @@ interface Props {
 
 export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOpponentJoined }: Props) {
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    // Start pulse animation
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.2,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    pulse.start();
-
-    return () => pulse.stop();
-  }, [pulseAnim]);
 
   useEffect(() => {
     // Subscribe to duel updates
@@ -88,35 +62,32 @@ export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOppo
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Sport Icon */}
-        <Animated.View style={[styles.iconContainer, { backgroundColor: sportColor, transform: [{ scale: pulseAnim }] }]}>
-          <Image source={sportIcons[sport as Sport]} style={styles.sportIcon} />
-        </Animated.View>
-
+        {/* Sport Badge */}
         <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
-          <Image source={sportIcons[sport as Sport]} style={styles.sportBadgeIcon} resizeMode="contain" />
-          <Text style={styles.sportBadgeText}>{sportNames[sport as Sport]}</Text>
+          <Image source={sportIcons[sport as Sport]} style={styles.sportIcon} resizeMode="contain" />
         </View>
+
+        {/* Title */}
         <Text style={styles.title}>Trivia Duel</Text>
 
-        <View style={styles.waitingContainer}>
+        {/* Large Spinner */}
+        <View style={styles.spinnerContainer}>
           <ActivityIndicator size="large" color={sportColor} />
-          <Text style={styles.waitingText}>Waiting for opponent...</Text>
-          <Text style={styles.waitingSubtext}>
-            You'll be matched with the next player who joins
-          </Text>
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>How it works</Text>
-          <Text style={styles.infoText}>
-            • Both players answer the same trivia question{'\n'}
-            • You have 10 seconds to answer{'\n'}
-            • Correct answer + fastest time wins{'\n'}
-            • Winner earns 75 XP, loser earns 25 XP
-          </Text>
-        </View>
+        {/* Waiting Text */}
+        <Text style={styles.waitingText}>Waiting for opponent...</Text>
+        <Text style={styles.waitingSubtext}>
+          You'll be matched with the next player who joins
+        </Text>
 
+        {/* Brief Rules */}
+        <Text style={styles.rulesText}>
+          Answer the same trivia question{'\n'}
+          Correct answer + fastest time wins
+        </Text>
+
+        {/* Cancel Button */}
         <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
@@ -133,43 +104,15 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 24,
+    paddingTop: 48,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 3,
-    borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  sportIcon: {
-    width: 48,
-    height: 48,
-    tintColor: '#FFFFFF',
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: 'DMSans_900Black',
-    color: '#1A1A1A',
-    marginTop: 12,
-    marginBottom: 32,
   },
   sportBadge: {
-    flexDirection: 'row',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
@@ -177,58 +120,42 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
+    marginBottom: 16,
   },
-  sportBadgeIcon: {
-    width: 20,
-    height: 20,
+  sportIcon: {
+    width: 32,
+    height: 32,
   },
-  sportBadgeText: {
-    fontSize: 14,
-    fontFamily: 'DMSans_900Black',
-    color: '#FFFFFF',
-  },
-  waitingContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  waitingText: {
-    fontSize: 20,
+  title: {
+    fontSize: 28,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
-    marginTop: 24,
+    marginBottom: 40,
+  },
+  spinnerContainer: {
+    marginBottom: 24,
+    transform: [{ scale: 2 }],
+  },
+  waitingText: {
+    fontSize: 22,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    marginBottom: 8,
   },
   waitingSubtext: {
     fontSize: 14,
     fontFamily: 'DMSans_400Regular',
     color: '#888888',
-    marginTop: 8,
     textAlign: 'center',
+    marginBottom: 24,
   },
-  infoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 20,
-    width: '100%',
-    marginBottom: 32,
-    borderWidth: 2,
-    borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontFamily: 'DMSans_900Black',
-    color: '#1A1A1A',
-    marginBottom: 12,
-  },
-  infoText: {
-    fontSize: 14,
+  rulesText: {
+    fontSize: 13,
     fontFamily: 'DMSans_400Regular',
-    color: '#1A1A1A',
-    lineHeight: 22,
+    color: '#888888',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 40,
   },
   cancelButton: {
     backgroundColor: '#F2C94C',

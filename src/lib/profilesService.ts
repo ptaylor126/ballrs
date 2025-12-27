@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 export interface Profile {
   id: string;
   username: string;
+  country?: string | null;
   created_at: string;
 }
 
@@ -80,8 +81,8 @@ export function validateUsername(username: string): { valid: boolean; error?: st
     return { valid: false, error: 'Username must be at least 3 characters' };
   }
 
-  if (username.length > 20) {
-    return { valid: false, error: 'Username must be 20 characters or less' };
+  if (username.length > 10) {
+    return { valid: false, error: 'Username must be 10 characters or less' };
   }
 
   if (!/^[a-zA-Z0-9]+$/.test(username)) {
@@ -89,4 +90,34 @@ export function validateUsername(username: string): { valid: boolean; error?: st
   }
 
   return { valid: true };
+}
+
+// Update country
+export async function updateCountry(userId: string, country: string | null): Promise<boolean> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ country })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Error updating country:', error);
+    return false;
+  }
+
+  return true;
+}
+
+// Update last_active timestamp (for online status tracking)
+export async function updateLastActive(userId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ last_active: new Date().toISOString() })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Error updating last_active:', error);
+    return false;
+  }
+
+  return true;
 }

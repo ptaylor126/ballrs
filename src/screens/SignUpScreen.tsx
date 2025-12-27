@@ -103,6 +103,7 @@ export default function SignUpScreen({ onBack, onSignUpSuccess, onGoToLogin }: P
                 autoCorrect={false}
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
+                selectionColor="#1ABC9C"
               />
 
               <Text style={styles.label}>PASSWORD</Text>
@@ -115,6 +116,7 @@ export default function SignUpScreen({ onBack, onSignUpSuccess, onGoToLogin }: P
                 secureTextEntry
                 onFocus={() => setPasswordFocused(true)}
                 onBlur={() => setPasswordFocused(false)}
+                selectionColor="#1ABC9C"
               />
 
               <Text style={styles.label}>CONFIRM PASSWORD</Text>
@@ -127,6 +129,7 @@ export default function SignUpScreen({ onBack, onSignUpSuccess, onGoToLogin }: P
                 secureTextEntry
                 onFocus={() => setConfirmPasswordFocused(true)}
                 onBlur={() => setConfirmPasswordFocused(false)}
+                selectionColor="#1ABC9C"
               />
 
               <AnimatedButton

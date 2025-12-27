@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { registerForPushNotifications, savePushToken } from '../lib/notificationService';
@@ -7,8 +7,14 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  isAnonymous: boolean;
+  hasLinkedEmail: boolean;
+  username: string | null;
+  profileLoading: boolean;
+  refreshProfile: () => Promise<void>;
+  signInAnonymously: () => Promise<{ error: Error | null }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
+  linkEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -18,6 +24,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  // Fetch username from profiles table
+  const fetchUsername = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching username:', error);
+        return null;
+      }
+
+      return data?.username || null;
+    } catch (error) {
+      console.error('Error fetching username:', error);
+      return null;
+    }
+  }, []);
+
+  // Refresh profile data (can be called after username change)
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    setProfileLoading(true);
+    const fetchedUsername = await fetchUsername(user.id);
+    setUsername(fetchedUsername);
+    setProfileLoading(false);
+  }, [user, fetchUsername]);
 
   // Register for push notifications when user logs in
   const setupPushNotifications = async (userId: string) => {
@@ -34,44 +72,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Register push notifications for existing session
+      // Fetch username and register push notifications for existing session
       if (session?.user) {
+        const fetchedUsername = await fetchUsername(session.user.id);
+        setUsername(fetchedUsername);
+        setProfileLoading(false);
         setupPushNotifications(session.user.id);
+      } else {
+        setProfileLoading(false);
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Register push notifications on sign in
+        // Fetch username and register push notifications on sign in
         if (event === 'SIGNED_IN' && session?.user) {
+          setProfileLoading(true);
+          const fetchedUsername = await fetchUsername(session.user.id);
+          setUsername(fetchedUsername);
+          setProfileLoading(false);
           setupPushNotifications(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setUsername(null);
+          setProfileLoading(false);
         }
       }
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchUsername]);
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signInAnonymously = async () => {
+    const { error } = await supabase.auth.signInAnonymously();
+    return { error: error as Error | null };
+  };
+
+  // Sign in with email and password (for account recovery)
+  const signInWithEmail = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     return { error: error as Error | null };
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+  // Link email to anonymous account for recovery
+  const linkEmail = async (email: string, password: string) => {
+    const { error } = await supabase.auth.updateUser({
       email,
       password,
     });
@@ -82,12 +139,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  // Check if user is anonymous (no email linked)
+  const isAnonymous = user?.is_anonymous ?? false;
+
+  // Check if user has linked an email (for prompts and settings display)
+  const hasLinkedEmail = !!user?.email;
+
   const value = {
     user,
     session,
     loading,
-    signUp,
-    signIn,
+    isAnonymous,
+    hasLinkedEmail,
+    username,
+    profileLoading,
+    refreshProfile,
+    signInAnonymously,
+    signInWithEmail,
+    linkEmail,
     signOut,
   };
 

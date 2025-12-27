@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors, shadows, spacing, borderRadius, borders, typography } from '../lib/theme';
 
 const { width } = Dimensions.get('window');
@@ -27,6 +28,25 @@ const sportIcons = {
 
 // Fire icon for streak
 const fireIcon = require('../../assets/images/icon-fire.png');
+
+// Medal icons for leaderboard
+const medalIcons = {
+  gold: require('../../assets/images/icon-gold.png'),
+  silver: require('../../assets/images/icon-silver.png'),
+  bronze: require('../../assets/images/icon-bronze.png'),
+};
+
+// Helper function to get level title
+function getLevelTitle(level: number): string {
+  if (level >= 100) return 'Hall of Famer';
+  if (level >= 50) return 'Legend';
+  if (level >= 40) return 'Master';
+  if (level >= 30) return 'Expert';
+  if (level >= 20) return 'Veteran';
+  if (level >= 10) return 'Pro';
+  if (level >= 5) return 'Rising Star';
+  return 'Rookie';
+}
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -107,6 +127,85 @@ function FloatingBall({
   return (
     <Animated.View style={[style, { transform: [{ translateY }] }]}>
       {children}
+    </Animated.View>
+  );
+}
+
+// Ball with expanding background (for screen 1 - slide up + fade in + bounce)
+function BallWithExpandingBackground({
+  delay,
+  icon,
+  backgroundColor,
+  isActive = true,
+}: {
+  delay: number;
+  icon: any;
+  backgroundColor: string;
+  isActive?: boolean;
+}) {
+  const bgScale = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(30)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!isActive) {
+      // Reset animations when not active
+      bgScale.setValue(0);
+      translateY.setValue(30);
+      opacity.setValue(0);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      Animated.parallel([
+        // Fade in
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        // Slide up with bounce
+        Animated.spring(translateY, {
+          toValue: 0,
+          friction: 6,
+          tension: 80,
+          useNativeDriver: true,
+        }),
+        // Background scale
+        Animated.timing(bgScale, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.out(Easing.back(1.2)),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [delay, isActive]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.ballWrapper,
+        {
+          opacity,
+          transform: [{ translateY }],
+        },
+      ]}
+    >
+      {/* Colored background that scales up */}
+      <Animated.View
+        style={[
+          styles.ballBackground,
+          {
+            backgroundColor,
+            transform: [{ scale: bgScale }],
+          },
+        ]}
+      />
+      {/* Icon */}
+      <Image source={icon} style={styles.ballIcon} />
     </Animated.View>
   );
 }
@@ -285,296 +384,749 @@ function AnimatedButton({
   );
 }
 
-// Screen 1: Welcome
+// Screen 1: Welcome - seamless transition from splash
 function WelcomeScreen() {
+  const textOpacity = useRef(new Animated.Value(0)).current;
+  const textTranslateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    // Fade in text after backgrounds have animated in
+    const timeout = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(textOpacity, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(textTranslateY, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 500); // After backgrounds animate in
+
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
-    <View style={styles.screen}>
-      <FadeIn delay={0} style={styles.logoContainer}>
+    <View style={styles.screen1}>
+      {/* BALLRS logo - positioned to match splash screen exactly */}
+      <View style={styles.screen1LogoContainer}>
         <Text style={styles.logo}>BALLRS</Text>
-      </FadeIn>
-
-      <View style={styles.ballsContainer}>
-        <FloatingBall delay={0} style={[styles.ball, styles.ballNBA]}>
-          <Image source={sportIcons.nba} style={styles.ballIcon} />
-        </FloatingBall>
-        <FloatingBall delay={300} style={[styles.ball, styles.ballPL]}>
-          <Image source={sportIcons.pl} style={styles.ballIcon} />
-        </FloatingBall>
-        <FloatingBall delay={600} style={[styles.ball, styles.ballNFL]}>
-          <Image source={sportIcons.nfl} style={styles.ballIcon} />
-        </FloatingBall>
-        <FloatingBall delay={900} style={[styles.ball, styles.ballMLB]}>
-          <Image source={sportIcons.mlb} style={styles.ballIcon} />
-        </FloatingBall>
       </View>
 
-      <FadeIn delay={300} style={styles.textContainer}>
-        <Text style={styles.title}>Who's the player?</Text>
-        <Text style={styles.subtitle}>New mystery athlete every day</Text>
-      </FadeIn>
+      {/* Sport balls - icons visible, colored backgrounds scale up */}
+      <View style={styles.screen1BallsContainer}>
+        <BallWithExpandingBackground
+          delay={0}
+          icon={sportIcons.nba}
+          backgroundColor={colors.nba}
+        />
+        <BallWithExpandingBackground
+          delay={80}
+          icon={sportIcons.pl}
+          backgroundColor={colors.pl}
+        />
+        <BallWithExpandingBackground
+          delay={160}
+          icon={sportIcons.nfl}
+          backgroundColor={colors.nfl}
+        />
+        <BallWithExpandingBackground
+          delay={240}
+          icon={sportIcons.mlb}
+          backgroundColor={colors.mlb}
+        />
+      </View>
+
+      {/* Title and subtitle */}
+      <Animated.View
+        style={[
+          styles.screen1TextContainer,
+          {
+            opacity: textOpacity,
+            transform: [{ translateY: textTranslateY }],
+          },
+        ]}
+      >
+        <Text style={styles.title}>Guess the mystery athlete</Text>
+        <Text style={styles.subtitle}>New clues revealed until you solve it</Text>
+      </Animated.View>
     </View>
   );
 }
 
-// Screen 2: Daily Challenge (HERO SCREEN)
-function DailyChallengeScreen() {
-  const clueRevealAnim = useRef(new Animated.Value(0)).current;
+// Screen 2: Daily Puzzle
+function DailyChallengeScreen({ isActive }: { isActive?: boolean }) {
+  const cardTranslateY = useRef(new Animated.Value(50)).current;
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const badgeOpacity = useRef(new Animated.Value(0)).current;
+  const infoCardsOpacity = useRef(new Animated.Value(0)).current;
+  const infoCardsTranslateY = useRef(new Animated.Value(15)).current;
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
-    // Animate clues revealing one by one
-    Animated.timing(clueRevealAnim, {
-      toValue: 1,
-      duration: 2000,
-      easing: Easing.linear,
-      useNativeDriver: false,
-    }).start();
-  }, []);
+    // Only animate when screen becomes active and hasn't animated yet
+    if (!isActive || hasAnimated.current) return;
+    hasAnimated.current = true;
+
+    // Reset all values
+    cardTranslateY.setValue(50);
+    cardOpacity.setValue(0);
+    badgeOpacity.setValue(0);
+    infoCardsOpacity.setValue(0);
+    infoCardsTranslateY.setValue(15);
+
+    // 100ms delay → clue card animates (300ms, ease-out)
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardTranslateY, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // 200ms delay after card settles → badge fades in
+        setTimeout(() => {
+          Animated.timing(badgeOpacity, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+
+          // 100ms delay after badge visible → info cards fade in (250ms)
+          setTimeout(() => {
+            Animated.parallel([
+              Animated.timing(infoCardsOpacity, {
+                toValue: 1,
+                duration: 250,
+                useNativeDriver: true,
+              }),
+              Animated.timing(infoCardsTranslateY, {
+                toValue: 0,
+                duration: 250,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, 100);
+        }, 200);
+      });
+    }, 100);
+  }, [isActive]);
 
   return (
     <View style={styles.screen}>
+      {/* Header */}
       <FadeIn delay={0}>
-        <Text style={styles.heroTitle}>GUESS THE PLAYER</Text>
-        <Text style={styles.heroSubtitle}>A new mystery athlete every day</Text>
+        <Text style={styles.heroTitle}>DAILY PUZZLE</Text>
+        <Text style={styles.heroSubtitle}>Fewer clues, higher score</Text>
       </FadeIn>
 
-      <FadeIn delay={100} style={styles.heroCardContainer}>
-        <View style={styles.heroCard}>
-          <PulsingElement>
-            <View style={styles.heroSilhouette}>
-              <Text style={styles.heroQuestionMark}>?</Text>
-            </View>
-          </PulsingElement>
+      {/* Clue Card Mockup - slides up from bottom */}
+      <Animated.View
+        style={[
+          styles.clueCardContainer,
+          {
+            opacity: cardOpacity,
+            transform: [{ translateY: cardTranslateY }],
+          },
+        ]}
+      >
+        <View style={styles.clueCardTeal}>
+          <View style={styles.clueNumberCircle}>
+            <Text style={styles.clueNumberCircleText}>1</Text>
+          </View>
+          <Text style={styles.clueCardTextWhite}>
+            Born in the Bronx and became a star at Penn State
+          </Text>
+          <Animated.View style={[styles.cluePointsBadge, { opacity: badgeOpacity }]}>
+            <Text style={styles.cluePointsText}>6 pts</Text>
+          </Animated.View>
+        </View>
+      </Animated.View>
 
-          <View style={styles.clueProgressContainer}>
-            {[1, 2, 3, 4, 5, 6].map((num) => (
-              <BouncingIcon key={num} delay={200 + num * 100}>
-                <View style={[
-                  styles.clueBox,
-                  num <= 2 && styles.clueBoxRevealed
-                ]}>
-                  <Text style={[
-                    styles.clueBoxText,
-                    num <= 2 && styles.clueBoxTextRevealed
-                  ]}>{num}</Text>
-                </View>
-              </BouncingIcon>
-            ))}
+      {/* Key Points - fade in after clue card */}
+      <Animated.View
+        style={[
+          styles.keyPointsRow,
+          {
+            opacity: infoCardsOpacity,
+            transform: [{ translateY: infoCardsTranslateY }],
+          },
+        ]}
+      >
+        <View style={styles.keyPointCard}>
+          <Text style={styles.keyPointNumber}>6</Text>
+          <Text style={styles.keyPointLabel}>clues to guess</Text>
+        </View>
+        <View style={styles.keyPointCard}>
+          <Text style={styles.keyPointNumber}>4</Text>
+          <Text style={styles.keyPointLabel}>sports daily</Text>
+        </View>
+      </Animated.View>
+    </View>
+  );
+}
+
+// Screen 3: Level Up
+function LevelUpScreen({ isActive }: { isActive?: boolean }) {
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const [displayXP, setDisplayXP] = useState(0);
+  const rankOpacity = useRef(new Animated.Value(0)).current;
+  const rankTranslateY = useRef(new Animated.Value(20)).current;
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    // Only animate when screen becomes active and hasn't animated yet
+    if (!isActive || hasAnimated.current) return;
+    hasAnimated.current = true;
+
+    // Reset values
+    progressAnim.setValue(0);
+    setDisplayXP(0);
+    rankOpacity.setValue(0);
+    rankTranslateY.setValue(20);
+
+    // Start XP bar animation after short delay
+    const timeout = setTimeout(() => {
+      // Listen to animation progress to update XP text
+      const listenerId = progressAnim.addListener(({ value }) => {
+        setDisplayXP(Math.round(value * 1000));
+      });
+
+      Animated.timing(progressAnim, {
+        toValue: 0.65,
+        duration: 1000,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }).start(() => {
+        // Rank progression fades in after XP animation completes
+        Animated.parallel([
+          Animated.timing(rankOpacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(rankTranslateY, {
+            toValue: 0,
+            friction: 8,
+            tension: 80,
+            useNativeDriver: true,
+          }),
+        ]).start();
+
+        progressAnim.removeListener(listenerId);
+      });
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [isActive]);
+
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
+  const ranks = ['Rookie', 'Rising Star', 'Pro', 'Legend'];
+
+  return (
+    <View style={styles.screen}>
+      {/* Header */}
+      <FadeIn delay={0}>
+        <Text style={styles.heroTitle}>LEVEL UP</Text>
+        <Text style={styles.heroSubtitle}>Earn XP and climb the ranks</Text>
+      </FadeIn>
+
+      {/* Level Badge - Exact same component as home page */}
+      <FadeIn delay={200} style={styles.levelBadgeContainer}>
+        <View style={styles.combinedLevelBadge}>
+          <View style={styles.levelSection_left}>
+            <Text style={styles.levelBadgeText}>LEVEL 12</Text>
+          </View>
+          <View style={styles.levelDivider} />
+          <View style={styles.levelSection_middle}>
+            <Text style={styles.levelTitleText}>{getLevelTitle(12)}</Text>
+          </View>
+          <View style={styles.levelDivider} />
+          <View style={styles.levelSection_right}>
+            <Image source={fireIcon} style={styles.levelFireIcon} resizeMode="contain" />
+            <Text style={styles.levelStreakText}>7</Text>
           </View>
         </View>
-      </FadeIn>
 
-      <FadeIn delay={400} style={styles.bulletPointsContainer}>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bulletIcon}>🎯</Text>
-          <Text style={styles.bulletText}>6 clues to guess the athlete</Text>
-        </View>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bulletIcon}>⚡</Text>
-          <Text style={styles.bulletText}>Fewer clues = more points</Text>
-        </View>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bulletIcon}>🌙</Text>
-          <Text style={styles.bulletText}>New puzzle at midnight</Text>
+        {/* XP Bar - animated with counting text */}
+        <Text style={styles.xpLabel}>{displayXP}/1000 XP</Text>
+        <View style={styles.xpBarOuter}>
+          <Animated.View style={[styles.xpBarFillContainer, { width: progressWidth }]}>
+            <LinearGradient
+              colors={[colors.xpGradientStart, colors.xpGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.xpBarFill}
+            />
+          </Animated.View>
         </View>
       </FadeIn>
 
-      <FadeIn delay={600}>
-        <View style={styles.sportIconsRow}>
-          <BouncingIcon delay={700}>
-            <View style={[styles.sportIcon, { backgroundColor: colors.nba }]}>
-              <Image source={sportIcons.nba} style={styles.sportIconImage} />
-            </View>
-          </BouncingIcon>
-          <BouncingIcon delay={800}>
-            <View style={[styles.sportIcon, { backgroundColor: colors.pl }]}>
-              <Image source={sportIcons.pl} style={styles.sportIconImage} />
-            </View>
-          </BouncingIcon>
-          <BouncingIcon delay={900}>
-            <View style={[styles.sportIcon, { backgroundColor: colors.nfl }]}>
-              <Image source={sportIcons.nfl} style={styles.sportIconImage} />
-            </View>
-          </BouncingIcon>
-          <BouncingIcon delay={1000}>
-            <View style={[styles.sportIcon, { backgroundColor: colors.mlb }]}>
-              <Image source={sportIcons.mlb} style={styles.sportIconImage} />
-            </View>
-          </BouncingIcon>
-        </View>
-        <Text style={styles.sportLabel}>4 sports. 4 daily puzzles.</Text>
-      </FadeIn>
-    </View>
-  );
-}
-
-// Screen 3: Build Your Streak
-function StreakScreen() {
-  const streakCount = useRef(new Animated.Value(0)).current;
-  const [displayCount, setDisplayCount] = useState(0);
-
-  useEffect(() => {
-    const listener = streakCount.addListener(({ value }) => {
-      setDisplayCount(Math.round(value));
-    });
-
-    Animated.timing(streakCount, {
-      toValue: 12,
-      duration: 1500,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: false,
-    }).start();
-
-    return () => streakCount.removeListener(listener);
-  }, []);
-
-  return (
-    <View style={styles.screen}>
-      <FadeIn delay={0}>
-        <Text style={styles.screenTitle}>Build Your Streak</Text>
-        <Text style={styles.screenSubtitle}>Play every day. Don't break the chain!</Text>
-      </FadeIn>
-
-      <FadeIn delay={200} style={styles.streakContainer}>
-        <View style={styles.streakCard}>
-          <FloatingBall delay={0}>
-            <Image source={fireIcon} style={styles.streakFireIcon} />
-          </FloatingBall>
-          <Text style={styles.streakNumber}>{displayCount}</Text>
-          <Text style={styles.streakLabel}>DAY STREAK</Text>
-        </View>
-      </FadeIn>
-
-      <FadeIn delay={400} style={styles.streakDaysContainer}>
-        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => (
-          <BouncingIcon key={index} delay={500 + index * 80}>
-            <View style={[
-              styles.streakDay,
-              index < 5 && styles.streakDayComplete
+      {/* Rank Progression - fades in after XP animation */}
+      <Animated.View
+        style={[
+          styles.rankProgressionContainer,
+          {
+            opacity: rankOpacity,
+            transform: [{ translateY: rankTranslateY }],
+          },
+        ]}
+      >
+        {ranks.map((rank, index) => (
+          <View key={rank} style={styles.rankItem}>
+            <Text style={[
+              styles.rankText,
+              rank === 'Pro' && styles.rankTextHighlighted
             ]}>
-              <Text style={[
-                styles.streakDayText,
-                index < 5 && styles.streakDayTextComplete
-              ]}>{day}</Text>
-              {index < 5 && <Text style={styles.streakDayCheck}>✓</Text>}
-            </View>
-          </BouncingIcon>
+              {rank}
+            </Text>
+            {index < ranks.length - 1 && (
+              <Text style={styles.rankArrow}>→</Text>
+            )}
+          </View>
         ))}
-      </FadeIn>
+      </Animated.View>
 
-      <FadeIn delay={800} style={styles.textContainer}>
-        <View style={styles.streakInfoCard}>
-          <Text style={styles.streakInfoText}>
-            Everyone plays the same puzzle each day
-          </Text>
-          <Text style={styles.streakInfoSubtext}>
-            Compare scores with friends!
-          </Text>
-        </View>
+      {/* Simple text lines */}
+      <FadeIn delay={600} style={styles.levelUpTextContainer}>
+        <Text style={styles.levelUpTextBold}>Play puzzles and duels</Text>
+        <Text style={styles.levelUpTextGray}>Level up and unlock rewards</Text>
       </FadeIn>
     </View>
   );
 }
 
-// Screen 4: Challenge Friends
-function ChallengeFriendsScreen() {
-  return (
-    <View style={styles.screen}>
-      <FadeIn delay={0}>
-        <Text style={styles.screenTitle}>Challenge Friends</Text>
-      </FadeIn>
-
-      <FadeIn delay={100} style={styles.vsContainer}>
-        <View style={styles.playerCard}>
-          <Text style={styles.playerEmoji}>👤</Text>
-          <Text style={styles.playerLabel}>YOU</Text>
-        </View>
-        <PulsingElement style={styles.vsCircle}>
-          <Text style={styles.vsText}>VS</Text>
-        </PulsingElement>
-        <View style={styles.playerCard}>
-          <Text style={styles.playerEmoji}>👤</Text>
-          <Text style={styles.playerLabel}>FRIEND</Text>
-        </View>
-      </FadeIn>
-
-      <FadeIn delay={200} style={styles.bulletPointsContainer}>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bulletIcon}>⚔️</Text>
-          <Text style={styles.bulletText}>Head-to-head trivia duels</Text>
-        </View>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bulletIcon}>🏆</Text>
-          <Text style={styles.bulletText}>Create or join leagues</Text>
-        </View>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bulletIcon}>📊</Text>
-          <Text style={styles.bulletText}>Climb the leaderboards</Text>
-        </View>
-      </FadeIn>
-
-      <View style={styles.statsRow}>
-        <BouncingIcon delay={400}>
-          <View style={styles.statBadge}>
-            <Text style={styles.statBadgeEmoji}>⭐</Text>
-            <Text style={styles.statBadgeText}>Earn XP</Text>
-          </View>
-        </BouncingIcon>
-        <BouncingIcon delay={500}>
-          <View style={styles.statBadge}>
-            <Text style={styles.statBadgeEmoji}>📈</Text>
-            <Text style={styles.statBadgeText}>Level Up</Text>
-          </View>
-        </BouncingIcon>
-        <BouncingIcon delay={600}>
-          <View style={styles.statBadge}>
-            <Text style={styles.statBadgeEmoji}>🎖️</Text>
-            <Text style={styles.statBadgeText}>Achievements</Text>
-          </View>
-        </BouncingIcon>
-      </View>
-    </View>
-  );
-}
-
-// Screen 5: Get Started
-function GetStartedScreen() {
-  const checkScale = useRef(new Animated.Value(0)).current;
+// Animated Leaderboard Row Component
+function AnimatedLeaderboardRow({
+  player,
+  index,
+  isFirst,
+  isLast,
+  delay,
+}: {
+  player: { rank: number; medal: string; name: string; flag: string; points: number; isYou: boolean };
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
+  delay: number;
+}) {
+  const translateX = useRef(new Animated.Value(-100)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  const glowOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.spring(checkScale, {
-      toValue: 1,
-      friction: 4,
-      tension: 100,
-      useNativeDriver: true,
-    }).start();
+    const timeout = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateX, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // If this is the "You" row, start the glow pulse
+        if (player.isYou) {
+          Animated.loop(
+            Animated.sequence([
+              Animated.timing(glowOpacity, {
+                toValue: 0.4,
+                duration: 800,
+                easing: Easing.inOut(Easing.ease),
+                useNativeDriver: true,
+              }),
+              Animated.timing(glowOpacity, {
+                toValue: 0,
+                duration: 800,
+                easing: Easing.inOut(Easing.ease),
+                useNativeDriver: true,
+              }),
+            ])
+          ).start();
+        }
+      });
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [delay, player.isYou]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.leaderboardMockupRow,
+        isFirst && styles.leaderboardMockupRowFirst,
+        isLast && styles.leaderboardMockupRowLast,
+        {
+          opacity,
+          transform: [{ translateX }],
+        },
+      ]}
+    >
+      {/* Teal glow overlay for "You" row */}
+      {player.isYou && (
+        <Animated.View
+          style={[
+            styles.leaderboardRowGlow,
+            { opacity: glowOpacity },
+          ]}
+        />
+      )}
+      <Image
+        source={medalIcons[player.medal as keyof typeof medalIcons]}
+        style={styles.leaderboardMedalIcon}
+      />
+      <View style={styles.leaderboardAvatar}>
+        <Text style={styles.leaderboardAvatarText}>
+          {player.name.charAt(0).toUpperCase()}
+        </Text>
+      </View>
+      <Text style={[
+        styles.leaderboardName,
+        player.isYou && styles.leaderboardNameHighlighted
+      ]}>
+        {player.name}
+      </Text>
+      <Text style={styles.leaderboardFlag}>{player.flag}</Text>
+      <Text style={styles.leaderboardPoints}>{player.points} pts</Text>
+    </Animated.View>
+  );
+}
+
+// Screen 4: Compete
+function CompeteScreen() {
+  const leaderboardData = [
+    { rank: 1, medal: 'gold', name: 'player1', flag: '🇺🇸', points: 245, isYou: false },
+    { rank: 2, medal: 'silver', name: 'player2', flag: '🇬🇧', points: 198, isYou: false },
+    { rank: 3, medal: 'bronze', name: 'You', flag: '🇦🇺', points: 186, isYou: true },
+  ];
+
+  const infoOpacity = useRef(new Animated.Value(0)).current;
+  const infoTranslateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    // Info rows fade in after leaderboard (3 rows * 150ms delay + 300ms animation + 200ms buffer)
+    const timeout = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(infoOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(infoTranslateY, {
+          toValue: 0,
+          friction: 8,
+          tension: 80,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 850);
+
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
     <View style={styles.screen}>
+      {/* Header */}
       <FadeIn delay={0}>
-        <Text style={styles.screenTitle}>Ready to Play?</Text>
+        <Text style={styles.heroTitle}>COMPETE</Text>
+        <Text style={styles.heroSubtitle}>Prove who knows ball</Text>
       </FadeIn>
 
-      <View style={styles.celebrationContainer}>
-        <Animated.View style={[styles.checkmarkCircle, { transform: [{ scale: checkScale }] }]}>
-          <Text style={styles.checkmarkEmoji}>✓</Text>
-        </Animated.View>
-
-        <FloatingBall delay={200} style={styles.confetti1}>
-          <Text style={styles.confettiEmoji}>🎉</Text>
-        </FloatingBall>
-        <FloatingBall delay={400} style={styles.confetti2}>
-          <Text style={styles.confettiEmoji}>🎊</Text>
-        </FloatingBall>
-        <FloatingBall delay={600} style={styles.confetti3}>
-          <Text style={styles.confettiEmoji}>⭐</Text>
-        </FloatingBall>
+      {/* Leaderboard Mockup - rows slide in staggered */}
+      <View style={styles.leaderboardMockup}>
+        {leaderboardData.map((player, index) => (
+          <AnimatedLeaderboardRow
+            key={player.rank}
+            player={player}
+            index={index}
+            isFirst={index === 0}
+            isLast={index === leaderboardData.length - 1}
+            delay={200 + index * 150}
+          />
+        ))}
       </View>
 
-      <FadeIn delay={200} style={styles.textContainer}>
-        <Text style={styles.getStartedText}>Today's puzzle is waiting</Text>
-        <Text style={styles.finalSubtitle}>Join thousands of sports fans playing daily</Text>
+      {/* Icon + Text Rows - fade in after leaderboard */}
+      <Animated.View
+        style={[
+          styles.competeInfoRows,
+          {
+            opacity: infoOpacity,
+            transform: [{ translateY: infoTranslateY }],
+          },
+        ]}>
+        <View style={styles.competeInfoRow}>
+          <Image
+            source={require('../../assets/images/icon-trophy.png')}
+            style={styles.competeInfoIcon}
+          />
+          <Text style={styles.competeInfoText}>Weekly leaderboards</Text>
+        </View>
+        <View style={styles.competeInfoRow}>
+          <Image
+            source={require('../../assets/images/icon-friends.png')}
+            style={styles.competeInfoIcon}
+          />
+          <Text style={styles.competeInfoText}>Private leagues</Text>
+        </View>
+      </Animated.View>
+
+      {/* Bottom Text */}
+      <Animated.View
+        style={[
+          styles.competeBottomTextContainer,
+          {
+            opacity: infoOpacity,
+            transform: [{ translateY: infoTranslateY }],
+          },
+        ]}
+      >
+        <Text style={styles.competeBottomText}>
+          Compete with friends and fans worldwide
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+// Screen 5: Duel
+function DuelScreen({ isActive }: { isActive?: boolean }) {
+  // Avatar animations - slide in from sides
+  const leftAvatarX = useRef(new Animated.Value(-80)).current;
+  const rightAvatarX = useRef(new Animated.Value(80)).current;
+  const avatarOpacity = useRef(new Animated.Value(0)).current;
+
+  // VS badge animation - scale up with bounce
+  const vsScale = useRef(new Animated.Value(0)).current;
+  const vsOpacity = useRef(new Animated.Value(0)).current;
+
+  // Trivia question card animation
+  const triviaOpacity = useRef(new Animated.Value(0)).current;
+  const triviaTranslateY = useRef(new Animated.Value(20)).current;
+
+  // Bottom text animation
+  const bottomOpacity = useRef(new Animated.Value(0)).current;
+
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    // Only animate when screen becomes active and hasn't animated yet
+    if (!isActive || hasAnimated.current) return;
+    hasAnimated.current = true;
+
+    // Reset all values
+    leftAvatarX.setValue(-80);
+    rightAvatarX.setValue(80);
+    avatarOpacity.setValue(0);
+    vsScale.setValue(0);
+    vsOpacity.setValue(0);
+    triviaOpacity.setValue(0);
+    triviaTranslateY.setValue(20);
+    bottomOpacity.setValue(0);
+
+    // Avatars slide in first (300ms, ease-out)
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(avatarOpacity, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(leftAvatarX, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(rightAvatarX, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 200);
+
+    // VS badge bounces in after avatars (scale 0 → 1.1 → 1.0)
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(vsOpacity, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.sequence([
+          Animated.timing(vsScale, {
+            toValue: 1.1,
+            duration: 200,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(vsScale, {
+            toValue: 1,
+            duration: 100,
+            easing: Easing.inOut(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+    }, 500);
+
+    // Trivia question card fades in + slides up (200ms delay after VS)
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(triviaOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(triviaTranslateY, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 800);
+
+    // Bottom text fades in last
+    setTimeout(() => {
+      Animated.timing(bottomOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }, 1000);
+  }, [isActive]);
+
+  return (
+    <View style={styles.screen}>
+      {/* Header */}
+      <FadeIn delay={0}>
+        <Text style={styles.heroTitle}>DUEL</Text>
+        <Text style={styles.heroSubtitle}>Challenge friends or other fans</Text>
       </FadeIn>
+
+      {/* VS Mockup Card */}
+      <View style={styles.vsMockupCard}>
+        <View style={styles.vsMockupContent}>
+          {/* You - slides in from left */}
+          <Animated.View
+            style={[
+              styles.vsPlayerContainer,
+              {
+                opacity: avatarOpacity,
+                transform: [{ translateX: leftAvatarX }],
+              },
+            ]}
+          >
+            <View style={[styles.vsAvatar, styles.vsAvatarYou]}>
+              <Text style={styles.vsAvatarText}>Y</Text>
+            </View>
+            <Text style={styles.vsPlayerLabel}>YOU</Text>
+          </Animated.View>
+
+          {/* VS Badge - yellow, scales up with bounce */}
+          <Animated.View
+            style={[
+              styles.vsBadgeYellow,
+              {
+                opacity: vsOpacity,
+                transform: [{ scale: vsScale }],
+              },
+            ]}
+          >
+            <Text style={styles.vsBadgeTextYellow}>VS</Text>
+          </Animated.View>
+
+          {/* Opponent - slides in from right */}
+          <Animated.View
+            style={[
+              styles.vsPlayerContainer,
+              {
+                opacity: avatarOpacity,
+                transform: [{ translateX: rightAvatarX }],
+              },
+            ]}
+          >
+            <View style={[styles.vsAvatar, styles.vsAvatarOpponent]}>
+              <Text style={styles.vsAvatarText}>?</Text>
+            </View>
+            <Text style={styles.vsPlayerLabel}>OPPONENT</Text>
+          </Animated.View>
+        </View>
+      </View>
+
+      {/* Trivia Question Mockup */}
+      <Animated.View
+        style={[
+          styles.triviaQuestionCard,
+          {
+            opacity: triviaOpacity,
+            transform: [{ translateY: triviaTranslateY }],
+          },
+        ]}
+      >
+        {/* Timer badge */}
+        <View style={styles.triviaTimerBadge}>
+          <Text style={styles.triviaTimerText}>10s</Text>
+        </View>
+
+        {/* Question */}
+        <Text style={styles.triviaQuestionText}>
+          Which club has won the most Premier League titles?
+        </Text>
+
+        {/* Answer options - 2x2 grid */}
+        <View style={styles.triviaAnswersGrid}>
+          <View style={[styles.triviaAnswer, styles.triviaAnswerCorrect]}>
+            <Text style={styles.triviaAnswerTextCorrect}>Manchester United</Text>
+          </View>
+          <View style={styles.triviaAnswer}>
+            <Text style={styles.triviaAnswerText}>Liverpool</Text>
+          </View>
+          <View style={styles.triviaAnswer}>
+            <Text style={styles.triviaAnswerText}>Chelsea</Text>
+          </View>
+          <View style={styles.triviaAnswer}>
+            <Text style={styles.triviaAnswerText}>Arsenal</Text>
+          </View>
+        </View>
+      </Animated.View>
+
+      {/* Bottom Text */}
+      <Animated.View
+        style={[
+          styles.competeBottomTextContainer,
+          { opacity: bottomOpacity },
+        ]}
+      >
+        <Text style={styles.competeBottomText}>
+          Play anytime. Results when both finish.
+        </Text>
+      </Animated.View>
     </View>
   );
 }
@@ -582,20 +1134,60 @@ function GetStartedScreen() {
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
-  const handleScroll = (event: any) => {
-    const offsetX = event.nativeEvent.contentOffset.x;
-    const page = Math.round(offsetX / width);
-    if (page >= 0 && page <= 4 && page !== currentPage) {
-      setCurrentPage(page);
+  // Interpolate back button opacity: 0 at page 0, fade in during scroll to page 1
+  const backButtonOpacity = scrollX.interpolate({
+    inputRange: [0, width * 0.5, width],
+    outputRange: [0, 0, 1],
+    extrapolate: 'clamp',
+  });
+
+  // Interpolate skip button opacity: 1 until page 3, fade out during scroll to page 4
+  const skipButtonOpacity = scrollX.interpolate({
+    inputRange: [width * 3, width * 3.5, width * 4],
+    outputRange: [1, 0.5, 0],
+    extrapolate: 'clamp',
+  });
+
+  // Interpolate button width: normal until page 3.5, then expand to full width
+  const buttonWidth = scrollX.interpolate({
+    inputRange: [width * 3, width * 4],
+    outputRange: [150, width - 48],
+    extrapolate: 'clamp',
+  });
+
+  // Interpolate button text opacity for crossfade
+  const nextTextOpacity = scrollX.interpolate({
+    inputRange: [width * 3.5, width * 4],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
+  const getStartedTextOpacity = scrollX.interpolate({
+    inputRange: [width * 3.5, width * 4],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    {
+      useNativeDriver: false,
+      listener: (event: any) => {
+        const offsetX = event.nativeEvent.contentOffset.x;
+        const page = Math.round(offsetX / width);
+        if (page >= 0 && page <= 4 && page !== currentPage) {
+          setCurrentPage(page);
+        }
+      },
     }
-  };
+  );
 
   const handleNext = () => {
     if (currentPage < 4) {
       const nextPage = currentPage + 1;
       scrollViewRef.current?.scrollTo({ x: nextPage * width, animated: true });
-      setCurrentPage(nextPage);
     } else {
       handleComplete();
     }
@@ -605,7 +1197,6 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     if (currentPage > 0) {
       const prevPage = currentPage - 1;
       scrollViewRef.current?.scrollTo({ x: prevPage * width, animated: true });
-      setCurrentPage(prevPage);
     }
   };
 
@@ -616,35 +1207,48 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Back Button */}
-      {currentPage > 0 && (
+      {/* Back Button - fades in based on scroll position */}
+      <Animated.View
+        style={[
+          styles.backButtonContainer,
+          { opacity: backButtonOpacity },
+        ]}
+        pointerEvents={currentPage > 0 ? 'auto' : 'none'}
+      >
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-      )}
+      </Animated.View>
 
-      {/* Skip Button */}
-      <TouchableOpacity style={styles.skipButton} onPress={handleComplete}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
+      {/* Skip Button - fades out based on scroll position */}
+      <Animated.View
+        style={[
+          styles.skipButtonContainer,
+          { opacity: skipButtonOpacity },
+        ]}
+        pointerEvents={currentPage < 4 ? 'auto' : 'none'}
+      >
+        <TouchableOpacity style={styles.skipButton} onPress={handleComplete}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Swipeable Screens */}
-      <ScrollView
-        ref={scrollViewRef}
+      <Animated.ScrollView
+        ref={scrollViewRef as any}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
-        onMomentumScrollEnd={handleScroll}
         scrollEventThrottle={16}
         bounces={false}
       >
         <WelcomeScreen />
-        <DailyChallengeScreen />
-        <StreakScreen />
-        <ChallengeFriendsScreen />
-        <GetStartedScreen />
-      </ScrollView>
+        <DailyChallengeScreen isActive={currentPage === 1} />
+        <LevelUpScreen isActive={currentPage === 2} />
+        <CompeteScreen />
+        <DuelScreen isActive={currentPage === 4} />
+      </Animated.ScrollView>
 
       {/* Bottom Section */}
       <View style={styles.bottomSection}>
@@ -655,15 +1259,21 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           ))}
         </View>
 
-        {/* Next/Get Started Button */}
+        {/* Next/Get Started Button with crossfade text */}
         <TouchableOpacity
-          style={[styles.button, currentPage === 4 && styles.getStartedButton]}
           onPress={handleNext}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>
-            {currentPage === 4 ? 'Get Started' : 'Next'}
-          </Text>
+          <Animated.View style={[styles.button, { width: buttonWidth }]}>
+            <View style={styles.buttonTextContainer}>
+              <Animated.Text style={[styles.buttonText, styles.buttonTextAbsolute, { opacity: nextTextOpacity }]} numberOfLines={1}>
+                Next
+              </Animated.Text>
+              <Animated.Text style={[styles.buttonText, styles.buttonTextAbsolute, { opacity: getStartedTextOpacity }]} numberOfLines={1}>
+                Get Started
+              </Animated.Text>
+            </View>
+          </Animated.View>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -675,11 +1285,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  backButton: {
+  backButtonContainer: {
     position: 'absolute',
     top: 56,
     left: 20,
     zIndex: 10,
+  },
+  backButton: {
     backgroundColor: '#F2C94C',
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -699,11 +1311,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  skipButton: {
+  skipButtonContainer: {
     position: 'absolute',
     top: 56,
     right: 20,
     zIndex: 10,
+  },
+  skipButton: {
     backgroundColor: '#F2C94C',
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -730,6 +1344,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
     paddingTop: 60,
+  },
+
+  // Screen 1: Welcome - special layout for seamless splash transition
+  screen1: {
+    width,
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  screen1LogoContainer: {
+    position: 'absolute',
+    top: 180,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  screen1BallsContainer: {
+    position: 'absolute',
+    top: 290,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  ballWrapper: {
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ballBackground: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    ...shadows.card,
+  },
+  screen1TextContainer: {
+    position: 'absolute',
+    top: 400,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
   },
 
   // Logo & Welcome
@@ -841,58 +1502,566 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
   },
-  heroCardContainer: {
-    marginVertical: spacing.md,
+
+  // Clue Card Mockup - Teal style matching actual game
+  clueCardContainer: {
+    marginVertical: spacing.lg,
+    width: width * 0.85,
   },
-  heroCard: {
-    backgroundColor: colors.surface,
-    borderWidth: borders.card,
+  clueCardTeal: {
+    backgroundColor: '#1ABC9C',
+    borderWidth: 2,
     borderColor: colors.border,
     borderRadius: borderRadius.card,
     padding: spacing.lg,
-    alignItems: 'center',
-    width: width * 0.8,
-    ...shadows.card,
+    paddingTop: 56,
+    paddingLeft: spacing.lg,
+    position: 'relative',
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
-  heroSilhouette: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.background,
+  clueNumberCircle: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
-    borderWidth: 3,
-    borderColor: colors.border,
   },
-  heroQuestionMark: {
-    fontSize: 50,
+  clueNumberCircleText: {
+    fontSize: 16,
     fontFamily: 'DMSans_900Black',
-    color: colors.accent,
+    color: '#1ABC9C',
   },
-  clueProgressContainer: {
+  clueCardTextWhite: {
+    fontSize: 18,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#FFFFFF',
+    lineHeight: 26,
+    marginBottom: spacing.md,
+  },
+  cluePointsBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  cluePointsText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+  },
+
+  // Key Points Row
+  keyPointsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    gap: 12,
+    marginVertical: spacing.lg,
+    width: width * 0.85,
   },
-  clueBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: colors.background,
+  keyPointCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
     borderWidth: 2,
     borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
     justifyContent: 'center',
+    height: 90,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  keyPointNumber: {
+    fontSize: 32,
+    fontFamily: 'DMSans_900Black',
+    color: '#1ABC9C',
+    marginBottom: 4,
+  },
+  keyPointLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_500Medium',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+
+  // Level Up Screen
+  levelBadgeContainer: {
+    marginVertical: spacing.lg,
+    width: width * 0.85,
     alignItems: 'center',
   },
-  clueBoxRevealed: {
-    backgroundColor: colors.accent,
+  // Combined level badge - exact match to home screen
+  combinedLevelBadge: {
+    alignSelf: 'flex-start',
+    marginBottom: -4,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
-  clueBoxText: {
+  levelSection_left: {
+    backgroundColor: '#F2C94C',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderTopLeftRadius: 6,
+    borderBottomLeftRadius: 6,
+  },
+  levelDivider: {
+    width: 2,
+    backgroundColor: '#000000',
+  },
+  levelSection_middle: {
+    backgroundColor: '#F5F2EB',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  levelSection_right: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F5F2EB',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderTopRightRadius: 6,
+    borderBottomRightRadius: 6,
+  },
+  levelFireIcon: {
+    width: 16,
+    height: 18,
+  },
+  levelStreakText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  levelBadgeText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  levelTitleText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  // XP Label - positioned above bar, right aligned (matches home screen)
+  xpLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    textAlign: 'right',
+    alignSelf: 'flex-end',
+    marginBottom: 6,
+  },
+  levelBadgeYellow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2C94C',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    marginBottom: spacing.md,
+  },
+  levelBadgeYellowText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: colors.text,
+    letterSpacing: 0.5,
+  },
+  levelBadgeYellowDivider: {
+    width: 2,
+    height: 16,
+    backgroundColor: colors.border,
+    marginHorizontal: 12,
+  },
+  xpBarOuter: {
+    width: '100%',
+    height: 16,
+    backgroundColor: '#E8E8E8',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  xpBarFillContainer: {
+    height: '100%',
+    borderRadius: 6,
+    overflow: 'visible',
+  },
+  xpBarFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 6,
+  },
+  xpBarIndicator: {
+    position: 'absolute',
+    right: -6,
+    top: -3,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.xpGradientEnd,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  levelUpTextContainer: {
+    alignItems: 'center',
+    marginTop: spacing.lg,
+  },
+  levelUpTextBold: {
     fontSize: 16,
     fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  levelUpTextGray: {
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  rankProgressionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+    flexWrap: 'wrap',
+  },
+  rankItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rankText: {
+    fontSize: 13,
+    fontFamily: 'DMSans_500Medium',
     color: colors.textSecondary,
   },
+  rankTextHighlighted: {
+    fontFamily: 'DMSans_700Bold',
+    color: '#1ABC9C',
+  },
+  rankArrow: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginHorizontal: 6,
+  },
+
+  // Compete Screen - Leaderboard Mockup
+  leaderboardMockup: {
+    width: width * 0.85,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    marginVertical: spacing.lg,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  leaderboardMockupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E8E8',
+    position: 'relative',
+  },
+  leaderboardRowGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#1ABC9C',
+    borderRadius: 0,
+  },
+  leaderboardMockupRowFirst: {
+    borderTopLeftRadius: borderRadius.card - 2,
+    borderTopRightRadius: borderRadius.card - 2,
+  },
+  leaderboardMockupRowLast: {
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: borderRadius.card - 2,
+    borderBottomRightRadius: borderRadius.card - 2,
+  },
+  leaderboardMedalIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  leaderboardAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  leaderboardAvatarText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+  },
+  leaderboardName: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'DMSans_600SemiBold',
+    color: colors.text,
+  },
+  leaderboardNameHighlighted: {
+    color: '#1ABC9C',
+    fontFamily: 'DMSans_700Bold',
+  },
+  leaderboardFlag: {
+    fontSize: 16,
+    marginRight: 10,
+  },
+  leaderboardPoints: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+  },
+  competeInfoRows: {
+    alignItems: 'center',
+    gap: 16,
+    marginVertical: spacing.lg,
+  },
+  competeInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  competeInfoIcon: {
+    width: 25,
+    height: 22,
+    resizeMode: 'contain',
+  },
+  competeInfoText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+  },
+  competeBottomTextContainer: {
+    marginTop: spacing.md,
+  },
+  competeBottomText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+
+  // Duel Screen - VS Mockup
+  vsMockupCard: {
+    width: width * 0.85,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    marginVertical: spacing.lg,
+    padding: spacing.xl,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  vsMockupContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vsPlayerContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  vsAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  vsAvatarYou: {
+    backgroundColor: '#1ABC9C',
+  },
+  vsAvatarOpponent: {
+    backgroundColor: '#1A1A1A',
+  },
+  vsAvatarText: {
+    fontSize: 24,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  vsPlayerLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+    letterSpacing: 0.5,
+  },
+  vsBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1ABC9C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+    marginHorizontal: spacing.md,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  vsBadgeText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  vsBadgeYellow: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F2C94C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+    marginHorizontal: spacing.md,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  vsBadgeTextYellow: {
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+
+  // Trivia Question Card for Duel Screen
+  triviaQuestionCard: {
+    width: width * 0.85,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    padding: spacing.md,
+    paddingTop: spacing.lg,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+    position: 'relative',
+  },
+  triviaTimerBadge: {
+    position: 'absolute',
+    top: -12,
+    right: 16,
+    backgroundColor: '#F2C94C',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  triviaTimerText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  triviaQuestionText: {
+    fontSize: 15,
+    fontFamily: 'DMSans_600SemiBold',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+    lineHeight: 22,
+  },
+  triviaAnswersGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  triviaAnswer: {
+    width: '48%',
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  triviaAnswerCorrect: {
+    backgroundColor: '#1ABC9C',
+  },
+  triviaAnswerText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  triviaAnswerTextCorrect: {
+    fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+
   clueBoxTextRevealed: {
     color: colors.surface,
   },
@@ -1248,5 +2417,16 @@ const styles = StyleSheet.create({
   buttonText: {
     ...typography.button,
     color: colors.surface,
+  },
+  buttonTextContainer: {
+    height: 20,
+    width: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonTextAbsolute: {
+    position: 'absolute',
+    width: 100,
+    textAlign: 'center',
   },
 });

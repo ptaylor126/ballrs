@@ -8,12 +8,13 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
-import { Duel, createInviteDuel } from '../lib/duelService';
-import { getFriends, sendFriendChallenge, FriendWithProfile } from '../lib/friendsService';
-import { getSportColor, Sport } from '../lib/theme';
+import { Duel, createInviteDuel, createAsyncDuel } from '../lib/duelService';
+import { getFriends, FriendWithProfile } from '../lib/friendsService';
+import { getSportColor, Sport, truncateUsername } from '../lib/theme';
 
 // Sport icons
 const sportIcons: Record<Sport, any> = {
@@ -35,6 +36,7 @@ interface Props {
   questionCount?: number;
   onCancel: () => void;
   onDuelCreated: (duel: Duel, challengedFriendId?: string) => void;
+  onAsyncDuelCreated: (duel: Duel) => void;
   getRandomQuestionId: (sport: 'nba' | 'pl' | 'nfl' | 'mlb') => string;
 }
 
@@ -43,38 +45,51 @@ export default function ChallengeSetupScreen({
   questionCount = 1,
   onCancel,
   onDuelCreated,
+  onAsyncDuelCreated,
   getRandomQuestionId,
 }: Props) {
   const { user } = useAuth();
   const [friends, setFriends] = useState<FriendWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
   const [creatingDuel, setCreatingDuel] = useState(false);
 
   const sportColor = getSportColor(sport as Sport);
 
+  // Wait for navigation animation to complete before loading data
   useEffect(() => {
+    const interactionPromise = InteractionManager.runAfterInteractions(() => {
+      setReady(true);
+    });
+
+    return () => interactionPromise.cancel();
+  }, []);
+
+  // Load friends after screen is ready
+  useEffect(() => {
+    if (!ready || !user) return;
+
     const loadFriends = async () => {
-      if (!user) return;
-      setLoading(true);
       const friendsList = await getFriends(user.id);
       setFriends(friendsList);
       setLoading(false);
     };
 
     loadFriends();
-  }, [user]);
+  }, [ready, user]);
 
   const handleChallengeFriend = async (friend: FriendWithProfile) => {
     if (!user || creatingDuel) return;
 
     setCreatingDuel(true);
     const questionId = getRandomQuestionId(sport);
-    const duel = await createInviteDuel(user.id, sport, questionId, questionCount);
+
+    // Create async duel for friend challenges - challenger plays first
+    const duel = await createAsyncDuel(user.id, friend.friendUserId, sport, questionId, questionCount);
 
     if (duel) {
-      // Send challenge notification to friend via realtime
-      await sendFriendChallenge(user.id, friend.friendUserId, duel.id);
-      onDuelCreated(duel, friend.friendUserId);
+      // Navigate to async duel game to play immediately
+      onAsyncDuelCreated(duel);
     } else {
       Alert.alert('Error', 'Failed to create challenge. Please try again.');
       setCreatingDuel(false);
@@ -105,11 +120,11 @@ export default function ChallengeSetupScreen({
     >
       <View style={[styles.friendAvatar, { backgroundColor: sportColor }]}>
         <Text style={styles.friendAvatarText}>
-          {item.username.charAt(0).toUpperCase()}
+          {truncateUsername(item.username).charAt(0).toUpperCase()}
         </Text>
       </View>
       <View style={styles.friendInfo}>
-        <Text style={styles.friendName}>{item.username}</Text>
+        <Text style={styles.friendName}>{truncateUsername(item.username)}</Text>
         <Text style={styles.friendHint}>Tap to challenge</Text>
       </View>
       <View style={[styles.challengeArrow, { backgroundColor: sportColor }]}>
@@ -294,6 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 200,
   },
   emptyCard: {
     backgroundColor: '#FFFFFF',

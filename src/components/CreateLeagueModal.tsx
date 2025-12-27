@@ -32,6 +32,7 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdLeague, setCreatedLeague] = useState<League | null>(null);
+  const [inputFocused, setInputFocused] = useState(false);
 
   const handleCreate = async () => {
     if (!user || !name.trim()) {
@@ -104,12 +105,12 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
     return `${formatDate(starts_at)} - ${formatDate(ends_at)}`;
   };
 
-  const sportOptions: { value: LeagueSport; label: string; color: string }[] = [
-    { value: 'nba', label: 'NBA', color: colors.nba },
-    { value: 'pl', label: 'PL', color: colors.pl },
-    { value: 'nfl', label: 'NFL', color: colors.nfl },
-    { value: 'mlb', label: 'MLB', color: colors.mlb },
-    { value: 'all', label: 'All', color: colors.success },
+  const sportOptions: { value: LeagueSport; label: string }[] = [
+    { value: 'nba', label: 'NBA' },
+    { value: 'pl', label: 'EPL' },
+    { value: 'nfl', label: 'NFL' },
+    { value: 'mlb', label: 'MLB' },
+    { value: 'all', label: 'All' },
   ];
 
   return (
@@ -134,16 +135,22 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>League Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    (inputFocused || name) && styles.inputFocused
+                  ]}
                   value={name}
                   onChangeText={(text) => {
                     setName(text);
                     setError(null);
                   }}
-                  placeholder="My Awesome League"
+                  onFocus={() => setInputFocused(true)}
+                  onBlur={() => setInputFocused(false)}
+                  placeholder="Slam Dunk Squad"
                   placeholderTextColor={colors.textTertiary}
                   maxLength={30}
                   autoFocus
+                  selectionColor="#1ABC9C"
                 />
               </View>
 
@@ -155,17 +162,14 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
                       key={option.value}
                       style={[
                         styles.sportOption,
-                        sport === option.value && {
-                          borderColor: option.color,
-                          backgroundColor: `${option.color}20`,
-                        },
+                        sport === option.value && styles.sportOptionSelected,
                       ]}
                       onPress={() => setSport(option.value)}
                     >
                       <Text
                         style={[
                           styles.sportLabel,
-                          sport === option.value && { color: option.color },
+                          sport === option.value && styles.sportLabelSelected,
                         ]}
                       >
                         {option.label}
@@ -183,17 +187,14 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
                       key={option.value}
                       style={[
                         styles.durationOption,
-                        duration === option.value && {
-                          borderColor: colors.pl,
-                          backgroundColor: `${colors.pl}20`,
-                        },
+                        duration === option.value && styles.durationOptionSelected,
                       ]}
                       onPress={() => setDuration(option.value)}
                     >
                       <Text
                         style={[
                           styles.durationLabel,
-                          duration === option.value && { color: colors.pl },
+                          duration === option.value && styles.durationLabelSelected,
                         ]}
                       >
                         {option.label}
@@ -220,7 +221,7 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
                 <TouchableOpacity
                   style={[
                     styles.createButton,
-                    (!name.trim() || creating) && styles.buttonDisabled,
+                    (!name.trim() || creating) && styles.createButtonDisabled,
                   ]}
                   onPress={handleCreate}
                   disabled={!name.trim() || creating}
@@ -228,7 +229,10 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
                   {creating ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.createButtonText}>Create</Text>
+                    <Text style={[
+                      styles.createButtonText,
+                      (!name.trim() || creating) && styles.createButtonTextDisabled,
+                    ]}>Create</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -313,11 +317,14 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.background,
     borderRadius: borderRadius.sm,
-    borderWidth: borders.input,
+    borderWidth: 2,
     borderColor: colors.border,
     padding: spacing.md,
     ...typography.body,
     color: colors.text,
+  },
+  inputFocused: {
+    borderColor: '#1ABC9C',
   },
   sportContainer: {
     width: '100%',
@@ -332,15 +339,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    backgroundColor: '#FFFFFF',
+  },
+  sportOptionSelected: {
+    backgroundColor: '#1ABC9C',
+    borderColor: '#1A1A1A',
   },
   sportLabel: {
     ...typography.button,
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#1A1A1A',
     textAlign: 'center',
+  },
+  sportLabelSelected: {
+    color: '#FFFFFF',
   },
   durationContainer: {
     width: '100%',
@@ -354,17 +368,24 @@ const styles = StyleSheet.create({
   durationOption: {
     width: '48%',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.sm,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    backgroundColor: '#FFFFFF',
+  },
+  durationOptionSelected: {
+    backgroundColor: '#1ABC9C',
+    borderColor: '#1A1A1A',
   },
   durationLabel: {
     ...typography.button,
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#1A1A1A',
+  },
+  durationLabelSelected: {
+    color: '#FFFFFF',
   },
   durationPreview: {
     ...typography.bodySmall,
@@ -406,19 +427,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    backgroundColor: colors.nba,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    backgroundColor: '#1ABC9C',
     alignItems: 'center',
-    ...shadows.cardSmall,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  createButtonDisabled: {
+    backgroundColor: '#F9EECC',
+    borderColor: '#000000',
+    shadowOpacity: 0.4,
+    elevation: 1,
   },
   createButtonText: {
     ...typography.button,
     color: '#FFFFFF',
     fontSize: 14,
+  },
+  createButtonTextDisabled: {
+    color: '#AAAAAA',
   },
   successIconCircle: {
     width: 64,
@@ -449,25 +480,29 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderWidth: borders.card,
-    borderColor: colors.nba,
+    borderWidth: 2,
+    borderColor: '#1ABC9C',
   },
   code: {
     ...typography.stat,
-    color: colors.nba,
+    color: '#1ABC9C',
     letterSpacing: 6,
   },
   shareButton: {
-    backgroundColor: colors.nba,
+    backgroundColor: '#1ABC9C',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
     marginBottom: spacing.sm,
     width: '100%',
     alignItems: 'center',
-    ...shadows.cardSmall,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   shareButtonText: {
     ...typography.button,

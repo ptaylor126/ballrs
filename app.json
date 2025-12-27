@@ -4,23 +4,27 @@
     "slug": "ballrs",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/images/icon-app-2.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#F5F2EB"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ballrs"
+      "bundleIdentifier": "com.anonymous.ballrs",
+      "icon": "./assets/images/icon-app-2.png"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#F5F2EB"
-      }
+      },
+      "package": "com.anonymous.ballrs"
     },
-    "web": {},
+    "web": {
+      "favicon": "./assets/images/icon-app-2.png"
+    },
     "plugins": [
       "expo-font"
     ],

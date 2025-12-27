@@ -127,18 +127,40 @@ export async function updateStatsAfterWin(
 }
 
 // Update stats after completing a puzzle with a LOSS (failed/gave up)
-// Streak resets on loss
+// Play streak continues (they still played today), but total_solved doesn't increment
 export async function updateStatsAfterLoss(
   userId: string,
   sport: Sport,
-  currentStats?: UserStats
+  currentStats?: UserStats,
+  newStreak?: number
 ): Promise<UserStats | null> {
-  // Legacy key (exists in database)
+  // Play streak key (exists in database as current_streak)
   const streakKey = `${sport}_current_streak`;
+  const bestStreakKey = `${sport}_best_streak`;
 
-  // Reset streak on loss
+  // If no streak provided, we can't update properly (legacy fallback - just return)
+  if (newStreak === undefined || !currentStats) {
+    // Legacy behavior: fetch current stats and maintain streak (don't reset)
+    const { data, error } = await supabase
+      .from('user_stats')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching stats for legacy loss update:', error);
+      return null;
+    }
+    // Just return current stats without modification (streak maintained)
+    return data;
+  }
+
+  // Update play streak (they played today, even if they lost)
+  const newBestStreak = Math.max(newStreak, currentStats[bestStreakKey as keyof UserStats] as number);
+
   const updates: Record<string, number> = {
-    [streakKey]: 0,
+    [streakKey]: newStreak,
+    [bestStreakKey]: newBestStreak,
   };
 
   const { data, error } = await supabase

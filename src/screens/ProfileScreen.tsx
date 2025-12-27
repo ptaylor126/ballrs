@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   ActivityIndicator,
   ScrollView,
   TextInput,
-  Alert,
   Image,
   Modal,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,22 +24,12 @@ import {
   getUserFrameStyle,
   getUserIcon,
 } from '../lib/profileRewardsService';
-import {
-  getFriends,
-  addFriend,
-  removeFriend,
-  searchUsersByUsername,
-  FriendWithProfile,
-  UserProfile,
-  areFriends,
-} from '../lib/friendsService';
-import { getProfile } from '../lib/profilesService';
+import { getProfile, updateCountry } from '../lib/profilesService';
+import { countryCodeToFlag, COUNTRIES, Country } from '../lib/countryUtils';
 import { soundService } from '../lib/soundService';
-import AnimatedSplashScreen from './AnimatedSplashScreen';
 
 // Icons
 const fireIcon = require('../../assets/images/icon-fire.png');
-const lightningIcon = require('../../assets/images/icon-lightning.png');
 const trophyIcon = require('../../assets/images/icon-trophy.png');
 
 // Get level title based on level number
@@ -59,10 +50,11 @@ interface Props {
   onNavigateToAchievements: () => void;
   onNavigateToCustomize: () => void;
   onReplayOnboarding?: () => void;
+  onLinkEmail?: () => void;
 }
 
-export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievements, onNavigateToCustomize, onReplayOnboarding }: Props) {
-  const { user, signOut } = useAuth();
+export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievements, onNavigateToCustomize, onReplayOnboarding, onLinkEmail }: Props) {
+  const { user, signOut, isAnonymous, hasLinkedEmail, username: cachedUsername, profileLoading } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -74,17 +66,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
     borderWidth: 3,
   });
   const [profileIcon, setProfileIcon] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-
-  const [friends, setFriends] = useState<FriendWithProfile[]>([]);
-  const [loadingFriends, setLoadingFriends] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [addingFriend, setAddingFriend] = useState<string | null>(null);
+  const [country, setCountry] = useState<string | null>(null);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [showSplash, setShowSplash] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
 
   // Initialize sound setting
   useEffect(() => {
@@ -98,6 +83,30 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
     setSoundEnabled(newValue);
     await soundService.setEnabled(newValue);
   };
+
+  // Pulsing animation for skeleton loaders
+  const pulseAnim = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.4,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseAnim]);
 
   const loadProfileData = useCallback(async () => {
     if (!user) return;
@@ -119,7 +128,8 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
     ]);
     setFrameStyle(frame);
     setProfileIcon(icon);
-    setUsername(profile?.username || null);
+    // Username is now from AuthContext (cachedUsername), only fetch country here
+    setCountry(profile?.country || null);
 
     setLoadingStats(false);
   }, [user]);
@@ -128,89 +138,29 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
     loadProfileData();
   }, [loadProfileData]);
 
-  const loadFriends = useCallback(async () => {
-    if (user) {
-      setLoadingFriends(true);
-      const friendsList = await getFriends(user.id);
-      setFriends(friendsList);
-      setLoadingFriends(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    loadFriends();
-  }, [loadFriends]);
-
-  useEffect(() => {
-    const searchUsers = async () => {
-      if (!user || searchQuery.trim().length < 2) {
-        setSearchResults([]);
-        return;
-      }
-
-      setSearching(true);
-      const results = await searchUsersByUsername(searchQuery, user.id);
-      setSearchResults(results);
-      setSearching(false);
-    };
-
-    const debounce = setTimeout(searchUsers, 300);
-    return () => clearTimeout(debounce);
-  }, [searchQuery, user]);
-
-  const handleAddFriend = async (userToAdd: UserProfile) => {
-    if (!user) return;
-
-    setAddingFriend(userToAdd.id);
-
-    const alreadyFriends = await areFriends(user.id, userToAdd.id);
-    if (alreadyFriends) {
-      Alert.alert('Already Friends', `You're already friends with ${userToAdd.username}`);
-      setAddingFriend(null);
-      return;
-    }
-
-    const success = await addFriend(user.id, userToAdd.id);
-    if (success) {
-      setSearchQuery('');
-      setSearchResults([]);
-      await loadFriends();
-      Alert.alert('Friend Added', `${userToAdd.username} has been added as a friend!`);
-    } else {
-      Alert.alert('Error', 'Failed to add friend. Please try again.');
-    }
-    setAddingFriend(null);
-  };
-
-  const handleRemoveFriend = async (friend: FriendWithProfile) => {
-    if (!user) return;
-
-    Alert.alert(
-      'Remove Friend',
-      `Are you sure you want to remove ${friend.username} as a friend?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            const success = await removeFriend(user.id, friend.friendUserId);
-            if (success) {
-              await loadFriends();
-            } else {
-              Alert.alert('Error', 'Failed to remove friend. Please try again.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handleLogout = async () => {
     setLoggingOut(true);
     await signOut();
     onLogout();
   };
+
+  const handleCountrySelect = async (selectedCountry: Country) => {
+    if (!user) return;
+
+    const success = await updateCountry(user.id, selectedCountry.code);
+    if (success) {
+      setCountry(selectedCountry.code);
+    }
+    setShowCountryPicker(false);
+    setCountrySearchQuery('');
+  };
+
+  const filteredCountries = countrySearchQuery.trim()
+    ? COUNTRIES.filter(c =>
+        c.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
+        c.code.toLowerCase().includes(countrySearchQuery.toLowerCase())
+      )
+    : COUNTRIES;
 
   const progress = getXPProgressInLevel(xp);
   const nextLevelXP = getXPForLevel(level + 1);
@@ -247,15 +197,36 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
               </Text>
             </View>
 
-            {/* Username */}
-            <Text style={styles.username}>
-              {username || 'Player'}
-            </Text>
+            {/* Username with Flag */}
+            <View style={styles.usernameRow}>
+              {country && <Text style={styles.countryFlag}>{countryCodeToFlag(country)}</Text>}
+              {profileLoading ? (
+                <Animated.View
+                  style={[
+                    styles.usernameSkeleton,
+                    { opacity: pulseAnim }
+                  ]}
+                />
+              ) : (
+                <Text style={styles.username}>
+                  {cachedUsername || 'Player'}
+                </Text>
+              )}
+            </View>
 
             {/* Level Badge */}
-            <Text style={styles.levelBadgeText2}>
-              Level {level} • {getLevelTitle(level)}
-            </Text>
+            {loadingStats ? (
+              <Animated.View
+                style={[
+                  styles.levelBadgeSkeleton,
+                  { opacity: pulseAnim }
+                ]}
+              />
+            ) : (
+              <Text style={styles.levelBadgeText2}>
+                Level {level} • {getLevelTitle(level)}
+              </Text>
+            )}
 
             <AnimatedButton
               style={styles.customizeButton}
@@ -326,10 +297,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     <Text style={styles.statsHeaderText}>SOLVED</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Image source={fireIcon} style={styles.statsHeaderIcon} />
+                    <Text style={styles.statsHeaderText}>STREAK</Text>
                   </View>
                   <View style={styles.statsNumCol}>
-                    <Image source={trophyIcon} style={styles.statsHeaderIcon} />
+                    <Text style={styles.statsHeaderText}>BEST</Text>
                   </View>
                 </View>
 
@@ -407,86 +378,6 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
               </View>
             )}
 
-            {/* Friends Section */}
-            <Text style={styles.sectionTitle}>Friends</Text>
-
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={[styles.searchInput, searchFocused && styles.searchInputFocused]}
-                placeholder="Search by username..."
-                placeholderTextColor={colors.textTertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searching && (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary}
-                  style={styles.searchSpinner}
-                />
-              )}
-            </View>
-
-            {searchResults.length > 0 && (
-              <View style={[styles.searchResults, shadows.card]}>
-                {searchResults.map((result) => (
-                  <View key={result.id} style={styles.searchResultItem}>
-                    <View style={styles.resultAvatar}>
-                      <Text style={styles.resultAvatarText}>
-                        {result.username.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                    <Text style={styles.resultUsername}>{result.username}</Text>
-                    <TouchableOpacity
-                      style={styles.addButton}
-                      onPress={() => handleAddFriend(result)}
-                      disabled={addingFriend === result.id}
-                    >
-                      {addingFriend === result.id ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <Text style={styles.addButtonText}>Add</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {loadingFriends ? (
-              <ActivityIndicator color={colors.primary} style={styles.friendsLoader} />
-            ) : friends.length === 0 ? (
-              <View style={[styles.noFriendsContainer, shadows.card]}>
-                <Text style={styles.noFriendsText}>No friends yet</Text>
-                <Text style={styles.noFriendsSubtext}>
-                  Search for users above to add friends
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.friendsList}>
-                {friends.map((friend) => (
-                  <View key={friend.id} style={[styles.friendItem, shadows.card]}>
-                    <View style={styles.friendAvatar}>
-                      <Text style={styles.friendAvatarText}>
-                        {friend.username.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                    <Text style={styles.friendUsername}>{friend.username}</Text>
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => handleRemoveFriend(friend)}
-                    >
-                      <Text style={styles.removeButtonText}>Remove</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-
             {/* Settings Section */}
             <Text style={styles.sectionTitle}>Settings</Text>
 
@@ -522,6 +413,42 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                   </TouchableOpacity>
                 </>
               )}
+
+              <View style={styles.settingDivider} />
+              <TouchableOpacity style={styles.settingRow} onPress={() => setShowCountryPicker(true)}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>Country</Text>
+                  <Text style={styles.settingDescription}>
+                    {country ? `${countryCodeToFlag(country)} ${COUNTRIES.find(c => c.code === country)?.name || country}` : 'Not set'}
+                  </Text>
+                </View>
+                <Text style={styles.settingArrow}>→</Text>
+              </TouchableOpacity>
+
+              {/* Email: Show linked email if linked, or Link Email button if not */}
+              {hasLinkedEmail ? (
+                <>
+                  <View style={styles.settingDivider} />
+                  <View style={styles.settingRow}>
+                    <View style={styles.settingInfo}>
+                      <Text style={styles.settingLabel}>Email</Text>
+                      <Text style={styles.settingDescription}>{user?.email}</Text>
+                    </View>
+                    <Text style={styles.linkedBadge}>✓ Linked</Text>
+                  </View>
+                </>
+              ) : onLinkEmail ? (
+                <>
+                  <View style={styles.settingDivider} />
+                  <TouchableOpacity style={styles.settingRow} onPress={onLinkEmail}>
+                    <View style={styles.settingInfo}>
+                      <Text style={styles.settingLabel}>Link Email</Text>
+                      <Text style={styles.settingDescription}>Add email for account recovery</Text>
+                    </View>
+                    <Text style={styles.settingArrow}>→</Text>
+                  </TouchableOpacity>
+                </>
+              ) : null}
             </View>
 
             {/* Member Info */}
@@ -530,14 +457,6 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                 ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                 : 'N/A'}
             </Text>
-
-            {/* View Splash Button (Dev) */}
-            <AnimatedButton
-              style={styles.splashButton}
-              onPress={() => setShowSplash(true)}
-            >
-              <Text style={styles.splashButtonText}>View Splash Screen</Text>
-            </AnimatedButton>
 
             {/* Log Out Button */}
             <AnimatedButton
@@ -555,13 +474,53 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
         </ScrollView>
       </View>
 
-      {/* Splash Screen Preview Modal */}
+      {/* Country Picker Modal */}
       <Modal
-        visible={showSplash}
-        animationType="fade"
-        onRequestClose={() => setShowSplash(false)}
+        visible={showCountryPicker}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowCountryPicker(false)}
       >
-        <AnimatedSplashScreen onAnimationComplete={() => setShowSplash(false)} />
+        <View style={styles.countryModalOverlay}>
+          <View style={styles.countryModalContent}>
+            <View style={styles.countryModalHeader}>
+              <Text style={styles.countryModalTitle}>Select Country</Text>
+              <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
+                <Text style={styles.countryModalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.countrySearchInput}
+              placeholder="Search countries..."
+              placeholderTextColor="#999999"
+              value={countrySearchQuery}
+              onChangeText={setCountrySearchQuery}
+              autoCapitalize="none"
+              selectionColor="#1ABC9C"
+            />
+            <ScrollView style={styles.countryList} showsVerticalScrollIndicator={false}>
+              {filteredCountries.map((c) => (
+                <TouchableOpacity
+                  key={c.code}
+                  style={[
+                    styles.countryOption,
+                    country === c.code && styles.countryOptionSelected,
+                  ]}
+                  onPress={() => handleCountrySelect(c)}
+                >
+                  <Text style={styles.countryOptionFlag}>{countryCodeToFlag(c.code)}</Text>
+                  <Text style={[
+                    styles.countryOptionName,
+                    country === c.code && styles.countryOptionNameSelected,
+                  ]}>{c.name}</Text>
+                  {country === c.code && (
+                    <Text style={styles.countryOptionCheck}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -630,11 +589,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 4,
   },
+  usernameSkeleton: {
+    width: 120,
+    height: 28,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 6,
+    marginBottom: 4,
+  },
   levelBadgeText2: {
     fontSize: 14,
     fontFamily: 'DMSans_400Regular',
     color: '#666666',
     textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  levelBadgeSkeleton: {
+    width: 140,
+    height: 18,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 6,
     marginBottom: spacing.md,
   },
   customizeButton: {
@@ -845,148 +818,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  searchContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.input,
-    borderColor: colors.border,
-    padding: spacing.md,
-    ...typography.body,
-    color: colors.text,
-  },
-  searchInputFocused: {
-    borderColor: '#1ABC9C',
-  },
-  searchSpinner: {
-    position: 'absolute',
-    right: spacing.md,
-  },
-  searchResults: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    marginBottom: spacing.md,
-    overflow: 'hidden',
-  },
-  searchResultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  resultAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.pl,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-  resultAvatarText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'DMSans_700Bold',
-  },
-  resultUsername: {
-    flex: 1,
-    ...typography.body,
-    color: colors.text,
-  },
-  addButton: {
-    backgroundColor: colors.success,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    minWidth: 60,
-    alignItems: 'center',
-    ...shadows.cardSmall,
-  },
-  addButtonText: {
-    ...typography.button,
-    color: '#FFFFFF',
-    fontSize: 11,
-  },
-  friendsLoader: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  noFriendsContainer: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
-  noFriendsText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  noFriendsSubtext: {
-    ...typography.bodySmall,
-    color: colors.textTertiary,
-  },
-  friendsList: {
-    width: '100%',
-  },
-  friendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  friendAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1A1A1A',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-  friendAvatarText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontFamily: 'DMSans_700Bold',
-  },
-  friendUsername: {
-    flex: 1,
-    ...typography.body,
-    color: colors.text,
-  },
-  removeButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    ...shadows.cardSmall,
-  },
-  removeButtonText: {
-    ...typography.button,
-    color: colors.error,
-    fontSize: 11,
-  },
   achievementsButton: {
     width: '100%',
     flexDirection: 'row',
@@ -1090,26 +921,97 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
     fontFamily: 'DMSans_700Bold',
   },
-  splashButton: {
-    backgroundColor: '#6B7280',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: borderRadius.button,
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
-  },
-  splashButtonText: {
+  linkedBadge: {
+    fontSize: 12,
     fontFamily: 'DMSans_700Bold',
-    fontSize: 14,
-    color: '#FFFFFF',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: colors.success,
+  },
+  // Username with flag
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  countryFlag: {
+    fontSize: 24,
+  },
+  // Country Picker Modal
+  countryModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  countryModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderBottomWidth: 0,
+  },
+  countryModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  countryModalTitle: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  countryModalClose: {
+    fontSize: 24,
+    color: '#666666',
+    padding: 4,
+  },
+  countrySearchInput: {
+    margin: 16,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    fontFamily: 'DMSans_400Regular',
+    color: '#1A1A1A',
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  countryList: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+  countryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  countryOptionSelected: {
+    backgroundColor: '#E8F5F1',
+  },
+  countryOptionFlag: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  countryOptionName: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'DMSans_500Medium',
+    color: '#1A1A1A',
+  },
+  countryOptionNameSelected: {
+    fontFamily: 'DMSans_700Bold',
+    color: '#1ABC9C',
+  },
+  countryOptionCheck: {
+    fontSize: 18,
+    color: '#1ABC9C',
+    fontFamily: 'DMSans_700Bold',
   },
 });

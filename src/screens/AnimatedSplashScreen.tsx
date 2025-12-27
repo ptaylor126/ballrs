@@ -25,57 +25,49 @@ interface Props {
 export default function AnimatedSplashScreen({ onAnimationComplete }: Props) {
   // Letter animations - each letter slides in from the left
   const letters = ['B', 'A', 'L', 'L', 'R', 'S'];
-  const letterAnims = useRef(letters.map(() => new Animated.Value(-100))).current;
+  const letterAnims = useRef(letters.map(() => new Animated.Value(-50))).current;
   const letterOpacities = useRef(letters.map(() => new Animated.Value(0))).current;
 
-  // Icon animations - each icon bounces up from below
-  const iconAnims = useRef(sportIcons.map(() => new Animated.Value(100))).current;
+  // Icon animations - fade in only (no colored backgrounds)
   const iconOpacities = useRef(sportIcons.map(() => new Animated.Value(0))).current;
-  const iconScales = useRef(sportIcons.map(() => new Animated.Value(0.5))).current;
+  const iconScales = useRef(sportIcons.map(() => new Animated.Value(0.8))).current;
 
   // Fade out animation
   const fadeOut = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Animate letters sequentially
+    // Animate letters sequentially sliding in from left
     const letterAnimations = letters.map((_, index) => {
       return Animated.parallel([
         Animated.timing(letterAnims[index], {
           toValue: 0,
-          duration: 300,
-          delay: index * 80,
+          duration: 250,
+          delay: index * 60,
           useNativeDriver: true,
         }),
         Animated.timing(letterOpacities[index], {
           toValue: 1,
-          duration: 300,
-          delay: index * 80,
+          duration: 250,
+          delay: index * 60,
           useNativeDriver: true,
         }),
       ]);
     });
 
-    // Animate icons with bounce effect
+    // Animate icons fading in with slight stagger
     const iconAnimations = sportIcons.map((_, index) => {
       return Animated.parallel([
-        Animated.spring(iconAnims[index], {
-          toValue: 0,
-          tension: 50,
-          friction: 7,
-          delay: 500 + index * 100,
-          useNativeDriver: true,
-        }),
         Animated.timing(iconOpacities[index], {
           toValue: 1,
-          duration: 200,
-          delay: 500 + index * 100,
+          duration: 300,
+          delay: 400 + index * 80,
           useNativeDriver: true,
         }),
         Animated.spring(iconScales[index], {
           toValue: 1,
           tension: 50,
           friction: 7,
-          delay: 500 + index * 100,
+          delay: 400 + index * 80,
           useNativeDriver: true,
         }),
       ]);
@@ -85,10 +77,10 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: Props) {
     Animated.sequence([
       Animated.parallel(letterAnimations),
       Animated.parallel(iconAnimations),
-      Animated.delay(800),
+      Animated.delay(600),
       Animated.timing(fadeOut, {
         toValue: 0,
-        duration: 400,
+        duration: 300,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -98,25 +90,27 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: Props) {
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeOut }]}>
-      {/* BALLRS Text */}
-      <View style={styles.textContainer}>
-        {letters.map((letter, index) => (
-          <Animated.Text
-            key={index}
-            style={[
-              styles.letter,
-              {
-                transform: [{ translateX: letterAnims[index] }],
-                opacity: letterOpacities[index],
-              },
-            ]}
-          >
-            {letter}
-          </Animated.Text>
-        ))}
+      {/* BALLRS Text - letters slide in from left */}
+      <View style={styles.logoContainer}>
+        <View style={styles.textContainer}>
+          {letters.map((letter, index) => (
+            <Animated.Text
+              key={index}
+              style={[
+                styles.letter,
+                {
+                  transform: [{ translateX: letterAnims[index] }],
+                  opacity: letterOpacities[index],
+                },
+              ]}
+            >
+              {letter}
+            </Animated.Text>
+          ))}
+        </View>
       </View>
 
-      {/* Sport Icons Row */}
+      {/* Sport Icons - just icons, no colored backgrounds */}
       <View style={styles.iconsContainer}>
         {sportIcons.map((icon, index) => (
           <Animated.View
@@ -124,11 +118,8 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: Props) {
             style={[
               styles.iconWrapper,
               {
-                transform: [
-                  { translateY: iconAnims[index] },
-                  { scale: iconScales[index] },
-                ],
                 opacity: iconOpacities[index],
+                transform: [{ scale: iconScales[index] }],
               },
             ]}
           >
@@ -150,30 +141,41 @@ const styles = StyleSheet.create({
     width: width,
     height: height,
     backgroundColor: '#F5F2EB',
-    justifyContent: 'center',
-    alignItems: 'center',
     zIndex: 1000,
+  },
+  logoContainer: {
+    position: 'absolute',
+    top: 180,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   textContainer: {
     flexDirection: 'row',
-    marginBottom: 32,
   },
   letter: {
-    fontSize: 56,
+    fontSize: 48,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
-    marginHorizontal: 2,
+    letterSpacing: 2,
   },
   iconsContainer: {
+    position: 'absolute',
+    top: 290,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    gap: 16,
+    justifyContent: 'center',
+    gap: 12,
   },
   iconWrapper: {
-    width: 40,
-    height: 40,
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   icon: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
   },
 });

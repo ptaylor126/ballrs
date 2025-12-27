@@ -69,7 +69,7 @@ function getIconImage(iconUrl: string): any | null {
 }
 
 export default function CustomizeProfileScreen({ onBack }: Props) {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'icons' | 'frames'>('icons');
@@ -200,6 +200,9 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
     setUsername(trimmedUsername);
     setShowUsernameModal(false);
     setSavingUsername(false);
+
+    // Refresh cached username in AuthContext
+    refreshProfile();
   }
 
   function getFrameStyle(frame: ProfileFrame): FrameStyle {
@@ -475,14 +478,23 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
               placeholderTextColor="#9CA3AF"
               autoCapitalize="none"
               autoCorrect={false}
-              maxLength={20}
+              maxLength={10}
+              selectionColor="#1ABC9C"
             />
             {usernameError && (
               <Text style={styles.errorText}>{usernameError}</Text>
             )}
-            <Text style={styles.usernameHint}>
-              3-20 characters. Letters, numbers, and underscores only.
-            </Text>
+            <View style={styles.usernameHintRow}>
+              <Text style={styles.usernameHint}>
+                3-10 characters. Letters and numbers only.
+              </Text>
+              <Text style={[
+                styles.usernameCharCounter,
+                newUsername.length >= 10 && styles.usernameCharCounterLimit
+              ]}>
+                {newUsername.length}/10
+              </Text>
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.cancelButton}
@@ -945,11 +957,24 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginBottom: 8,
   },
+  usernameHintRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   usernameHint: {
     fontSize: 12,
     fontFamily: 'DMSans_400Regular',
     color: '#6B7280',
-    marginBottom: 20,
+  },
+  usernameCharCounter: {
+    fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#6B7280',
+  },
+  usernameCharCounterLimit: {
+    color: '#EF4444',
   },
   modalButtons: {
     flexDirection: 'row',

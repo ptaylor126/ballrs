@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,18 +16,25 @@ import {
   Keyboard,
   Dimensions,
   InteractionManager,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { colors, shadows, getSportColor, Sport, borders, borderRadius } from '../lib/theme';
 import { AnimatedButton } from '../components/AnimatedComponents';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXP, calculateLevel, XPAwardResult } from '../lib/xpService';
+import { awardPuzzlePoints } from '../lib/pointsService';
+import { awardLeaguePoints } from '../lib/leaguesService';
 import { fetchUserStats, getPlayStreak, getWinStreak, UserStats, updateStatsAfterWin, updateStatsAfterLoss } from '../lib/statsService';
 import XPEarnedModal from '../components/XPEarnedModal';
+import LevelUpModal from '../components/LevelUpModal';
 import JerseyReveal, { getFullTeamName } from '../components/JerseyReveal';
+import LinkEmailPromptModal from '../components/LinkEmailPromptModal';
 import nbaPlayersData from '../../data/nba-players-clues.json';
 import plPlayersData from '../../data/pl-players-clues.json';
 import nflPlayersData from '../../data/nfl-players-clues.json';
@@ -69,10 +76,13 @@ interface AutocompletePlayer {
 interface Props {
   sport: Sport;
   onBack: () => void;
+  onLinkEmail?: () => void;
 }
 
 const getStorageKey = (sport: string) => `ballrs_clue_puzzle_state_${sport}`;
 const getStreakKey = (sport: string) => `ballrs_clue_puzzle_streak_${sport}`;
+const MAX_GUESSES = 6;
+const TIMER_DURATION = 10; // seconds per clue
 
 interface GameState {
   date: string;
@@ -163,6 +173,26 @@ function getAllPlayersForSport(sport: Sport): AutocompletePlayer[] {
   }
 }
 
+// Validate that all mystery players are in the searchable list
+// This prevents the bug where a mystery player can't be found in autocomplete
+function validateMysteryPlayersAreSearchable(sport: Sport): void {
+  const mysteryPlayers = getPlayersForSport(sport);
+  const searchablePlayers = getAllPlayersForSport(sport);
+  const searchableNames = new Set(searchablePlayers.map(p => p.name.toLowerCase()));
+
+  const missingPlayers = mysteryPlayers.filter(
+    mp => !searchableNames.has(mp.name.toLowerCase())
+  );
+
+  if (missingPlayers.length > 0) {
+    console.error(
+      `[${sport.toUpperCase()}] DATA INTEGRITY ERROR: ${missingPlayers.length} mystery player(s) not in searchable list:`,
+      missingPlayers.map(p => p.name).join(', '),
+      '\nFix: Add these players to data/*-all-players.json'
+    );
+  }
+}
+
 function getSportNameLocal(sport: Sport): string {
   switch (sport) {
     case 'nba': return 'NBA';
@@ -172,8 +202,11 @@ function getSportNameLocal(sport: Sport): string {
   }
 }
 
-export default function CluePuzzleScreen({ sport, onBack }: Props) {
-  const { user } = useAuth();
+// Key for storing when the link email prompt was last dismissed
+const LINK_EMAIL_PROMPT_KEY = 'ballrs_link_email_prompt_dismissed';
+
+export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) {
+  const { user, hasLinkedEmail } = useAuth();
   const [players] = useState<CluePlayer[]>(getPlayersForSport(sport));
   const [allPlayers] = useState<AutocompletePlayer[]>(getAllPlayersForSport(sport));
   const sportColor = getSportColor(sport);
@@ -187,6 +220,7 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   const [gaveUp, setGaveUp] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
   const [showWrongMessage, setShowWrongMessage] = useState(false);
+  const [wrongToastMessage, setWrongToastMessage] = useState('');
   const [showNotInPuzzleMessage, setShowNotInPuzzleMessage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState(0);
@@ -200,6 +234,64 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   const [xpResult, setXpResult] = useState<XPAwardResult | null>(null);
   const [xpEarned, setXpEarned] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Timer state
+  const [timeRemaining, setTimeRemaining] = useState(TIMER_DURATION);
+  const [timerPaused, setTimerPaused] = useState(false);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerPulseAnim = useRef(new Animated.Value(1)).current;
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
+  // Level up modal state
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+
+  // Link email prompt state
+  const [showLinkEmailPrompt, setShowLinkEmailPrompt] = useState(false);
+
+  // Check if we should show the link email prompt after leveling up
+  const checkAndShowLinkEmailPrompt = async () => {
+    // Don't show if already linked email
+    if (hasLinkedEmail) return;
+
+    // Only show on level up
+    if (!xpResult) return;
+    const previousLevel = calculateLevel(xpResult.previousXP);
+    const newLevel = calculateLevel(xpResult.newXP);
+    const didLevelUp = newLevel > previousLevel;
+
+    if (!didLevelUp) return;
+
+    // Check if dismissed within last 7 days
+    try {
+      const dismissedAt = await AsyncStorage.getItem(LINK_EMAIL_PROMPT_KEY);
+      if (dismissedAt) {
+        const dismissedDate = new Date(dismissedAt);
+        const now = new Date();
+        const daysSinceDismissed = (now.getTime() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismissed < 7) {
+          return; // Don't show again within 7 days
+        }
+      }
+    } catch (err) {
+      console.error('Error checking link email prompt:', err);
+    }
+
+    // Show the prompt after a short delay
+    setTimeout(() => {
+      setShowLinkEmailPrompt(true);
+    }, 500);
+  };
+
+  const handleLinkEmailPromptDismiss = async () => {
+    setShowLinkEmailPrompt(false);
+    // Store dismissal timestamp
+    try {
+      await AsyncStorage.setItem(LINK_EMAIL_PROMPT_KEY, new Date().toISOString());
+    } catch (err) {
+      console.error('Error saving link email prompt dismissal:', err);
+    }
+  };
+
   const confettiRef = useRef<any>(null);
   const scrollViewRef = useRef<any>(null);
   const [cluesContainerY, setCluesContainerY] = useState(0);
@@ -229,12 +321,149 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
     return () => pulse.stop();
   }, [pulseAnim]);
 
+  // Handle timer expiry
+  const handleTimerExpiry = useCallback(() => {
+    if (solved || gaveUp || loading) return;
+
+    // Haptic feedback
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+
+    if (currentClueIndex < 5) {
+      // Clues 1-5: Auto-advance to next clue (no guess used)
+      const newIndex = currentClueIndex + 1;
+      setCurrentClueIndex(newIndex);
+      setTimeRemaining(TIMER_DURATION);
+      saveGameState(newIndex, wrongGuesses, false, 0);
+
+      // Scroll to show new clue
+      setTimeout(() => {
+        if (scrollViewRef.current) {
+          const clueHeight = 90;
+          const targetY = cluesContainerY + (newIndex * clueHeight);
+          scrollViewRef.current.scrollToPosition(0, targetY, true);
+        }
+      }, 150);
+    } else {
+      // Clue 6: Time's up! - Reveal answer (same as Give Up)
+      setGaveUp(true);
+      setTimeRemaining(0);
+      saveGameState(currentClueIndex, wrongGuesses, false, 0, false, true);
+
+      // Update stats (loss - but play streak continues)
+      if (user && userStats) {
+        // Award league points (0 for loss)
+        awardLeaguePoints(user.id, sport, MAX_GUESSES, false);
+
+        // Calculate daily streak (play streak continues even on loss)
+        calculateDailyStreak(sport).then((dailyStreak) => {
+          updateStatsAfterLoss(user.id, sport, userStats, dailyStreak).then((updatedStats) => {
+            if (updatedStats) {
+              setUserStats(updatedStats);
+            }
+          });
+        });
+      }
+    }
+  }, [solved, gaveUp, loading, currentClueIndex, wrongGuesses, cluesContainerY, user, userStats, sport]);
+
+  // Timer countdown effect
+  useEffect(() => {
+    // Don't run timer if game is over or loading
+    if (solved || gaveUp || loading || timerPaused) {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      return;
+    }
+
+    timerIntervalRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          // Timer expired
+          clearInterval(timerIntervalRef.current!);
+          timerIntervalRef.current = null;
+          // Use setTimeout to avoid state update during render
+          setTimeout(() => handleTimerExpiry(), 0);
+          return 0;
+        }
+
+        // Haptic at 3 second warning
+        if (prev === 4) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [solved, gaveUp, loading, timerPaused, currentClueIndex, handleTimerExpiry]);
+
+  // Reset timer when clue changes
+  useEffect(() => {
+    if (!solved && !gaveUp && !loading) {
+      setTimeRemaining(TIMER_DURATION);
+    }
+  }, [currentClueIndex, solved, gaveUp, loading]);
+
+  // Timer pulse animation for final 3 seconds
+  useEffect(() => {
+    if (timeRemaining <= 3 && timeRemaining > 0 && !solved && !gaveUp) {
+      Animated.sequence([
+        Animated.timing(timerPulseAnim, {
+          toValue: 1.15,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(timerPulseAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [timeRemaining, solved, gaveUp, timerPulseAnim]);
+
+  // App state listener - pause timer when app goes to background
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appStateRef.current.match(/active/) && nextAppState.match(/inactive|background/)) {
+        // App going to background - pause timer
+        setTimerPaused(true);
+      } else if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App coming to foreground - resume timer
+        setTimerPaused(false);
+      }
+      appStateRef.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, []);
+
+  // Get timer color based on time remaining
+  const getTimerColor = () => {
+    if (timeRemaining > 5) return '#1ABC9C'; // Teal
+    if (timeRemaining > 2) return '#F2C94C'; // Yellow
+    return '#DC2626'; // Red
+  };
+
   const potentialPoints = Math.max(0, 6 - currentClueIndex);
   const revealedClues = mysteryPlayer?.clues.slice(0, currentClueIndex + 1) || [];
   const isLastClue = currentClueIndex >= 5;
   const gameOver = solved || gaveUp;
 
   useEffect(() => {
+    // Validate data integrity on mount (development aid)
+    if (__DEV__) {
+      validateMysteryPlayersAreSearchable(sport);
+    }
     loadGameState();
   }, []);
 
@@ -347,7 +576,10 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   }
 
   function handleSelectPlayer(selectedPlayer: AutocompletePlayer) {
-    if (!mysteryPlayer || solved) return;
+    if (!mysteryPlayer || solved || gaveUp) return;
+
+    // Light haptic feedback for any guess submission
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     // Check if player is in the mystery pool (clue players)
     const isInMysteryPool = players.some(p =>
@@ -358,6 +590,8 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
     const isCorrect = mysteryPlayer.name.toLowerCase() === selectedPlayer.name.toLowerCase();
 
     if (isCorrect) {
+      // Success haptic for correct guess
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       const points = potentialPoints;
       setSolved(true);
       setPointsEarned(points);
@@ -366,8 +600,13 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       triggerCelebration();
       saveGameState(currentClueIndex, wrongGuesses, true, points, true);
 
-      // Scroll to top to show jersey reveal
-      scrollViewRef.current?.scrollToPosition(0, 0, true);
+      // Scroll to center the jersey card on screen
+      const screenHeight = Dimensions.get('window').height;
+      const cardTopY = 80;
+      const cardHeight = 350;
+      const cardCenterY = cardTopY + (cardHeight / 2);
+      const scrollY = Math.max(0, cardCenterY - (screenHeight / 2) + 50);
+      scrollViewRef.current?.scrollToPosition(0, scrollY, true);
 
       // Delay confetti to let UI render first
       setTimeout(() => setShowConfetti(true), 300);
@@ -384,6 +623,13 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
       if (user) {
         const xpAmount = points * 10; // 10 XP per point earned
         setXpEarned(xpAmount);
+
+        // Award leaderboard points (6 points for 1 clue, down to 1 point for 6 clues)
+        const cluesUsed = currentClueIndex + 1;
+        awardPuzzlePoints(user.id, cluesUsed);
+
+        // Award league points
+        awardLeaguePoints(user.id, sport, cluesUsed, true);
 
         InteractionManager.runAfterInteractions(() => {
           awardXP(user.id, xpAmount).then((result) => {
@@ -412,41 +658,49 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
           }
         });
       }
-    } else if (!isInMysteryPool) {
-      // Player is not in the mystery pool - show "not in puzzle" message
-      setShowNotInPuzzleMessage(true);
-      setGuess('');
-      setShowSuggestions(false);
-      triggerShake();
-      setTimeout(() => setShowNotInPuzzleMessage(false), 2000);
     } else {
-      // Player is in mystery pool but wrong
+      // Wrong guess - either not in mystery pool or wrong player
       const newWrongGuesses = wrongGuesses + 1;
       setWrongGuesses(newWrongGuesses);
-      setShowWrongMessage(true);
       setGuess('');
       setShowSuggestions(false);
       triggerShake();
-      saveGameState(currentClueIndex, newWrongGuesses, false, 0);
 
-      // TODO: INTERSTITIAL AD TRIGGER POINT (for failed puzzle)
-      // If this is the last clue and player got it wrong, puzzle is over
-      // if (currentClueIndex >= 5) {
-      //   showInterstitialAd();
-      // }
+      const remaining = MAX_GUESSES - newWrongGuesses;
 
-      // If this was the last clue and they got it wrong, update stats (loss)
-      if (currentClueIndex >= 5 && user) {
-        updateStatsAfterLoss(user.id, sport, userStats ?? undefined).then((updatedStats) => {
-          if (updatedStats) {
-            setUserStats(updatedStats);
-          }
-        }).catch((err) => {
-          console.error('Error updating stats after loss:', err);
-        });
+      if (remaining <= 0) {
+        // Out of guesses - game over
+        setWrongToastMessage('Out of guesses!');
+        setShowWrongMessage(true);
+        setGaveUp(true);
+        saveGameState(currentClueIndex, newWrongGuesses, false, 0, false, true);
+
+        // Update stats (loss - but play streak continues)
+        if (user && userStats) {
+          // Award league points (0 for loss)
+          awardLeaguePoints(user.id, sport, MAX_GUESSES, false);
+
+          // Calculate daily streak (play streak continues even on loss)
+          calculateDailyStreak(sport).then((dailyStreak) => {
+            updateStatsAfterLoss(user.id, sport, userStats, dailyStreak).then((updatedStats) => {
+              if (updatedStats) {
+                setUserStats(updatedStats);
+              }
+            }).catch((err) => {
+              console.error('Error updating stats after loss:', err);
+            });
+          });
+        }
+
+        setTimeout(() => setShowWrongMessage(false), 2500);
+      } else {
+        // Still have guesses left
+        setWrongToastMessage(`Wrong! ${remaining} guess${remaining !== 1 ? 'es' : ''} left`);
+        setShowWrongMessage(true);
+        saveGameState(currentClueIndex, newWrongGuesses, false, 0);
+
+        setTimeout(() => setShowWrongMessage(false), 2000);
       }
-
-      setTimeout(() => setShowWrongMessage(false), 2000);
     }
   }
 
@@ -466,6 +720,9 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
 
   function handleNextClue() {
     if (currentClueIndex < 5 && !solved) {
+      // Light haptic for revealing another clue
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
       const newIndex = currentClueIndex + 1;
       setCurrentClueIndex(newIndex);
       setShowWrongMessage(false);
@@ -483,34 +740,42 @@ export default function CluePuzzleScreen({ sport, onBack }: Props) {
   }
 
   function handleGiveUp() {
+    // Warning haptic for giving up
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+
     setGaveUp(true);
     setSolved(false);
     setPointsEarned(0);
     saveGameState(currentClueIndex, wrongGuesses, false, 0, false, true);
 
-    // Update stats (play streak continues, win streak resets)
-    if (user) {
-      updateStatsAfterLoss(user.id, sport, userStats ?? undefined).then((updatedStats) => {
-        if (updatedStats) {
-          setUserStats(updatedStats);
-        }
-      }).catch((err) => {
-        console.error('Error updating stats after loss:', err);
+    // Scroll to center the jersey card on screen
+    setTimeout(() => {
+      const screenHeight = Dimensions.get('window').height;
+      // The result card with jersey is roughly 350px tall, starts ~80px from top
+      // To center it: scroll so card center aligns with screen center
+      const cardTopY = 80;
+      const cardHeight = 350;
+      const cardCenterY = cardTopY + (cardHeight / 2);
+      const scrollY = Math.max(0, cardCenterY - (screenHeight / 2) + 50);
+      scrollViewRef.current?.scrollToPosition(0, scrollY, true);
+    }, 100);
+
+    // Update stats (play streak continues even on give up)
+    if (user && userStats) {
+      // Award league points (0 for give up)
+      awardLeaguePoints(user.id, sport, MAX_GUESSES, false);
+
+      // Calculate daily streak (play streak continues even on give up)
+      calculateDailyStreak(sport).then((dailyStreak) => {
+        updateStatsAfterLoss(user.id, sport, userStats, dailyStreak).then((updatedStats) => {
+          if (updatedStats) {
+            setUserStats(updatedStats);
+          }
+        }).catch((err) => {
+          console.error('Error updating stats after loss:', err);
+        });
       });
     }
-  }
-
-  async function handleReset() {
-    await AsyncStorage.removeItem(getStorageKey(sport));
-    const player = getDailyPlayer(players, sport);
-    setMysteryPlayer(player);
-    setCurrentClueIndex(0);
-    setWrongGuesses(0);
-    setSolved(false);
-    setGaveUp(false);
-    setPointsEarned(0);
-    setGuess('');
-    setShowWrongMessage(false);
   }
 
   function getShareText(): string {
@@ -728,30 +993,6 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
             </View>
           )}
 
-          {/* Wrong Message */}
-          {showWrongMessage && (
-            <Animated.View
-              style={[
-                styles.wrongMessage,
-                { transform: [{ translateX: shakeAnim }] }
-              ]}
-            >
-              <Text style={styles.wrongText}>Wrong! Try again</Text>
-            </Animated.View>
-          )}
-
-          {/* Not In Puzzle Message */}
-          {showNotInPuzzleMessage && (
-            <Animated.View
-              style={[
-                styles.notInPuzzleMessage,
-                { transform: [{ translateX: shakeAnim }] }
-              ]}
-            >
-              <Text style={styles.notInPuzzleText}>Not in today's puzzle</Text>
-            </Animated.View>
-          )}
-
           {/* Clues Stack */}
           <View
             style={styles.cluesContainer}
@@ -789,21 +1030,38 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
               style={styles.inputWrapper}
               onLayout={(e: LayoutChangeEvent) => setInputContainerY(e.nativeEvent.layout.y)}
             >
-              <TextInput
-                ref={inputRef}
-                style={[styles.input, inputFocused && styles.inputFocused]}
-                value={guess}
-                onChangeText={(text) => {
-                  setGuess(text);
-                  setShowSuggestions(text.trim().length > 0);
-                }}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-                placeholder="Type player name..."
-                placeholderTextColor="#888888"
-                autoCapitalize="words"
-                autoCorrect={false}
-              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  ref={inputRef}
+                  style={[styles.input, inputFocused && styles.inputFocused]}
+                  value={guess}
+                  onChangeText={(text) => {
+                    setGuess(text);
+                    setShowSuggestions(text.trim().length > 0);
+                  }}
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
+                  placeholder="Type player name..."
+                  placeholderTextColor="#888888"
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  selectionColor="#1ABC9C"
+                />
+                {/* Circular Timer */}
+                <Animated.View
+                  style={[
+                    styles.timerCircle,
+                    {
+                      borderColor: getTimerColor(),
+                      transform: [{ scale: timerPulseAnim }],
+                    },
+                  ]}
+                >
+                  <Text style={[styles.timerText, { color: getTimerColor() }]}>
+                    {timeRemaining}
+                  </Text>
+                </Animated.View>
+              </View>
               {showSuggestions && filteredPlayers.length > 0 && (
                 <View style={styles.suggestionsContainer}>
                   {filteredPlayers.map((player, index) => (
@@ -845,17 +1103,6 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
             </TouchableOpacity>
           )}
 
-          {/* Play Again */}
-          {(solved || showAnswer) && (
-            <View style={styles.gameOverActions}>
-              <TouchableOpacity
-                style={styles.playAgainButton}
-                onPress={handleReset}
-              >
-                <Text style={styles.playAgainButtonText}>Play Again (Dev)</Text>
-              </TouchableOpacity>
-            </View>
-          )}
       </KeyboardAwareScrollView>
 
       {/* Confetti */}
@@ -882,10 +1129,50 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
           newXP={xpResult.newXP}
           previousLevel={calculateLevel(xpResult.previousXP)}
           newLevel={calculateLevel(xpResult.newXP)}
-          onClose={() => setShowXPModal(false)}
+          onClose={() => {
+            setShowXPModal(false);
+            // Show Level Up modal if user leveled up
+            if (xpResult.leveledUp) {
+              setTimeout(() => setShowLevelUpModal(true), 300);
+            } else {
+              checkAndShowLinkEmailPrompt();
+            }
+          }}
           sportColor={sportColor}
         />
       )}
+
+      {/* Level Up Modal */}
+      {xpResult && (
+        <LevelUpModal
+          visible={showLevelUpModal}
+          newLevel={calculateLevel(xpResult.newXP)}
+          previousLevel={calculateLevel(xpResult.previousXP)}
+          onClose={() => {
+            setShowLevelUpModal(false);
+            checkAndShowLinkEmailPrompt();
+          }}
+        />
+      )}
+
+      {/* Wrong Guess Toast */}
+      {showWrongMessage && (
+        <View style={styles.wrongToast}>
+          <Text style={styles.wrongToastText}>{wrongToastMessage}</Text>
+        </View>
+      )}
+
+      {/* Link Email Prompt Modal */}
+      <LinkEmailPromptModal
+        visible={showLinkEmailPrompt}
+        onLinkEmail={() => {
+          setShowLinkEmailPrompt(false);
+          if (onLinkEmail) {
+            onLinkEmail();
+          }
+        }}
+        onMaybeLater={handleLinkEmailPromptDismiss}
+      />
     </SafeAreaView>
   );
 }
@@ -1170,7 +1457,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 16,
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   input: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 16,
@@ -1184,6 +1477,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
+  },
+  timerCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 3,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  timerText: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
   },
   inputFocused: {
     borderColor: '#1ABC9C',
@@ -1301,34 +1612,44 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_700Bold',
   },
   giveUpButton: {
+    backgroundColor: '#F2C94C',
     paddingVertical: 14,
-    alignItems: 'center',
-  },
-  giveUpButtonText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontFamily: 'DMSans_500Medium',
-  },
-  gameOverActions: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  playAgainButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 28,
-    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
+    alignItems: 'center',
+    alignSelf: 'center',
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
   },
-  playAgainButtonText: {
+  giveUpButtonText: {
     color: '#1A1A1A',
     fontSize: 14,
     fontFamily: 'DMSans_900Black',
+    letterSpacing: 0.5,
+  },
+  wrongToast: {
+    position: 'absolute',
+    bottom: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: colors.error,
+    borderRadius: borderRadius.card,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    ...shadows.card,
+    elevation: 10,
+  },
+  wrongToastText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
   },
 });

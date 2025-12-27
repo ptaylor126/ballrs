@@ -6,9 +6,24 @@ import {
   Modal,
   TouchableOpacity,
   Animated,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { getXPForLevel } from '../lib/xpService';
+import { playSound } from '../lib/soundService';
+
+// Get level title based on level number
+function getLevelTitle(level: number): string {
+  if (level >= 100) return 'Hall of Famer';
+  if (level >= 50) return 'Legend';
+  if (level >= 40) return 'Master';
+  if (level >= 30) return 'Expert';
+  if (level >= 20) return 'Veteran';
+  if (level >= 10) return 'Pro';
+  if (level >= 5) return 'Rising Star';
+  return 'Rookie';
+}
 
 interface Props {
   visible: boolean;
@@ -21,6 +36,9 @@ interface Props {
   sportColor?: string;
 }
 
+const TEAL_COLOR = '#1ABC9C';
+const GRADIENT_COLORS = ['#C57AFB', '#F965B9'] as const;
+
 export default function XPEarnedModal({
   visible,
   xpEarned,
@@ -29,12 +47,13 @@ export default function XPEarnedModal({
   previousLevel,
   newLevel,
   onClose,
-  sportColor = '#E07A3D',
 }: Props) {
   const progressAnim = useRef(new Animated.Value(0)).current;
   const xpCountAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const xpBounceAnim = useRef(new Animated.Value(0)).current;
+  const levelPulseAnim = useRef(new Animated.Value(1)).current;
   const [displayXP, setDisplayXP] = useState(previousXP);
 
   const leveledUp = newLevel > previousLevel;
@@ -58,15 +77,25 @@ export default function XPEarnedModal({
       // Reset animations
       progressAnim.setValue(prevProgressPercent / 100);
       xpCountAnim.setValue(0);
-      scaleAnim.setValue(0.9);
+      scaleAnim.setValue(0.8);
       opacityAnim.setValue(0);
+      xpBounceAnim.setValue(0);
+      levelPulseAnim.setValue(1);
       setDisplayXP(previousXP);
+
+      // Haptic feedback
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      // Play sound
+      playSound('correct');
 
       // Entrance animation - scale and fade in together
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
-          friction: 8,
+          friction: 6,
           tension: 100,
           useNativeDriver: true,
         }),
@@ -77,7 +106,24 @@ export default function XPEarnedModal({
         }),
       ]).start();
 
-      // Delay before XP animation starts
+      // XP bounce animation (after modal appears)
+      setTimeout(() => {
+        Animated.sequence([
+          Animated.spring(xpBounceAnim, {
+            toValue: 1.2,
+            friction: 3,
+            tension: 200,
+            useNativeDriver: true,
+          }),
+          Animated.spring(xpBounceAnim, {
+            toValue: 1,
+            friction: 4,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, 200);
+
+      // Delay before XP counter animation starts
       setTimeout(() => {
         // Animate XP counter
         Animated.timing(xpCountAnim, {
@@ -92,7 +138,25 @@ export default function XPEarnedModal({
           duration: 1000,
           useNativeDriver: false,
         }).start();
-      }, 300);
+
+        // Pulse the level badge when bar fills
+        if (leveledUp) {
+          setTimeout(() => {
+            Animated.sequence([
+              Animated.timing(levelPulseAnim, {
+                toValue: 1.15,
+                duration: 150,
+                useNativeDriver: true,
+              }),
+              Animated.spring(levelPulseAnim, {
+                toValue: 1,
+                friction: 4,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, 800);
+        }
+      }, 400);
     }
   }, [visible]);
 
@@ -108,6 +172,11 @@ export default function XPEarnedModal({
   const progressWidth = progressAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0%', '100%'],
+  });
+
+  const xpScale = xpBounceAnim.interpolate({
+    inputRange: [0, 1, 1.2],
+    outputRange: [0.5, 1, 1.2],
   });
 
   return (
@@ -127,27 +196,41 @@ export default function XPEarnedModal({
             },
           ]}
         >
-          {/* XP Earned Header */}
+          {/* XP Earned Header with bounce animation */}
           <Text style={styles.xpEarnedLabel}>XP EARNED</Text>
-          <Text style={[styles.xpEarnedValue, { color: sportColor }]}>
+          <Animated.Text
+            style={[
+              styles.xpEarnedValue,
+              {
+                transform: [{ scale: xpScale }],
+              },
+            ]}
+          >
             +{xpEarned}
-          </Text>
+          </Animated.Text>
 
-          {/* Level Badge */}
-          <View style={styles.levelSection}>
-            <View style={[styles.levelBadge, { borderColor: sportColor }]}>
-              <Text style={[styles.levelNumber, { color: sportColor }]}>
-                {newLevel}
-              </Text>
+          {/* Level Badge with title */}
+          <Animated.View
+            style={[
+              styles.levelSection,
+              {
+                transform: [{ scale: levelPulseAnim }],
+              },
+            ]}
+          >
+            <View style={styles.levelBadge}>
+              <Text style={styles.levelLabel}>LEVEL</Text>
+              <Text style={styles.levelNumber}>{newLevel}</Text>
             </View>
+            <Text style={styles.levelTitle}>{getLevelTitle(newLevel)}</Text>
             {leveledUp && (
               <View style={styles.levelUpBadge}>
                 <Text style={styles.levelUpText}>LEVEL UP!</Text>
               </View>
             )}
-          </View>
+          </Animated.View>
 
-          {/* Progress Bar */}
+          {/* Progress Bar - Matching home page style */}
           <View style={styles.progressSection}>
             <View style={styles.progressBar}>
               <Animated.View
@@ -157,7 +240,7 @@ export default function XPEarnedModal({
                 ]}
               >
                 <LinearGradient
-                  colors={['#C57AFB', '#F965B9']}
+                  colors={[...GRADIENT_COLORS]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.progressFill}
@@ -188,55 +271,76 @@ export default function XPEarnedModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   content: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: '#000000',
-    padding: 24,
+    padding: 28,
     alignItems: 'center',
     width: '100%',
     maxWidth: 320,
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 4,
   },
   xpEarnedLabel: {
     fontSize: 12,
-    fontFamily: 'DMSans_900Black',
-    color: '#6B7280',
-    letterSpacing: 1,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+    letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   xpEarnedValue: {
-    fontSize: 48,
+    fontSize: 56,
     fontFamily: 'DMSans_900Black',
+    color: TEAL_COLOR,
     marginBottom: 20,
   },
   levelSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   levelBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     borderWidth: 3,
+    borderColor: '#000000',
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  levelLabel: {
+    fontSize: 10,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+    letterSpacing: 1,
+    marginBottom: -2,
   },
   levelNumber: {
-    fontSize: 32,
+    fontSize: 36,
     fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  levelTitle: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: '#666666',
+    marginTop: 8,
   },
   levelUpBadge: {
     backgroundColor: '#F2C94C',
@@ -263,9 +367,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   progressBar: {
-    height: 16,
+    height: 14,
     backgroundColor: '#E8E8E8',
-    borderRadius: 8,
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: '#000000',
     overflow: 'hidden',
@@ -276,24 +380,24 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     flex: 1,
-    borderRadius: 6,
+    borderRadius: 5,
   },
   xpLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   currentXP: {
-    fontSize: 14,
-    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    fontFamily: 'DMSans_600SemiBold',
     color: '#1A1A1A',
   },
   nextLevelXP: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'DMSans_500Medium',
-    color: '#1A1A1A',
+    color: '#888888',
   },
   button: {
-    backgroundColor: '#1ABC9C',
+    backgroundColor: TEAL_COLOR,
     paddingHorizontal: 48,
     paddingVertical: 14,
     borderRadius: 16,
@@ -309,7 +413,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'DMSans_900Black',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
