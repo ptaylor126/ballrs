@@ -27,10 +27,12 @@ import {
 import { getProfile, updateCountry } from '../lib/profilesService';
 import { countryCodeToFlag, COUNTRIES, Country } from '../lib/countryUtils';
 import { soundService } from '../lib/soundService';
+import FeedbackModal from '../components/FeedbackModal';
 
 // Icons
 const fireIcon = require('../../assets/images/icon-fire.png');
 const trophyIcon = require('../../assets/images/icon-trophy.png');
+const speechIcon = require('../../assets/images/icon-speech.png');
 
 // Get level title based on level number
 function getLevelTitle(level: number): string {
@@ -70,6 +72,9 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showFeedbackToast, setShowFeedbackToast] = useState(false);
+  const feedbackToastAnim = useRef(new Animated.Value(0)).current;
 
   // Initialize sound setting
   useEffect(() => {
@@ -82,6 +87,26 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
     const newValue = !soundEnabled;
     setSoundEnabled(newValue);
     await soundService.setEnabled(newValue);
+  };
+
+  const handleFeedbackSuccess = () => {
+    setShowFeedbackToast(true);
+    feedbackToastAnim.setValue(0);
+    Animated.sequence([
+      Animated.timing(feedbackToastAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.delay(2500),
+      Animated.timing(feedbackToastAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowFeedbackToast(false);
+    });
   };
 
   // Pulsing animation for skeleton loaders
@@ -455,6 +480,16 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                   </TouchableOpacity>
                 </>
               ) : null}
+
+              {/* Send Feedback */}
+              <View style={styles.settingDivider} />
+              <TouchableOpacity style={styles.settingRow} onPress={() => setShowFeedbackModal(true)}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>Send Feedback</Text>
+                  <Text style={styles.settingDescription}>Tell us what you think</Text>
+                </View>
+                <Image source={speechIcon} style={styles.feedbackIcon} />
+              </TouchableOpacity>
             </View>
 
             {/* Member Info */}
@@ -528,6 +563,37 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
           </View>
         </View>
       </Modal>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        visible={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        userId={user?.id || null}
+        username={cachedUsername || null}
+        onSuccess={handleFeedbackSuccess}
+      />
+
+      {/* Feedback Success Toast */}
+      {showFeedbackToast && (
+        <Animated.View
+          style={[
+            styles.feedbackToast,
+            {
+              opacity: feedbackToastAnim,
+              transform: [
+                {
+                  translateY: feedbackToastAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-50, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Text style={styles.feedbackToastText}>Thanks for your feedback!</Text>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
@@ -926,7 +992,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toggleButtonActive: {
-    backgroundColor: colors.success,
+    backgroundColor: colors.accent,
   },
   toggleKnob: {
     width: 24,
@@ -1040,6 +1106,33 @@ const styles = StyleSheet.create({
   countryOptionCheck: {
     fontSize: 18,
     color: '#1ABC9C',
+    fontFamily: 'DMSans_700Bold',
+  },
+  feedbackIcon: {
+    width: 20,
+    height: 20,
+  },
+  feedbackToast: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    backgroundColor: colors.success,
+    borderRadius: borderRadius.card,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  feedbackToastText: {
+    ...typography.body,
+    color: '#FFFFFF',
     fontFamily: 'DMSans_700Bold',
   },
 });

@@ -17,11 +17,12 @@ class SoundService {
     try {
       // Load sound preference
       const storedEnabled = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
-      // Sound is disabled until audio files are fixed
-      this.enabled = false; // storedEnabled !== 'false';
+      // Default to true if not set
+      this.enabled = storedEnabled !== 'false';
       this.initialized = true;
     } catch (error) {
-      // Silently fail - sounds are disabled anyway
+      this.enabled = true; // Default to enabled
+      this.initialized = true;
     }
   }
 
@@ -46,9 +47,8 @@ class SoundService {
   }
 
   async setEnabled(enabled: boolean): Promise<void> {
-    // Sounds disabled - no-op for now
-    // this.enabled = enabled;
-    // await AsyncStorage.setItem(SOUND_ENABLED_KEY, String(enabled));
+    this.enabled = enabled;
+    await AsyncStorage.setItem(SOUND_ENABLED_KEY, String(enabled));
   }
 
   isEnabled(): boolean {
