@@ -48,6 +48,7 @@ import {
   getLeagueStatus,
 } from '../lib/leaguesService';
 import { supabase } from '../lib/supabase';
+import { getFallbackLeaderboard, getFallbackPlayerCount, LeaderboardEntry } from '../lib/pointsService';
 
 interface Props {
   onBack?: () => void;
@@ -57,15 +58,6 @@ interface Props {
 }
 
 type TabType = 'leagues' | 'global';
-
-interface LeaderboardEntry {
-  user_id: string;
-  username: string;
-  country: string | null;
-  points: number;
-  avatar: string | null;
-  rank: number;
-}
 
 const getSportLabel = (sport: string) => {
   switch (sport) {
@@ -132,29 +124,12 @@ export default function LeaguesScreen({
   }, [user]);
 
   const loadLeaderboard = useCallback(async () => {
-    // Fetch leaderboard data using RPC function with points
-    const { data, error } = await supabase
-      .rpc('get_global_leaderboard', {
-        p_time_period: 'all_time',
-        p_sport_filter: null,
-        p_limit: 50
-      });
+    // Query user_stats directly for leaderboard (RPC function has a bug)
+    const data = await getFallbackLeaderboard(50);
+    const count = await getFallbackPlayerCount();
 
-    if (error) {
-      console.error('Error fetching leaderboard:', error);
-      return;
-    }
-
-    // Data already comes with rank from the RPC
-    setLeaderboard(data || []);
-
-    // Fetch total user count using RPC function
-    const { data: countData, error: countError } = await supabase
-      .rpc('get_leaderboard_player_count', { p_time_period: 'all_time' });
-
-    if (!countError && countData !== null) {
-      setTotalUsers(countData);
-    }
+    setLeaderboard(data);
+    setTotalUsers(count);
   }, []);
 
   const loadData = useCallback(async () => {

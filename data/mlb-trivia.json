@@ -1,1782 +1,3390 @@
 [
   {
-    "id": "mlb_q1",
-    "question": "Who holds the MLB single-season home run record with 73?",
-    "options": ["Mark McGwire", "Sammy Sosa", "Barry Bonds", "Babe Ruth"],
-    "correctAnswer": "Barry Bonds",
+    "id": "nba_q1",
+    "question": "Who holds the NBA record for most points in a single game?",
+    "options": [
+      "Kobe Bryant",
+      "Michael Jordan",
+      "Wilt Chamberlain",
+      "LeBron James"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
     "difficulty": "easy",
-    "category": "records",
-    "team": "Giants"
+    "category": "records"
   },
   {
-    "id": "mlb_q2",
-    "question": "Which team won the 2024 World Series?",
-    "options": ["New York Yankees", "Los Angeles Dodgers", "Philadelphia Phillies", "San Diego Padres"],
-    "correctAnswer": "Los Angeles Dodgers",
-    "difficulty": "easy",
-    "category": "current",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q3",
-    "question": "Who was the 2024 AL Cy Young Award winner?",
-    "options": ["Gerrit Cole", "Tarik Skubal", "Corbin Burnes", "Cole Ragans"],
-    "correctAnswer": "Tarik Skubal",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Tigers"
-  },
-  {
-    "id": "mlb_q4",
-    "question": "Which player set the AL single-season home run record with 62 in 2022?",
-    "options": ["Shohei Ohtani", "Aaron Judge", "Kyle Schwarber", "Pete Alonso"],
-    "correctAnswer": "Aaron Judge",
-    "difficulty": "easy",
-    "category": "records",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q5",
-    "question": "Who was the 2024 World Series MVP?",
-    "options": ["Mookie Betts", "Shohei Ohtani", "Freddie Freeman", "Walker Buehler"],
-    "correctAnswer": "Freddie Freeman",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q6",
-    "question": "Which player signed a record $700 million contract with the Dodgers?",
-    "options": ["Mookie Betts", "Freddie Freeman", "Juan Soto", "Shohei Ohtani"],
-    "correctAnswer": "Shohei Ohtani",
-    "difficulty": "easy",
-    "category": "transfers",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q7",
-    "question": "Who holds the career home run record with 762?",
-    "options": ["Hank Aaron", "Babe Ruth", "Barry Bonds", "Alex Rodriguez"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "easy",
-    "category": "records",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q8",
-    "question": "Who was the first player to hit 40 home runs and steal 70 bases in a season?",
-    "options": ["Rickey Henderson", "Ronald Acuña Jr.", "Trea Turner", "Bobby Bonds"],
-    "correctAnswer": "Ronald Acuña Jr.",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q9",
-    "question": "Which team has won the most World Series titles?",
-    "options": ["St. Louis Cardinals", "Boston Red Sox", "Los Angeles Dodgers", "New York Yankees"],
-    "correctAnswer": "New York Yankees",
+    "id": "nba_q2",
+    "question": "Which team has won the most NBA championships?",
+    "options": [
+      "Los Angeles Lakers",
+      "Chicago Bulls",
+      "Boston Celtics",
+      "Golden State Warriors"
+    ],
+    "correctAnswer": "Boston Celtics",
     "difficulty": "easy",
     "category": "team",
-    "team": "Yankees"
+    "team": "Celtics"
   },
   {
-    "id": "mlb_q10",
-    "question": "Who won back-to-back AL MVP awards in 2021 and 2023?",
-    "options": ["Mike Trout", "Aaron Judge", "Shohei Ohtani", "Mookie Betts"],
-    "correctAnswer": "Shohei Ohtani",
-    "difficulty": "easy",
-    "category": "awards",
-    "team": "Angels"
-  },
-  {
-    "id": "mlb_q11",
-    "question": "Which stadium is known as 'The Friendly Confines'?",
-    "options": ["Fenway Park", "Yankee Stadium", "Wrigley Field", "Dodger Stadium"],
-    "correctAnswer": "Wrigley Field",
-    "difficulty": "medium",
-    "category": "team",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q12",
-    "question": "Who was the 2024 NL Cy Young Award winner?",
-    "options": ["Zack Wheeler", "Chris Sale", "Spencer Strider", "Corbin Burnes"],
-    "correctAnswer": "Chris Sale",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q13",
-    "question": "Which player signed a record $765 million contract with the Mets?",
-    "options": ["Shohei Ohtani", "Juan Soto", "Mookie Betts", "Francisco Lindor"],
-    "correctAnswer": "Juan Soto",
-    "difficulty": "easy",
-    "category": "transfers",
-    "team": "Mets"
-  },
-  {
-    "id": "mlb_q14",
-    "question": "Who holds the career strikeout record for pitchers?",
-    "options": ["Roger Clemens", "Randy Johnson", "Nolan Ryan", "Steve Carlton"],
-    "correctAnswer": "Nolan Ryan",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q15",
-    "question": "Which team won the first World Series in 1903?",
-    "options": ["Pittsburgh Pirates", "Boston Americans", "Chicago Cubs", "New York Giants"],
-    "correctAnswer": "Boston Americans",
-    "difficulty": "hard",
-    "category": "history",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q16",
-    "question": "Who was the 2024 NL Rookie of the Year?",
-    "options": ["Jackson Merrill", "Paul Skenes", "Masyn Winn", "Jackson Chourio"],
-    "correctAnswer": "Paul Skenes",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Pirates"
-  },
-  {
-    "id": "mlb_q17",
-    "question": "Which pitcher has the most career wins?",
-    "options": ["Walter Johnson", "Cy Young", "Grover Alexander", "Warren Spahn"],
-    "correctAnswer": "Cy Young",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q18",
-    "question": "Who hit 'The Shot Heard Round the World' in 1951?",
-    "options": ["Willie Mays", "Bobby Thomson", "Jackie Robinson", "Duke Snider"],
-    "correctAnswer": "Bobby Thomson",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q19",
-    "question": "Which player has the longest consecutive games played streak?",
-    "options": ["Lou Gehrig", "Cal Ripken Jr.", "Pete Rose", "Steve Garvey"],
-    "correctAnswer": "Cal Ripken Jr.",
+    "id": "nba_q3",
+    "question": "Who is the NBA's all-time leading scorer?",
+    "options": [
+      "Kareem Abdul-Jabbar",
+      "Karl Malone",
+      "LeBron James",
+      "Michael Jordan"
+    ],
+    "correctAnswer": "LeBron James",
     "difficulty": "easy",
     "category": "records",
-    "team": "Orioles"
+    "team": "Lakers"
   },
   {
-    "id": "mlb_q20",
-    "question": "Who was the last player to hit .400 in a season?",
-    "options": ["Tony Gwynn", "Ted Williams", "Rod Carew", "George Brett"],
-    "correctAnswer": "Ted Williams",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q21",
-    "question": "Which team broke the 'Curse of the Bambino' in 2004?",
-    "options": ["Chicago Cubs", "Cleveland Indians", "Boston Red Sox", "Chicago White Sox"],
-    "correctAnswer": "Boston Red Sox",
-    "difficulty": "easy",
-    "category": "moments",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q22",
-    "question": "Who holds the record for most career stolen bases?",
-    "options": ["Lou Brock", "Tim Raines", "Rickey Henderson", "Ty Cobb"],
-    "correctAnswer": "Rickey Henderson",
+    "id": "nba_q4",
+    "question": "How many points did Wilt Chamberlain score in his record-setting game?",
+    "options": [
+      "81",
+      "100",
+      "92",
+      "88"
+    ],
+    "correctAnswer": "100",
     "difficulty": "medium",
     "category": "records"
   },
   {
-    "id": "mlb_q23",
-    "question": "Which team won the 2023 World Series?",
-    "options": ["Arizona Diamondbacks", "Philadelphia Phillies", "Houston Astros", "Texas Rangers"],
-    "correctAnswer": "Texas Rangers",
-    "difficulty": "easy",
-    "category": "current",
-    "team": "Rangers"
-  },
-  {
-    "id": "mlb_q24",
-    "question": "Who was the 2023 World Series MVP?",
-    "options": ["Marcus Semien", "Corey Seager", "Adolis García", "Nathan Eovaldi"],
-    "correctAnswer": "Corey Seager",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Rangers"
-  },
-  {
-    "id": "mlb_q25",
-    "question": "Which stadium has the 'Green Monster'?",
-    "options": ["Wrigley Field", "Yankee Stadium", "Fenway Park", "Camden Yards"],
-    "correctAnswer": "Fenway Park",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q26",
-    "question": "Who holds the single-season stolen base record with 130?",
-    "options": ["Lou Brock", "Vince Coleman", "Rickey Henderson", "Tim Raines"],
-    "correctAnswer": "Rickey Henderson",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q27",
-    "question": "Which pitcher threw the only perfect game in World Series history?",
-    "options": ["Sandy Koufax", "Bob Gibson", "Don Larsen", "Whitey Ford"],
-    "correctAnswer": "Don Larsen",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q28",
-    "question": "Who hit 755 career home runs, second most all-time?",
-    "options": ["Babe Ruth", "Willie Mays", "Hank Aaron", "Alex Rodriguez"],
-    "correctAnswer": "Hank Aaron",
-    "difficulty": "easy",
-    "category": "records",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q29",
-    "question": "Which team ended a 108-year championship drought in 2016?",
-    "options": ["Cleveland Indians", "Chicago Cubs", "Boston Red Sox", "Chicago White Sox"],
-    "correctAnswer": "Chicago Cubs",
-    "difficulty": "easy",
-    "category": "moments",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q30",
-    "question": "Which player is known as 'The Sultan of Swat'?",
-    "options": ["Lou Gehrig", "Babe Ruth", "Ty Cobb", "Joe DiMaggio"],
-    "correctAnswer": "Babe Ruth",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q31",
-    "question": "Which pitcher has won the most Cy Young Awards?",
-    "options": ["Randy Johnson", "Greg Maddux", "Roger Clemens", "Steve Carlton"],
-    "correctAnswer": "Roger Clemens",
+    "id": "nba_q5",
+    "question": "Which player has won the most NBA MVP awards?",
+    "options": [
+      "Michael Jordan",
+      "LeBron James",
+      "Kareem Abdul-Jabbar",
+      "Bill Russell"
+    ],
+    "correctAnswer": "Kareem Abdul-Jabbar",
     "difficulty": "medium",
     "category": "awards"
   },
   {
-    "id": "mlb_q32",
-    "question": "Who broke baseball's color barrier in 1947?",
-    "options": ["Satchel Paige", "Willie Mays", "Jackie Robinson", "Larry Doby"],
-    "correctAnswer": "Jackie Robinson",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q33",
-    "question": "Which team plays at Oracle Park?",
-    "options": ["Oakland Athletics", "Los Angeles Dodgers", "San Diego Padres", "San Francisco Giants"],
-    "correctAnswer": "San Francisco Giants",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q34",
-    "question": "Who holds the record for most hits in a career?",
-    "options": ["Ty Cobb", "Hank Aaron", "Pete Rose", "Stan Musial"],
-    "correctAnswer": "Pete Rose",
-    "difficulty": "easy",
-    "category": "records",
-    "team": "Reds"
-  },
-  {
-    "id": "mlb_q35",
-    "question": "Who was the 2022 AL Rookie of the Year?",
-    "options": ["Adley Rutschman", "Bobby Witt Jr.", "Julio Rodríguez", "Jeremy Peña"],
-    "correctAnswer": "Julio Rodríguez",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Mariners"
-  },
-  {
-    "id": "mlb_q36",
-    "question": "Who threw seven no-hitters, the most in MLB history?",
-    "options": ["Sandy Koufax", "Bob Feller", "Nolan Ryan", "Randy Johnson"],
-    "correctAnswer": "Nolan Ryan",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q37",
-    "question": "Which stadium opened in 1912 and is the oldest in MLB?",
-    "options": ["Wrigley Field", "Yankee Stadium", "Fenway Park", "Dodger Stadium"],
-    "correctAnswer": "Fenway Park",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q38",
-    "question": "Who was the first overall pick in the 2023 MLB Draft?",
-    "options": ["Dylan Crews", "Paul Skenes", "Wyatt Langford", "Max Clark"],
-    "correctAnswer": "Paul Skenes",
-    "difficulty": "medium",
-    "category": "transfers",
-    "team": "Pirates"
-  },
-  {
-    "id": "mlb_q39",
-    "question": "Which player hit 60 home runs in 1927?",
-    "options": ["Lou Gehrig", "Jimmie Foxx", "Babe Ruth", "Hack Wilson"],
-    "correctAnswer": "Babe Ruth",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q40",
-    "question": "Who won the 2023 NL MVP?",
-    "options": ["Mookie Betts", "Freddie Freeman", "Ronald Acuña Jr.", "Matt Olson"],
-    "correctAnswer": "Ronald Acuña Jr.",
-    "difficulty": "easy",
-    "category": "awards",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q41",
-    "question": "Which team plays at Truist Park?",
-    "options": ["Miami Marlins", "Washington Nationals", "Atlanta Braves", "Tampa Bay Rays"],
-    "correctAnswer": "Atlanta Braves",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q42",
-    "question": "Who holds the record for most RBIs in a season with 191?",
-    "options": ["Lou Gehrig", "Hank Greenberg", "Hack Wilson", "Jimmie Foxx"],
-    "correctAnswer": "Hack Wilson",
-    "difficulty": "hard",
-    "category": "records",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q43",
-    "question": "Which player is nicknamed 'El Niño'?",
-    "options": ["Vladimir Guerrero Jr.", "Juan Soto", "Fernando Tatis Jr.", "Ronald Acuña Jr."],
-    "correctAnswer": "Fernando Tatis Jr.",
-    "difficulty": "medium",
-    "category": "current",
-    "team": "Padres"
-  },
-  {
-    "id": "mlb_q44",
-    "question": "Who was the first Japanese position player to win MVP?",
-    "options": ["Hideki Matsui", "Ichiro Suzuki", "Shohei Ohtani", "Kazuo Matsui"],
-    "correctAnswer": "Ichiro Suzuki",
-    "difficulty": "hard",
-    "category": "history",
-    "team": "Mariners"
-  },
-  {
-    "id": "mlb_q45",
-    "question": "Which team won the 2022 World Series?",
-    "options": ["Philadelphia Phillies", "Los Angeles Dodgers", "Houston Astros", "New York Yankees"],
-    "correctAnswer": "Houston Astros",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Astros"
-  },
-  {
-    "id": "mlb_q46",
-    "question": "How many games did Joe DiMaggio's famous hitting streak last?",
-    "options": ["44", "56", "61", "50"],
-    "correctAnswer": "56",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q47",
-    "question": "Which pitcher holds the record for most career saves?",
-    "options": ["Trevor Hoffman", "Mariano Rivera", "Lee Smith", "Dennis Eckersley"],
-    "correctAnswer": "Mariano Rivera",
-    "difficulty": "easy",
-    "category": "records",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q48",
-    "question": "Who was the 2024 AL Rookie of the Year?",
-    "options": ["Colton Cowser", "Austin Wells", "Luis Gil", "Yoshinobu Yamamoto"],
-    "correctAnswer": "Luis Gil",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q49",
-    "question": "Which team has the longest current World Series drought?",
-    "options": ["Seattle Mariners", "Cleveland Guardians", "San Diego Padres", "Milwaukee Brewers"],
-    "correctAnswer": "Cleveland Guardians",
-    "difficulty": "hard",
-    "category": "team",
-    "team": "Guardians"
-  },
-  {
-    "id": "mlb_q50",
-    "question": "Who holds the record for most Gold Glove Awards?",
-    "options": ["Ozzie Smith", "Roberto Clemente", "Greg Maddux", "Brooks Robinson"],
-    "correctAnswer": "Greg Maddux",
-    "difficulty": "hard",
-    "category": "awards",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q51",
-    "question": "Which team won the 2021 World Series?",
-    "options": ["Houston Astros", "Los Angeles Dodgers", "Atlanta Braves", "Boston Red Sox"],
-    "correctAnswer": "Atlanta Braves",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q52",
-    "question": "Who won three consecutive NL MVP awards from 1942-1944?",
-    "options": ["Ted Williams", "Joe DiMaggio", "Stan Musial", "Bob Elliott"],
-    "correctAnswer": "Stan Musial",
-    "difficulty": "hard",
-    "category": "awards",
-    "team": "Cardinals"
-  },
-  {
-    "id": "mlb_q53",
-    "question": "Which team plays at Petco Park?",
-    "options": ["Los Angeles Angels", "San Diego Padres", "Arizona Diamondbacks", "Colorado Rockies"],
-    "correctAnswer": "San Diego Padres",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Padres"
-  },
-  {
-    "id": "mlb_q54",
-    "question": "Who hit the 'walk-off' home run to win Game 7 of the 2001 World Series?",
-    "options": ["Curt Schilling", "Randy Johnson", "Luis Gonzalez", "Matt Williams"],
-    "correctAnswer": "Luis Gonzalez",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Diamondbacks"
-  },
-  {
-    "id": "mlb_q55",
-    "question": "Which pitcher won 27 games in a season in 1968?",
-    "options": ["Bob Gibson", "Denny McLain", "Juan Marichal", "Tom Seaver"],
-    "correctAnswer": "Denny McLain",
-    "difficulty": "hard",
-    "category": "records",
-    "team": "Tigers"
-  },
-  {
-    "id": "mlb_q56",
-    "question": "Who was the 2020 World Series MVP?",
-    "options": ["Mookie Betts", "Clayton Kershaw", "Corey Seager", "Justin Turner"],
-    "correctAnswer": "Corey Seager",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q57",
-    "question": "Which team won back-to-back World Series in 1992 and 1993?",
-    "options": ["Atlanta Braves", "Toronto Blue Jays", "Oakland Athletics", "Minnesota Twins"],
-    "correctAnswer": "Toronto Blue Jays",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Blue Jays"
-  },
-  {
-    "id": "mlb_q58",
-    "question": "Who holds the record for most career walks?",
-    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Rickey Henderson"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q59",
-    "question": "Which player hit a walk-off home run in Game 6 of the 2011 World Series?",
-    "options": ["Albert Pujols", "David Freese", "Matt Holliday", "Lance Berkman"],
-    "correctAnswer": "David Freese",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Cardinals"
-  },
-  {
-    "id": "mlb_q60",
-    "question": "Who was the first player to hit 500 career home runs?",
-    "options": ["Babe Ruth", "Jimmie Foxx", "Mel Ott", "Ted Williams"],
-    "correctAnswer": "Babe Ruth",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q61",
-    "question": "Which team plays at Citizens Bank Park?",
-    "options": ["Pittsburgh Pirates", "Philadelphia Phillies", "Baltimore Orioles", "Washington Nationals"],
-    "correctAnswer": "Philadelphia Phillies",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Phillies"
-  },
-  {
-    "id": "mlb_q62",
-    "question": "Who won the 2019 World Series MVP?",
-    "options": ["Juan Soto", "Max Scherzer", "Stephen Strasburg", "Anthony Rendon"],
-    "correctAnswer": "Stephen Strasburg",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Nationals"
-  },
-  {
-    "id": "mlb_q63",
-    "question": "Which pitcher has the lowest career ERA (minimum 1000 innings)?",
-    "options": ["Walter Johnson", "Christy Mathewson", "Ed Walsh", "Addie Joss"],
-    "correctAnswer": "Ed Walsh",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q64",
-    "question": "Who hit the 'Homer in the Gloamin'' in 1938?",
-    "options": ["Gabby Hartnett", "Billy Herman", "Stan Hack", "Phil Cavarretta"],
-    "correctAnswer": "Gabby Hartnett",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q65",
-    "question": "Which team won the 2019 World Series?",
-    "options": ["Houston Astros", "Los Angeles Dodgers", "Washington Nationals", "New York Yankees"],
-    "correctAnswer": "Washington Nationals",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Nationals"
-  },
-  {
-    "id": "mlb_q66",
-    "question": "Who holds the record for most career games played?",
-    "options": ["Cal Ripken Jr.", "Pete Rose", "Carl Yastrzemski", "Hank Aaron"],
-    "correctAnswer": "Pete Rose",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Reds"
-  },
-  {
-    "id": "mlb_q67",
-    "question": "Which team plays at T-Mobile Park?",
-    "options": ["Seattle Mariners", "Oakland Athletics", "San Francisco Giants", "Los Angeles Angels"],
-    "correctAnswer": "Seattle Mariners",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Mariners"
-  },
-  {
-    "id": "mlb_q68",
-    "question": "Who was the 2018 AL MVP?",
-    "options": ["Mike Trout", "Jose Altuve", "Mookie Betts", "J.D. Martinez"],
-    "correctAnswer": "Mookie Betts",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q69",
-    "question": "Which pitcher threw a perfect game in 2012 for the Giants?",
-    "options": ["Tim Lincecum", "Matt Cain", "Madison Bumgarner", "Barry Zito"],
-    "correctAnswer": "Matt Cain",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q70",
-    "question": "Who holds the record for most strikeouts in a single game with 20?",
-    "options": ["Nolan Ryan", "Roger Clemens", "Kerry Wood", "Max Scherzer"],
-    "correctAnswer": "Roger Clemens",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q71",
-    "question": "Which team won the 2018 World Series?",
-    "options": ["Los Angeles Dodgers", "Houston Astros", "Boston Red Sox", "New York Yankees"],
-    "correctAnswer": "Boston Red Sox",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q72",
-    "question": "Who was the 2017 NL MVP?",
-    "options": ["Kris Bryant", "Giancarlo Stanton", "Joey Votto", "Paul Goldschmidt"],
-    "correctAnswer": "Giancarlo Stanton",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Marlins"
-  },
-  {
-    "id": "mlb_q73",
-    "question": "Which team plays at Coors Field?",
-    "options": ["Arizona Diamondbacks", "Colorado Rockies", "San Diego Padres", "Los Angeles Dodgers"],
-    "correctAnswer": "Colorado Rockies",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Rockies"
-  },
-  {
-    "id": "mlb_q74",
-    "question": "Who caught the final out of the 1954 World Series with 'The Catch'?",
-    "options": ["Duke Snider", "Mickey Mantle", "Willie Mays", "Jackie Robinson"],
-    "correctAnswer": "Willie Mays",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q75",
-    "question": "Which pitcher has the most career shutouts?",
-    "options": ["Nolan Ryan", "Walter Johnson", "Grover Alexander", "Cy Young"],
-    "correctAnswer": "Walter Johnson",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q76",
-    "question": "Who won the 2016 World Series MVP?",
-    "options": ["Kris Bryant", "Anthony Rizzo", "Ben Zobrist", "Jake Arrieta"],
-    "correctAnswer": "Ben Zobrist",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q77",
-    "question": "Which team won the 2017 World Series?",
-    "options": ["Los Angeles Dodgers", "Houston Astros", "New York Yankees", "Cleveland Indians"],
-    "correctAnswer": "Houston Astros",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Astros"
-  },
-  {
-    "id": "mlb_q78",
-    "question": "Who holds the record for most consecutive hitless innings pitched?",
-    "options": ["Nolan Ryan", "Orel Hershiser", "Don Drysdale", "Bob Gibson"],
-    "correctAnswer": "Orel Hershiser",
-    "difficulty": "hard",
-    "category": "records",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q79",
-    "question": "Which team plays at Yankee Stadium?",
-    "options": ["New York Mets", "New York Yankees", "Boston Red Sox", "Philadelphia Phillies"],
-    "correctAnswer": "New York Yankees",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q80",
-    "question": "Who hit the first World Series walk-off home run in Game 7?",
-    "options": ["Bill Mazeroski", "Kirk Gibson", "Joe Carter", "Carlton Fisk"],
-    "correctAnswer": "Bill Mazeroski",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Pirates"
-  },
-  {
-    "id": "mlb_q81",
-    "question": "Who was the 2015 NL Cy Young Award winner?",
-    "options": ["Clayton Kershaw", "Zack Greinke", "Jake Arrieta", "Max Scherzer"],
-    "correctAnswer": "Jake Arrieta",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q82",
-    "question": "Which team won their first World Series in 2001?",
-    "options": ["Tampa Bay Rays", "Arizona Diamondbacks", "Colorado Rockies", "Seattle Mariners"],
-    "correctAnswer": "Arizona Diamondbacks",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Diamondbacks"
-  },
-  {
-    "id": "mlb_q83",
-    "question": "Who holds the record for most career doubles?",
-    "options": ["Tris Speaker", "Pete Rose", "Stan Musial", "Craig Biggio"],
-    "correctAnswer": "Tris Speaker",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q84",
-    "question": "Which team plays at Minute Maid Park?",
-    "options": ["Texas Rangers", "Houston Astros", "Atlanta Braves", "Tampa Bay Rays"],
-    "correctAnswer": "Houston Astros",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Astros"
-  },
-  {
-    "id": "mlb_q85",
-    "question": "Who hit 'The Homer' off Mitch Williams in the 1993 World Series?",
-    "options": ["Paul Molitor", "Roberto Alomar", "Joe Carter", "John Olerud"],
-    "correctAnswer": "Joe Carter",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Blue Jays"
-  },
-  {
-    "id": "mlb_q86",
-    "question": "Who was the 2014 AL MVP?",
-    "options": ["Miguel Cabrera", "Mike Trout", "Felix Hernandez", "Robinson Cano"],
-    "correctAnswer": "Mike Trout",
-    "difficulty": "easy",
-    "category": "awards",
-    "team": "Angels"
-  },
-  {
-    "id": "mlb_q87",
-    "question": "Which team won the 2015 World Series?",
-    "options": ["New York Mets", "Kansas City Royals", "Toronto Blue Jays", "Chicago Cubs"],
-    "correctAnswer": "Kansas City Royals",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Royals"
-  },
-  {
-    "id": "mlb_q88",
-    "question": "Who holds the record for most triples in a career?",
-    "options": ["Ty Cobb", "Sam Crawford", "Honus Wagner", "Tris Speaker"],
-    "correctAnswer": "Sam Crawford",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q89",
-    "question": "Which team plays at Busch Stadium?",
-    "options": ["Kansas City Royals", "Milwaukee Brewers", "St. Louis Cardinals", "Cincinnati Reds"],
-    "correctAnswer": "St. Louis Cardinals",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Cardinals"
-  },
-  {
-    "id": "mlb_q90",
-    "question": "Who threw a no-hitter in his MLB debut in 1953?",
-    "options": ["Don Larsen", "Bobo Holloman", "Bob Feller", "Nolan Ryan"],
-    "correctAnswer": "Bobo Holloman",
-    "difficulty": "hard",
-    "category": "moments"
-  },
-  {
-    "id": "mlb_q91",
-    "question": "Who was the 2013 AL MVP?",
-    "options": ["Chris Davis", "Miguel Cabrera", "Mike Trout", "Robinson Cano"],
-    "correctAnswer": "Miguel Cabrera",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Tigers"
-  },
-  {
-    "id": "mlb_q92",
-    "question": "Which team won the 2014 World Series?",
-    "options": ["Kansas City Royals", "San Francisco Giants", "St. Louis Cardinals", "Oakland Athletics"],
-    "correctAnswer": "San Francisco Giants",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q93",
-    "question": "Who holds the record for highest career batting average?",
-    "options": ["Ted Williams", "Ty Cobb", "Rogers Hornsby", "Joe Jackson"],
-    "correctAnswer": "Ty Cobb",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q94",
-    "question": "Which team plays at American Family Field?",
-    "options": ["Minnesota Twins", "Milwaukee Brewers", "Chicago White Sox", "Detroit Tigers"],
-    "correctAnswer": "Milwaukee Brewers",
-    "difficulty": "medium",
-    "category": "team",
-    "team": "Brewers"
-  },
-  {
-    "id": "mlb_q95",
-    "question": "Who hit a home run in his final career at-bat in 1960?",
-    "options": ["Mickey Mantle", "Ted Williams", "Stan Musial", "Willie Mays"],
-    "correctAnswer": "Ted Williams",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q96",
-    "question": "Who was the 2012 NL MVP?",
-    "options": ["Ryan Braun", "Andrew McCutchen", "Buster Posey", "Joey Votto"],
-    "correctAnswer": "Buster Posey",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q97",
-    "question": "Which team won the 2013 World Series?",
-    "options": ["St. Louis Cardinals", "Detroit Tigers", "Boston Red Sox", "Los Angeles Dodgers"],
-    "correctAnswer": "Boston Red Sox",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q98",
-    "question": "Who holds the record for most grand slams in a career?",
-    "options": ["Manny Ramirez", "Eddie Murray", "Lou Gehrig", "Alex Rodriguez"],
-    "correctAnswer": "Alex Rodriguez",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q99",
-    "question": "Which team plays at Tropicana Field?",
-    "options": ["Miami Marlins", "Tampa Bay Rays", "Atlanta Braves", "Washington Nationals"],
-    "correctAnswer": "Tampa Bay Rays",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Rays"
-  },
-  {
-    "id": "mlb_q100",
-    "question": "Who caught the final out of the 2004 World Series?",
-    "options": ["Jason Varitek", "Doug Mientkiewicz", "Kevin Millar", "David Ortiz"],
-    "correctAnswer": "Doug Mientkiewicz",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q101",
-    "question": "Who was the 2011 AL Cy Young Award winner?",
-    "options": ["CC Sabathia", "Justin Verlander", "Felix Hernandez", "Jered Weaver"],
-    "correctAnswer": "Justin Verlander",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Tigers"
-  },
-  {
-    "id": "mlb_q102",
-    "question": "Which team won the 2012 World Series?",
-    "options": ["Detroit Tigers", "San Francisco Giants", "St. Louis Cardinals", "Texas Rangers"],
-    "correctAnswer": "San Francisco Giants",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q103",
-    "question": "Who holds the record for most innings pitched in a career?",
-    "options": ["Nolan Ryan", "Cy Young", "Pud Galvin", "Walter Johnson"],
-    "correctAnswer": "Cy Young",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q104",
-    "question": "Which team plays at Globe Life Field?",
-    "options": ["Houston Astros", "Texas Rangers", "Arizona Diamondbacks", "Colorado Rockies"],
-    "correctAnswer": "Texas Rangers",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Rangers"
-  },
-  {
-    "id": "mlb_q105",
-    "question": "Who hit the famous 'Pine Tar' home run in 1983?",
-    "options": ["Don Mattingly", "George Brett", "Wade Boggs", "Robin Yount"],
-    "correctAnswer": "George Brett",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Royals"
-  },
-  {
-    "id": "mlb_q106",
-    "question": "Who was the 2010 NL MVP?",
-    "options": ["Albert Pujols", "Joey Votto", "Ryan Howard", "Troy Tulowitzki"],
-    "correctAnswer": "Joey Votto",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Reds"
-  },
-  {
-    "id": "mlb_q107",
-    "question": "Which team won the 2011 World Series?",
-    "options": ["Texas Rangers", "St. Louis Cardinals", "Milwaukee Brewers", "Philadelphia Phillies"],
-    "correctAnswer": "St. Louis Cardinals",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Cardinals"
-  },
-  {
-    "id": "mlb_q108",
-    "question": "Who holds the record for most home runs in a single postseason?",
-    "options": ["Barry Bonds", "Nelson Cruz", "Carlos Beltran", "Randy Arozarena"],
-    "correctAnswer": "Randy Arozarena",
-    "difficulty": "hard",
-    "category": "records",
-    "team": "Rays"
-  },
-  {
-    "id": "mlb_q109",
-    "question": "Which team plays at Kauffman Stadium?",
-    "options": ["St. Louis Cardinals", "Kansas City Royals", "Minnesota Twins", "Chicago White Sox"],
-    "correctAnswer": "Kansas City Royals",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Royals"
-  },
-  {
-    "id": "mlb_q110",
-    "question": "Who made 'The Catch' in Game 1 of the 2001 World Series?",
-    "options": ["Bernie Williams", "Derek Jeter", "Paul O'Neill", "Shane Spencer"],
-    "correctAnswer": "Derek Jeter",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q111",
-    "question": "Who was the 2009 AL MVP?",
-    "options": ["Derek Jeter", "Mark Teixeira", "Joe Mauer", "Evan Longoria"],
-    "correctAnswer": "Joe Mauer",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Twins"
-  },
-  {
-    "id": "mlb_q112",
-    "question": "Which team won the 2010 World Series?",
-    "options": ["Texas Rangers", "Philadelphia Phillies", "San Francisco Giants", "New York Yankees"],
-    "correctAnswer": "San Francisco Giants",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q113",
-    "question": "Who holds the record for most consecutive games with a hit to start a career?",
-    "options": ["Joe DiMaggio", "Ichiro Suzuki", "Benito Santiago", "Willie Mays"],
-    "correctAnswer": "Benito Santiago",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q114",
-    "question": "Which team plays at Target Field?",
-    "options": ["Minnesota Twins", "Kansas City Royals", "Chicago White Sox", "Detroit Tigers"],
-    "correctAnswer": "Minnesota Twins",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Twins"
-  },
-  {
-    "id": "mlb_q115",
-    "question": "Who hit the famous 'World Series earthquake' home run in 1989?",
-    "options": ["Jose Canseco", "Mark McGwire", "Dave Stewart", "Rickey Henderson"],
-    "correctAnswer": "Jose Canseco",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Athletics"
-  },
-  {
-    "id": "mlb_q116",
-    "question": "Who was the 2008 NL Cy Young Award winner?",
-    "options": ["CC Sabathia", "Tim Lincecum", "Brandon Webb", "Johan Santana"],
-    "correctAnswer": "Tim Lincecum",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q117",
-    "question": "Which team won the 2009 World Series?",
-    "options": ["Philadelphia Phillies", "Los Angeles Dodgers", "New York Yankees", "Los Angeles Angels"],
-    "correctAnswer": "New York Yankees",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q118",
-    "question": "Who holds the rookie record for most home runs?",
-    "options": ["Mark McGwire", "Aaron Judge", "Pete Alonso", "Cody Bellinger"],
-    "correctAnswer": "Aaron Judge",
-    "difficulty": "easy",
-    "category": "records",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q119",
-    "question": "Which team plays at Nationals Park?",
-    "options": ["Baltimore Orioles", "Philadelphia Phillies", "Washington Nationals", "New York Mets"],
-    "correctAnswer": "Washington Nationals",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Nationals"
-  },
-  {
-    "id": "mlb_q120",
-    "question": "Who caught Derek Jeter's walk-off hit in his final Yankee Stadium at-bat?",
-    "options": ["Jose Pirela", "Stephen Drew", "Brendan Ryan", "Nobody - it was a single"],
-    "correctAnswer": "Nobody - it was a single",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q121",
-    "question": "Who was the 2007 AL MVP?",
-    "options": ["Alex Rodriguez", "Vladimir Guerrero", "Magglio Ordonez", "David Ortiz"],
-    "correctAnswer": "Alex Rodriguez",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q122",
-    "question": "Which team won the 2008 World Series?",
-    "options": ["Tampa Bay Rays", "Boston Red Sox", "Philadelphia Phillies", "Los Angeles Dodgers"],
-    "correctAnswer": "Philadelphia Phillies",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Phillies"
-  },
-  {
-    "id": "mlb_q123",
-    "question": "Who holds the record for most career at-bats?",
-    "options": ["Pete Rose", "Hank Aaron", "Carl Yastrzemski", "Cal Ripken Jr."],
-    "correctAnswer": "Pete Rose",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Reds"
-  },
-  {
-    "id": "mlb_q124",
-    "question": "Which team plays at Chase Field?",
-    "options": ["Colorado Rockies", "Arizona Diamondbacks", "San Diego Padres", "Los Angeles Dodgers"],
-    "correctAnswer": "Arizona Diamondbacks",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Diamondbacks"
-  },
-  {
-    "id": "mlb_q125",
-    "question": "Who threw a no-hitter on the last day of the 1991 season?",
-    "options": ["Bret Saberhagen", "Nolan Ryan", "Tom Glavine", "Roger Clemens"],
-    "correctAnswer": "Bret Saberhagen",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Royals"
-  },
-  {
-    "id": "mlb_q126",
-    "question": "Who was the 2006 NL MVP?",
-    "options": ["Albert Pujols", "Ryan Howard", "Carlos Beltran", "Chase Utley"],
-    "correctAnswer": "Ryan Howard",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Phillies"
-  },
-  {
-    "id": "mlb_q127",
-    "question": "Which team won the 2007 World Series?",
-    "options": ["Colorado Rockies", "Cleveland Indians", "Boston Red Sox", "Arizona Diamondbacks"],
-    "correctAnswer": "Boston Red Sox",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q128",
-    "question": "Who holds the record for most career sacrifice flies?",
-    "options": ["Hank Aaron", "Eddie Murray", "Cal Ripken Jr.", "Robin Yount"],
-    "correctAnswer": "Eddie Murray",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q129",
-    "question": "Which team plays at loanDepot park?",
-    "options": ["Tampa Bay Rays", "Miami Marlins", "Atlanta Braves", "Washington Nationals"],
-    "correctAnswer": "Miami Marlins",
-    "difficulty": "medium",
-    "category": "team",
-    "team": "Marlins"
-  },
-  {
-    "id": "mlb_q130",
-    "question": "Who hit 'The Grand Slam Single' in the 1999 NLCS?",
-    "options": ["Robin Ventura", "John Olerud", "Mike Piazza", "Edgardo Alfonzo"],
-    "correctAnswer": "Robin Ventura",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Mets"
-  },
-  {
-    "id": "mlb_q131",
-    "question": "Who was the 2005 AL Cy Young Award winner?",
-    "options": ["Johan Santana", "Bartolo Colon", "Mariano Rivera", "Mark Buehrle"],
-    "correctAnswer": "Bartolo Colon",
-    "difficulty": "hard",
-    "category": "awards",
-    "team": "Angels"
-  },
-  {
-    "id": "mlb_q132",
-    "question": "Which team won the 2006 World Series?",
-    "options": ["Detroit Tigers", "New York Mets", "St. Louis Cardinals", "Oakland Athletics"],
-    "correctAnswer": "St. Louis Cardinals",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Cardinals"
-  },
-  {
-    "id": "mlb_q133",
-    "question": "Who holds the record for most career extra-base hits?",
-    "options": ["Barry Bonds", "Hank Aaron", "Babe Ruth", "Stan Musial"],
-    "correctAnswer": "Hank Aaron",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q134",
-    "question": "Which team plays at Citi Field?",
-    "options": ["New York Yankees", "New York Mets", "Brooklyn Nets", "Philadelphia Phillies"],
-    "correctAnswer": "New York Mets",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Mets"
-  },
-  {
-    "id": "mlb_q135",
-    "question": "Who caught Carlton Fisk's famous 1975 World Series home run?",
-    "options": ["Nobody - it was fair", "Johnny Bench", "Tony Perez", "Dave Concepcion"],
-    "correctAnswer": "Nobody - it was fair",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q136",
-    "question": "Who was the 2004 NL MVP?",
-    "options": ["Albert Pujols", "Adrian Beltre", "Barry Bonds", "Scott Rolen"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "easy",
-    "category": "awards",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q137",
-    "question": "Which team won the 2005 World Series?",
-    "options": ["Houston Astros", "St. Louis Cardinals", "Chicago White Sox", "Los Angeles Angels"],
-    "correctAnswer": "Chicago White Sox",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "White Sox"
-  },
-  {
-    "id": "mlb_q138",
-    "question": "Who holds the record for most career total bases?",
-    "options": ["Babe Ruth", "Barry Bonds", "Hank Aaron", "Stan Musial"],
-    "correctAnswer": "Hank Aaron",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q139",
-    "question": "Which team plays at Camden Yards?",
-    "options": ["Washington Nationals", "Philadelphia Phillies", "Baltimore Orioles", "Pittsburgh Pirates"],
-    "correctAnswer": "Baltimore Orioles",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Orioles"
-  },
-  {
-    "id": "mlb_q140",
-    "question": "Who scored the winning run in Game 7 of the 1991 World Series?",
-    "options": ["Kirby Puckett", "Dan Gladden", "Kent Hrbek", "Chuck Knoblauch"],
-    "correctAnswer": "Dan Gladden",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Twins"
-  },
-  {
-    "id": "mlb_q141",
-    "question": "Who was the 2003 AL MVP?",
-    "options": ["Alex Rodriguez", "Carlos Delgado", "Jorge Posada", "Hideki Matsui"],
-    "correctAnswer": "Alex Rodriguez",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Rangers"
-  },
-  {
-    "id": "mlb_q142",
-    "question": "Which team won the 2003 World Series?",
-    "options": ["New York Yankees", "Chicago Cubs", "Florida Marlins", "Boston Red Sox"],
-    "correctAnswer": "Florida Marlins",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Marlins"
-  },
-  {
-    "id": "mlb_q143",
-    "question": "Who holds the record for most career runs scored?",
-    "options": ["Ty Cobb", "Babe Ruth", "Hank Aaron", "Rickey Henderson"],
-    "correctAnswer": "Rickey Henderson",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q144",
-    "question": "Which team plays at Dodger Stadium?",
-    "options": ["Los Angeles Angels", "San Diego Padres", "Los Angeles Dodgers", "San Francisco Giants"],
-    "correctAnswer": "Los Angeles Dodgers",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q145",
-    "question": "Who threw the final pitch of the 2001 World Series?",
-    "options": ["Curt Schilling", "Randy Johnson", "Mariano Rivera", "Byung-Hyun Kim"],
-    "correctAnswer": "Mariano Rivera",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q146",
-    "question": "Who was the 2002 NL MVP?",
-    "options": ["Barry Bonds", "Albert Pujols", "Sammy Sosa", "Lance Berkman"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "easy",
-    "category": "awards",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q147",
-    "question": "Which team won the 2002 World Series?",
-    "options": ["San Francisco Giants", "Anaheim Angels", "St. Louis Cardinals", "Arizona Diamondbacks"],
-    "correctAnswer": "Anaheim Angels",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Angels"
-  },
-  {
-    "id": "mlb_q148",
-    "question": "Who holds the record for most career intentional walks?",
-    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Hank Aaron"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q149",
-    "question": "Which team plays at PNC Park?",
-    "options": ["Cincinnati Reds", "Cleveland Guardians", "Pittsburgh Pirates", "Detroit Tigers"],
-    "correctAnswer": "Pittsburgh Pirates",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Pirates"
-  },
-  {
-    "id": "mlb_q150",
-    "question": "Who made the error that let the winning run score in Game 6 of the 1986 World Series?",
-    "options": ["Bill Buckner", "Rich Gedman", "Calvin Schiraldi", "Dave Stapleton"],
-    "correctAnswer": "Bill Buckner",
-    "difficulty": "easy",
-    "category": "moments",
-    "team": "Red Sox"
-  },
-  {
-    "id": "mlb_q151",
-    "question": "Who was the 2001 AL Cy Young Award winner?",
-    "options": ["Pedro Martinez", "Roger Clemens", "Mark Mulder", "Freddy Garcia"],
-    "correctAnswer": "Roger Clemens",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q152",
-    "question": "Which team won the 2000 World Series?",
-    "options": ["New York Mets", "Atlanta Braves", "New York Yankees", "St. Louis Cardinals"],
-    "correctAnswer": "New York Yankees",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q153",
-    "question": "Who holds the record for most seasons with 30+ home runs?",
-    "options": ["Babe Ruth", "Hank Aaron", "Barry Bonds", "Alex Rodriguez"],
-    "correctAnswer": "Hank Aaron",
-    "difficulty": "hard",
-    "category": "records",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q154",
-    "question": "Which team plays at Great American Ball Park?",
-    "options": ["Cleveland Guardians", "Cincinnati Reds", "Pittsburgh Pirates", "St. Louis Cardinals"],
-    "correctAnswer": "Cincinnati Reds",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Reds"
-  },
-  {
-    "id": "mlb_q155",
-    "question": "Who hit the walk-off home run in Game 7 of the 2019 NLCS?",
-    "options": ["Bryce Harper", "Howie Kendrick", "Juan Soto", "Anthony Rendon"],
-    "correctAnswer": "Howie Kendrick",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Nationals"
-  },
-  {
-    "id": "mlb_q156",
-    "question": "Who was the 1999 NL MVP?",
-    "options": ["Sammy Sosa", "Mark McGwire", "Jeff Bagwell", "Chipper Jones"],
-    "correctAnswer": "Chipper Jones",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q157",
-    "question": "Which team won the 1999 World Series?",
-    "options": ["Atlanta Braves", "Boston Red Sox", "New York Yankees", "Cleveland Indians"],
-    "correctAnswer": "New York Yankees",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q158",
-    "question": "Who holds the record for most career hit by pitches?",
-    "options": ["Craig Biggio", "Don Baylor", "Jason Kendall", "Chase Utley"],
-    "correctAnswer": "Craig Biggio",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Astros"
-  },
-  {
-    "id": "mlb_q159",
-    "question": "Which team plays at Guaranteed Rate Field?",
-    "options": ["Chicago Cubs", "Chicago White Sox", "Detroit Tigers", "Milwaukee Brewers"],
-    "correctAnswer": "Chicago White Sox",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "White Sox"
-  },
-  {
-    "id": "mlb_q160",
-    "question": "Who hit the 'Bartman Ball' in the 2003 NLCS?",
-    "options": ["Moises Alou", "The ball was hit by Miguel Cabrera", "The ball was hit by Ivan Rodriguez", "The ball was hit by Luis Castillo"],
-    "correctAnswer": "The ball was hit by Luis Castillo",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Marlins"
-  },
-  {
-    "id": "mlb_q161",
-    "question": "Who was the 1998 AL MVP?",
-    "options": ["Mo Vaughn", "Juan Gonzalez", "Ken Griffey Jr.", "Alex Rodriguez"],
-    "correctAnswer": "Juan Gonzalez",
-    "difficulty": "hard",
-    "category": "awards",
-    "team": "Rangers"
-  },
-  {
-    "id": "mlb_q162",
-    "question": "Which team won the 1998 World Series?",
-    "options": ["San Diego Padres", "Atlanta Braves", "Cleveland Indians", "New York Yankees"],
-    "correctAnswer": "New York Yankees",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q163",
-    "question": "Who holds the record for most career pinch hits?",
-    "options": ["Manny Mota", "Lenny Harris", "Dave Hansen", "Matt Stairs"],
-    "correctAnswer": "Lenny Harris",
-    "difficulty": "hard",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q164",
-    "question": "Which team plays at Comerica Park?",
-    "options": ["Cleveland Guardians", "Cincinnati Reds", "Detroit Tigers", "Minnesota Twins"],
-    "correctAnswer": "Detroit Tigers",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Tigers"
-  },
-  {
-    "id": "mlb_q165",
-    "question": "Who caught the final out of the 2016 World Series?",
-    "options": ["Anthony Rizzo", "Kris Bryant", "Addison Russell", "Javier Baez"],
-    "correctAnswer": "Anthony Rizzo",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q166",
-    "question": "Who was the 1997 NL Cy Young Award winner?",
-    "options": ["Greg Maddux", "John Smoltz", "Pedro Martinez", "Curt Schilling"],
-    "correctAnswer": "Pedro Martinez",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Expos"
-  },
-  {
-    "id": "mlb_q167",
-    "question": "Which team won the 1997 World Series?",
-    "options": ["Cleveland Indians", "Atlanta Braves", "Baltimore Orioles", "Florida Marlins"],
-    "correctAnswer": "Florida Marlins",
-    "difficulty": "medium",
-    "category": "history",
-    "team": "Marlins"
-  },
-  {
-    "id": "mlb_q168",
-    "question": "Who holds the record for most career leadoff home runs?",
-    "options": ["Alfonso Soriano", "Craig Biggio", "Rickey Henderson", "Jimmy Rollins"],
-    "correctAnswer": "Rickey Henderson",
-    "difficulty": "medium",
-    "category": "records"
-  },
-  {
-    "id": "mlb_q169",
-    "question": "Which team plays at Angel Stadium?",
-    "options": ["Los Angeles Dodgers", "San Diego Padres", "Los Angeles Angels", "Oakland Athletics"],
-    "correctAnswer": "Los Angeles Angels",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Angels"
-  },
-  {
-    "id": "mlb_q170",
-    "question": "Who threw the first pitch of the 2001 World Series at Yankee Stadium after 9/11?",
-    "options": ["George W. Bush", "Derek Jeter", "Rudy Giuliani", "Mike Mussina"],
-    "correctAnswer": "George W. Bush",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q171",
-    "question": "Who was the 1996 AL MVP?",
-    "options": ["Mo Vaughn", "Alex Rodriguez", "Juan Gonzalez", "Albert Belle"],
-    "correctAnswer": "Juan Gonzalez",
-    "difficulty": "hard",
-    "category": "awards",
-    "team": "Rangers"
-  },
-  {
-    "id": "mlb_q172",
-    "question": "Which team won the 1996 World Series?",
-    "options": ["Atlanta Braves", "Cleveland Indians", "New York Yankees", "St. Louis Cardinals"],
-    "correctAnswer": "New York Yankees",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q173",
-    "question": "Who holds the record for most career putouts by an outfielder?",
-    "options": ["Tris Speaker", "Willie Mays", "Ty Cobb", "Max Carey"],
-    "correctAnswer": "Willie Mays",
-    "difficulty": "hard",
-    "category": "records",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q174",
-    "question": "Which team plays at Progressive Field?",
-    "options": ["Detroit Tigers", "Cincinnati Reds", "Cleveland Guardians", "Pittsburgh Pirates"],
-    "correctAnswer": "Cleveland Guardians",
-    "difficulty": "easy",
-    "category": "team",
-    "team": "Guardians"
-  },
-  {
-    "id": "mlb_q175",
-    "question": "Who threw out the ceremonial first pitch at the first game back at Yankee Stadium after 9/11?",
-    "options": ["Rudy Giuliani", "Joe Torre", "Derek Jeter", "George Pataki"],
-    "correctAnswer": "Rudy Giuliani",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Yankees"
-  },
-  {
-    "id": "mlb_q176",
-    "question": "Who was the 1995 NL MVP?",
-    "options": ["Barry Bonds", "Barry Larkin", "Greg Maddux", "Dante Bichette"],
-    "correctAnswer": "Barry Larkin",
-    "difficulty": "hard",
-    "category": "awards",
-    "team": "Reds"
-  },
-  {
-    "id": "mlb_q177",
-    "question": "Which team won the 1995 World Series?",
-    "options": ["Cleveland Indians", "Cincinnati Reds", "Seattle Mariners", "Atlanta Braves"],
-    "correctAnswer": "Atlanta Braves",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Braves"
-  },
-  {
-    "id": "mlb_q178",
-    "question": "Who holds the record for most home runs in a single month?",
-    "options": ["Babe Ruth", "Rudy York", "Barry Bonds", "Sammy Sosa"],
-    "correctAnswer": "Sammy Sosa",
-    "difficulty": "hard",
-    "category": "records",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q179",
-    "question": "Which team has never appeared in a World Series?",
-    "options": ["Texas Rangers", "Tampa Bay Rays", "Seattle Mariners", "Milwaukee Brewers"],
-    "correctAnswer": "Seattle Mariners",
-    "difficulty": "medium",
-    "category": "team",
-    "team": "Mariners"
-  },
-  {
-    "id": "mlb_q180",
-    "question": "Who hit 'The Double' in Game 5 of the 1995 ALDS?",
-    "options": ["Ken Griffey Jr.", "Edgar Martinez", "Jay Buhner", "Alex Rodriguez"],
-    "correctAnswer": "Edgar Martinez",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Mariners"
-  },
-  {
-    "id": "mlb_q181",
-    "question": "Who was the 1994 AL MVP?",
-    "options": ["Ken Griffey Jr.", "Frank Thomas", "Albert Belle", "Paul Molitor"],
-    "correctAnswer": "Frank Thomas",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "White Sox"
-  },
-  {
-    "id": "mlb_q182",
-    "question": "Which team won the 1993 World Series?",
-    "options": ["Philadelphia Phillies", "Atlanta Braves", "Chicago White Sox", "Toronto Blue Jays"],
-    "correctAnswer": "Toronto Blue Jays",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Blue Jays"
-  },
-  {
-    "id": "mlb_q183",
-    "question": "Who holds the record for most walks in a single season?",
-    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Mickey Mantle"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q184",
-    "question": "Which franchise has the most World Series losses?",
-    "options": ["Brooklyn/Los Angeles Dodgers", "New York Giants/San Francisco Giants", "New York Yankees", "St. Louis Cardinals"],
-    "correctAnswer": "Brooklyn/Los Angeles Dodgers",
-    "difficulty": "hard",
-    "category": "history",
-    "team": "Dodgers"
-  },
-  {
-    "id": "mlb_q185",
-    "question": "Who scored the winning run in the bottom of the 9th of Game 7 of the 1960 World Series?",
-    "options": ["Roberto Clemente", "Bill Mazeroski", "Dick Groat", "Bill Mazeroski hit a homer - no one scored before him"],
-    "correctAnswer": "Bill Mazeroski hit a homer - no one scored before him",
-    "difficulty": "hard",
-    "category": "moments",
-    "team": "Pirates"
-  },
-  {
-    "id": "mlb_q186",
-    "question": "Who was the 1992 NL Cy Young Award winner?",
-    "options": ["Tom Glavine", "Greg Maddux", "John Smoltz", "Dennis Martinez"],
-    "correctAnswer": "Greg Maddux",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Cubs"
-  },
-  {
-    "id": "mlb_q187",
-    "question": "Which team won the 1992 World Series?",
-    "options": ["Atlanta Braves", "Pittsburgh Pirates", "Oakland Athletics", "Toronto Blue Jays"],
-    "correctAnswer": "Toronto Blue Jays",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Blue Jays"
-  },
-  {
-    "id": "mlb_q188",
-    "question": "Who holds the record for highest single-season on-base percentage?",
-    "options": ["Ted Williams", "Babe Ruth", "Barry Bonds", "Mickey Mantle"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q189",
-    "question": "Which team won the most games in a single season with 116?",
-    "options": ["1906 Cubs", "2001 Mariners", "1998 Yankees", "1909 Pirates"],
-    "correctAnswer": "2001 Mariners",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Mariners"
-  },
-  {
-    "id": "mlb_q190",
-    "question": "Who threw a no-hitter in the 2010 playoffs?",
-    "options": ["Tim Lincecum", "Roy Halladay", "Cliff Lee", "Cole Hamels"],
-    "correctAnswer": "Roy Halladay",
-    "difficulty": "medium",
-    "category": "moments",
-    "team": "Phillies"
-  },
-  {
-    "id": "mlb_q191",
-    "question": "Who was the 1991 AL MVP?",
-    "options": ["Rickey Henderson", "Cal Ripken Jr.", "Cecil Fielder", "Jose Canseco"],
-    "correctAnswer": "Cal Ripken Jr.",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Orioles"
-  },
-  {
-    "id": "mlb_q192",
-    "question": "Which team won the 1991 World Series?",
-    "options": ["Atlanta Braves", "Pittsburgh Pirates", "Toronto Blue Jays", "Minnesota Twins"],
-    "correctAnswer": "Minnesota Twins",
-    "difficulty": "easy",
-    "category": "history",
-    "team": "Twins"
-  },
-  {
-    "id": "mlb_q193",
-    "question": "Who holds the record for highest single-season slugging percentage?",
-    "options": ["Babe Ruth", "Ted Williams", "Barry Bonds", "Lou Gehrig"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "medium",
-    "category": "records",
-    "team": "Giants"
-  },
-  {
-    "id": "mlb_q194",
-    "question": "Which player hit in 44 consecutive games before DiMaggio's 56-game streak?",
-    "options": ["Ty Cobb", "George Sisler", "Pete Rose", "Willie Keeler"],
-    "correctAnswer": "Willie Keeler",
+    "id": "nba_q6",
+    "question": "What year was the NBA founded?",
+    "options": [
+      "1936",
+      "1946",
+      "1956",
+      "1966"
+    ],
+    "correctAnswer": "1946",
     "difficulty": "hard",
     "category": "history"
   },
   {
-    "id": "mlb_q195",
-    "question": "Who was the winning pitcher in Game 7 of the 1991 World Series?",
-    "options": ["John Smoltz", "Tom Glavine", "Jack Morris", "Steve Avery"],
-    "correctAnswer": "Jack Morris",
+    "id": "nba_q7",
+    "question": "Who was the first player to be drafted straight from high school?",
+    "options": [
+      "Kobe Bryant",
+      "Kevin Garnett",
+      "LeBron James",
+      "Moses Malone"
+    ],
+    "correctAnswer": "Moses Malone",
     "difficulty": "hard",
-    "category": "moments",
-    "team": "Twins"
+    "category": "history"
   },
   {
-    "id": "mlb_q196",
-    "question": "Who was the 1990 NL MVP?",
-    "options": ["Barry Bonds", "Bobby Bonilla", "Ryne Sandberg", "Darryl Strawberry"],
-    "correctAnswer": "Barry Bonds",
-    "difficulty": "medium",
-    "category": "awards",
-    "team": "Pirates"
+    "id": "nba_q8",
+    "question": "Which player is known as 'The Greek Freak'?",
+    "options": [
+      "Luka Doncic",
+      "Giannis Antetokounmpo",
+      "Nikola Jokic",
+      "Kristaps Porzingis"
+    ],
+    "correctAnswer": "Giannis Antetokounmpo",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Bucks"
   },
   {
-    "id": "mlb_q197",
-    "question": "Which team won the 1990 World Series?",
-    "options": ["Oakland Athletics", "Boston Red Sox", "Pittsburgh Pirates", "Cincinnati Reds"],
-    "correctAnswer": "Cincinnati Reds",
+    "id": "nba_q9",
+    "question": "How many championships did Michael Jordan win?",
+    "options": [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "correctAnswer": "6",
     "difficulty": "easy",
     "category": "history",
-    "team": "Reds"
+    "team": "Bulls"
   },
   {
-    "id": "mlb_q198",
-    "question": "Who holds the record for most consecutive scoreless innings pitched?",
-    "options": ["Don Drysdale", "Orel Hershiser", "Bob Gibson", "Scoreless innings are tracked differently"],
-    "correctAnswer": "Orel Hershiser",
-    "difficulty": "hard",
+    "id": "nba_q10",
+    "question": "Which team did LeBron James win his first championship with?",
+    "options": [
+      "Cleveland Cavaliers",
+      "Miami Heat",
+      "Los Angeles Lakers",
+      "San Antonio Spurs"
+    ],
+    "correctAnswer": "Miami Heat",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q11",
+    "question": "Who holds the record for most assists in NBA history?",
+    "options": [
+      "Magic Johnson",
+      "John Stockton",
+      "Steve Nash",
+      "Chris Paul"
+    ],
+    "correctAnswer": "John Stockton",
+    "difficulty": "medium",
     "category": "records",
-    "team": "Dodgers"
+    "team": "Jazz"
   },
   {
-    "id": "mlb_q199",
-    "question": "Who was the first designated hitter to be inducted into the Hall of Fame primarily as a DH?",
-    "options": ["Edgar Martinez", "David Ortiz", "Frank Thomas", "Harold Baines"],
-    "correctAnswer": "Edgar Martinez",
+    "id": "nba_q12",
+    "question": "Which player has the most rebounds in NBA history?",
+    "options": [
+      "Wilt Chamberlain",
+      "Bill Russell",
+      "Kareem Abdul-Jabbar",
+      "Tim Duncan"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q13",
+    "question": "What is the name of the NBA championship trophy?",
+    "options": [
+      "Commissioner's Trophy",
+      "Larry O'Brien Trophy",
+      "Vince Lombardi Trophy",
+      "Stanley Cup"
+    ],
+    "correctAnswer": "Larry O'Brien Trophy",
+    "difficulty": "easy",
+    "category": "history"
+  },
+  {
+    "id": "nba_q14",
+    "question": "Which player won MVP of the 2024 NBA Finals?",
+    "options": [
+      "Jayson Tatum",
+      "Jaylen Brown",
+      "Luka Doncic",
+      "Kyrie Irving"
+    ],
+    "correctAnswer": "Jaylen Brown",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q15",
+    "question": "Who is the shortest player in NBA history?",
+    "options": [
+      "Spud Webb",
+      "Muggsy Bogues",
+      "Earl Boykins",
+      "Nate Robinson"
+    ],
+    "correctAnswer": "Muggsy Bogues",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q16",
+    "question": "Which team drafted Kobe Bryant in 1996?",
+    "options": [
+      "Los Angeles Lakers",
+      "Charlotte Hornets",
+      "Philadelphia 76ers",
+      "Boston Celtics"
+    ],
+    "correctAnswer": "Charlotte Hornets",
+    "difficulty": "hard",
+    "category": "transfers",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q17",
+    "question": "How tall is Muggsy Bogues?",
+    "options": [
+      "5'1\"",
+      "5'3\"",
+      "5'5\"",
+      "5'7\""
+    ],
+    "correctAnswer": "5'3\"",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q18",
+    "question": "Which team won the 2024 NBA Championship?",
+    "options": [
+      "Denver Nuggets",
+      "Boston Celtics",
+      "Dallas Mavericks",
+      "Miami Heat"
+    ],
+    "correctAnswer": "Boston Celtics",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q19",
+    "question": "Who holds the record for most three-pointers made in NBA history?",
+    "options": [
+      "Ray Allen",
+      "Reggie Miller",
+      "Stephen Curry",
+      "Klay Thompson"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q20",
+    "question": "Which player won the 2024 NBA MVP award?",
+    "options": [
+      "Luka Doncic",
+      "Shai Gilgeous-Alexander",
+      "Nikola Jokic",
+      "Giannis Antetokounmpo"
+    ],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q21",
+    "question": "What number did Michael Jordan famously wear?",
+    "options": [
+      "12",
+      "23",
+      "33",
+      "45"
+    ],
+    "correctAnswer": "23",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q22",
+    "question": "Which team has the longest championship drought in the NBA?",
+    "options": [
+      "Sacramento Kings",
+      "Phoenix Suns",
+      "Brooklyn Nets",
+      "Charlotte Hornets"
+    ],
+    "correctAnswer": "Sacramento Kings",
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Kings"
+  },
+  {
+    "id": "nba_q23",
+    "question": "Who scored 81 points in a single game in 2006?",
+    "options": [
+      "LeBron James",
+      "Kobe Bryant",
+      "Tracy McGrady",
+      "Allen Iverson"
+    ],
+    "correctAnswer": "Kobe Bryant",
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q24",
+    "question": "Which player won Rookie of the Year in 2024?",
+    "options": [
+      "Victor Wembanyama",
+      "Chet Holmgren",
+      "Brandon Miller",
+      "Scoot Henderson"
+    ],
+    "correctAnswer": "Victor Wembanyama",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q25",
+    "question": "How many triple-doubles does Russell Westbrook have (career record)?",
+    "options": [
+      "150+",
+      "175+",
+      "198+",
+      "220+"
+    ],
+    "correctAnswer": "198+",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q26",
+    "question": "Which city are the Bucks from?",
+    "options": [
+      "Minneapolis",
+      "Milwaukee",
+      "Detroit",
+      "Indianapolis"
+    ],
+    "correctAnswer": "Milwaukee",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Bucks"
+  },
+  {
+    "id": "nba_q27",
+    "question": "Who was the first overall pick in the 2023 NBA Draft?",
+    "options": [
+      "Scoot Henderson",
+      "Brandon Miller",
+      "Victor Wembanyama",
+      "Amen Thompson"
+    ],
+    "correctAnswer": "Victor Wembanyama",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q28",
+    "question": "Which player holds the record for most steals in NBA history?",
+    "options": [
+      "Michael Jordan",
+      "Gary Payton",
+      "John Stockton",
+      "Scottie Pippen"
+    ],
+    "correctAnswer": "John Stockton",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Jazz"
+  },
+  {
+    "id": "nba_q29",
+    "question": "What is Shaquille O'Neal's nickname?",
+    "options": [
+      "The Diesel",
+      "The Dream",
+      "The Admiral",
+      "The Mailman"
+    ],
+    "correctAnswer": "The Diesel",
     "difficulty": "medium",
     "category": "history",
-    "team": "Mariners"
+    "team": "Lakers"
   },
   {
-    "id": "mlb_q200",
-    "question": "Which pitcher threw a perfect game on Father's Day 1964?",
-    "options": ["Sandy Koufax", "Jim Bunning", "Don Drysdale", "Bob Gibson"],
-    "correctAnswer": "Jim Bunning",
+    "id": "nba_q30",
+    "question": "Which team did Tim Duncan play his entire career for?",
+    "options": [
+      "Dallas Mavericks",
+      "San Antonio Spurs",
+      "Houston Rockets",
+      "Phoenix Suns"
+    ],
+    "correctAnswer": "San Antonio Spurs",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q31",
+    "question": "Who was the first European player to be drafted #1 overall?",
+    "options": [
+      "Dirk Nowitzki",
+      "Pau Gasol",
+      "Andrea Bargnani",
+      "Yao Ming"
+    ],
+    "correctAnswer": "Andrea Bargnani",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "nba_q32",
+    "question": "How many points did Donovan Mitchell score in a playoff game in 2020 (Jazz record)?",
+    "options": [
+      "51",
+      "57",
+      "63",
+      "71"
+    ],
+    "correctAnswer": "57",
     "difficulty": "hard",
     "category": "moments",
-    "team": "Phillies"
+    "team": "Jazz"
+  },
+  {
+    "id": "nba_q33",
+    "question": "Which player is nicknamed 'The Beard'?",
+    "options": [
+      "Anthony Davis",
+      "James Harden",
+      "Kawhi Leonard",
+      "Paul George"
+    ],
+    "correctAnswer": "James Harden",
+    "difficulty": "easy",
+    "category": "current"
+  },
+  {
+    "id": "nba_q34",
+    "question": "What college did Kevin Durant attend?",
+    "options": [
+      "Duke",
+      "Kentucky",
+      "Texas",
+      "Kansas"
+    ],
+    "correctAnswer": "Texas",
+    "difficulty": "medium",
+    "category": "history"
+  },
+  {
+    "id": "nba_q35",
+    "question": "Which team won 73 games in the 2015-16 regular season?",
+    "options": [
+      "Cleveland Cavaliers",
+      "San Antonio Spurs",
+      "Golden State Warriors",
+      "Oklahoma City Thunder"
+    ],
+    "correctAnswer": "Golden State Warriors",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q36",
+    "question": "Who hit 'The Shot' over Craig Ehlo in 1989?",
+    "options": [
+      "Larry Bird",
+      "Magic Johnson",
+      "Michael Jordan",
+      "Isiah Thomas"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q37",
+    "question": "Which player has won the most Defensive Player of the Year awards?",
+    "options": [
+      "Dikembe Mutombo",
+      "Ben Wallace",
+      "Rudy Gobert",
+      "Hakeem Olajuwon"
+    ],
+    "correctAnswer": "Rudy Gobert",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q38",
+    "question": "What team does Stephen Curry play for?",
+    "options": [
+      "Los Angeles Lakers",
+      "Brooklyn Nets",
+      "Golden State Warriors",
+      "Phoenix Suns"
+    ],
+    "correctAnswer": "Golden State Warriors",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q39",
+    "question": "Who is the all-time leading scorer for the Los Angeles Lakers?",
+    "options": [
+      "Kobe Bryant",
+      "Magic Johnson",
+      "Shaquille O'Neal",
+      "Jerry West"
+    ],
+    "correctAnswer": "Kobe Bryant",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q40",
+    "question": "Which player won back-to-back-to-back MVP awards from 2021-2024?",
+    "options": [
+      "Giannis Antetokounmpo",
+      "LeBron James",
+      "Nikola Jokic",
+      "Joel Embiid"
+    ],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q41",
+    "question": "How many teams are in the NBA?",
+    "options": [
+      "28",
+      "30",
+      "32",
+      "34"
+    ],
+    "correctAnswer": "30",
+    "difficulty": "easy",
+    "category": "history"
+  },
+  {
+    "id": "nba_q42",
+    "question": "Which player won Finals MVP while on the losing team?",
+    "options": [
+      "LeBron James",
+      "Jerry West",
+      "Magic Johnson",
+      "Kareem Abdul-Jabbar"
+    ],
+    "correctAnswer": "Jerry West",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q43",
+    "question": "What is the name of the arena where the Knicks play?",
+    "options": [
+      "Barclays Center",
+      "Madison Square Garden",
+      "TD Garden",
+      "United Center"
+    ],
+    "correctAnswer": "Madison Square Garden",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Knicks"
+  },
+  {
+    "id": "nba_q44",
+    "question": "Which player averaged a triple-double for an entire season first?",
+    "options": [
+      "Magic Johnson",
+      "Oscar Robertson",
+      "Russell Westbrook",
+      "LeBron James"
+    ],
+    "correctAnswer": "Oscar Robertson",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q45",
+    "question": "Who coached the Chicago Bulls during their 1990s dynasty?",
+    "options": [
+      "Pat Riley",
+      "Phil Jackson",
+      "Gregg Popovich",
+      "Larry Brown"
+    ],
+    "correctAnswer": "Phil Jackson",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q46",
+    "question": "Which country is Luka Doncic from?",
+    "options": [
+      "Serbia",
+      "Croatia",
+      "Slovenia",
+      "Greece"
+    ],
+    "correctAnswer": "Slovenia",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Mavericks"
+  },
+  {
+    "id": "nba_q47",
+    "question": "Who holds the record for most blocks in a single game?",
+    "options": [
+      "Hakeem Olajuwon",
+      "Elmore Smith",
+      "Shaquille O'Neal",
+      "Dikembe Mutombo"
+    ],
+    "correctAnswer": "Elmore Smith",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q48",
+    "question": "What was the original name of the Oklahoma City Thunder?",
+    "options": [
+      "Vancouver Grizzlies",
+      "Seattle SuperSonics",
+      "Kansas City Kings",
+      "New Jersey Nets"
+    ],
+    "correctAnswer": "Seattle SuperSonics",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Thunder"
+  },
+  {
+    "id": "nba_q49",
+    "question": "Which player has the most career playoff points?",
+    "options": [
+      "Michael Jordan",
+      "Kareem Abdul-Jabbar",
+      "LeBron James",
+      "Kobe Bryant"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q50",
+    "question": "Who was nicknamed 'The Answer'?",
+    "options": [
+      "Gary Payton",
+      "Allen Iverson",
+      "Steve Nash",
+      "Ray Allen"
+    ],
+    "correctAnswer": "Allen Iverson",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "76ers"
+  },
+  {
+    "id": "nba_q51",
+    "question": "Which player won the first ever NBA Slam Dunk Contest?",
+    "options": [
+      "Michael Jordan",
+      "Dominique Wilkins",
+      "Larry Nance",
+      "Julius Erving"
+    ],
+    "correctAnswer": "Larry Nance",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q52",
+    "question": "How many championships did the Boston Celtics win in the 1960s?",
+    "options": [
+      "6",
+      "8",
+      "9",
+      "11"
+    ],
+    "correctAnswer": "9",
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q53",
+    "question": "Who is known as 'The Big Fundamental'?",
+    "options": [
+      "David Robinson",
+      "Tim Duncan",
+      "Hakeem Olajuwon",
+      "Patrick Ewing"
+    ],
+    "correctAnswer": "Tim Duncan",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q54",
+    "question": "Which team did Dirk Nowitzki play his entire career for?",
+    "options": [
+      "San Antonio Spurs",
+      "Houston Rockets",
+      "Dallas Mavericks",
+      "Phoenix Suns"
+    ],
+    "correctAnswer": "Dallas Mavericks",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Mavericks"
+  },
+  {
+    "id": "nba_q55",
+    "question": "Who holds the record for most points scored in a rookie season?",
+    "options": [
+      "Wilt Chamberlain",
+      "Michael Jordan",
+      "LeBron James",
+      "Oscar Robertson"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q56",
+    "question": "Which player made 'The Decision' to join the Miami Heat in 2010?",
+    "options": [
+      "Chris Bosh",
+      "Dwyane Wade",
+      "LeBron James",
+      "Ray Allen"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q57",
+    "question": "What year did the three-point line become permanent in the NBA?",
+    "options": [
+      "1977",
+      "1979",
+      "1981",
+      "1983"
+    ],
+    "correctAnswer": "1979",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "nba_q58",
+    "question": "Who is the all-time leading scorer for the Chicago Bulls?",
+    "options": [
+      "Scottie Pippen",
+      "Michael Jordan",
+      "Derrick Rose",
+      "Bob Love"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q59",
+    "question": "Which player won the 2023 NBA Finals MVP?",
+    "options": [
+      "Nikola Jokic",
+      "Jamal Murray",
+      "Aaron Gordon",
+      "Michael Porter Jr."
+    ],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q60",
+    "question": "How many All-Star Game MVP awards did Kobe Bryant win?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "correctAnswer": "4",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q61",
+    "question": "Which team drafted Magic Johnson in 1979?",
+    "options": [
+      "Boston Celtics",
+      "Los Angeles Lakers",
+      "Chicago Bulls",
+      "Philadelphia 76ers"
+    ],
+    "correctAnswer": "Los Angeles Lakers",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q62",
+    "question": "Who hit the famous 'flu game' performance in the 1997 NBA Finals?",
+    "options": [
+      "Scottie Pippen",
+      "Michael Jordan",
+      "Karl Malone",
+      "John Stockton"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q63",
+    "question": "Which player is nicknamed 'The Claw'?",
+    "options": [
+      "Jimmy Butler",
+      "Kawhi Leonard",
+      "Paul George",
+      "DeMar DeRozan"
+    ],
+    "correctAnswer": "Kawhi Leonard",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Clippers"
+  },
+  {
+    "id": "nba_q64",
+    "question": "How many championships did Kobe Bryant win with the Lakers?",
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "correctAnswer": "5",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q65",
+    "question": "Which team has never won an NBA championship?",
+    "options": [
+      "Phoenix Suns",
+      "Indiana Pacers",
+      "Brooklyn Nets",
+      "All of the above"
+    ],
+    "correctAnswer": "All of the above",
+    "difficulty": "medium",
+    "category": "history"
+  },
+  {
+    "id": "nba_q66",
+    "question": "Who won the 2019 NBA Finals MVP?",
+    "options": [
+      "Stephen Curry",
+      "Kevin Durant",
+      "Kawhi Leonard",
+      "Pascal Siakam"
+    ],
+    "correctAnswer": "Kawhi Leonard",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Raptors"
+  },
+  {
+    "id": "nba_q67",
+    "question": "Which player holds the record for most free throws made in a career?",
+    "options": [
+      "Michael Jordan",
+      "Karl Malone",
+      "Kobe Bryant",
+      "LeBron James"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q68",
+    "question": "What year did LeBron James enter the NBA?",
+    "options": [
+      "2001",
+      "2002",
+      "2003",
+      "2004"
+    ],
+    "correctAnswer": "2003",
+    "difficulty": "easy",
+    "category": "history"
+  },
+  {
+    "id": "nba_q69",
+    "question": "Which team did Kevin Garnett win his only championship with?",
+    "options": [
+      "Minnesota Timberwolves",
+      "Boston Celtics",
+      "Brooklyn Nets",
+      "Milwaukee Bucks"
+    ],
+    "correctAnswer": "Boston Celtics",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q70",
+    "question": "Who is known as 'The Logo' and inspired the NBA logo?",
+    "options": [
+      "Oscar Robertson",
+      "Jerry West",
+      "Bob Cousy",
+      "Bill Russell"
+    ],
+    "correctAnswer": "Jerry West",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q71",
+    "question": "Which player won Sixth Man of the Year three consecutive times (2022-2024)?",
+    "options": [
+      "Tyler Herro",
+      "Jordan Clarkson",
+      "Malcolm Brogdon",
+      "Naz Reid"
+    ],
+    "correctAnswer": "Naz Reid",
+    "difficulty": "hard",
+    "category": "awards",
+    "team": "Timberwolves"
+  },
+  {
+    "id": "nba_q72",
+    "question": "What is the name of the arena where the Lakers play?",
+    "options": [
+      "The Forum",
+      "Staples Center",
+      "Crypto.com Arena",
+      "Chase Center"
+    ],
+    "correctAnswer": "Crypto.com Arena",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q73",
+    "question": "Who scored the game-winning shot in Game 7 of the 2016 NBA Finals?",
+    "options": [
+      "LeBron James",
+      "Kyrie Irving",
+      "Kevin Love",
+      "J.R. Smith"
+    ],
+    "correctAnswer": "Kyrie Irving",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Cavaliers"
+  },
+  {
+    "id": "nba_q74",
+    "question": "Which player has the most career double-doubles?",
+    "options": [
+      "Wilt Chamberlain",
+      "Tim Duncan",
+      "Karl Malone",
+      "Kevin Garnett"
+    ],
+    "correctAnswer": "Tim Duncan",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q75",
+    "question": "Who was the first pick in the 2019 NBA Draft?",
+    "options": [
+      "Ja Morant",
+      "Zion Williamson",
+      "RJ Barrett",
+      "Darius Garland"
+    ],
+    "correctAnswer": "Zion Williamson",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Pelicans"
+  },
+  {
+    "id": "nba_q76",
+    "question": "Which player won consecutive MVP awards in 2015 and 2016?",
+    "options": [
+      "LeBron James",
+      "Kevin Durant",
+      "Stephen Curry",
+      "James Harden"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q77",
+    "question": "What was the nickname of the 2004 Detroit Pistons championship team?",
+    "options": [
+      "Bad Boys",
+      "Goin' to Work",
+      "Motor City Maulers",
+      "Palace Guards"
+    ],
+    "correctAnswer": "Goin' to Work",
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Pistons"
+  },
+  {
+    "id": "nba_q78",
+    "question": "Who holds the record for most points in an NBA All-Star Game?",
+    "options": [
+      "Wilt Chamberlain",
+      "Michael Jordan",
+      "Anthony Davis",
+      "Giannis Antetokounmpo"
+    ],
+    "correctAnswer": "Anthony Davis",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q79",
+    "question": "Which team won the first NBA Championship in 1947?",
+    "options": [
+      "Minneapolis Lakers",
+      "Philadelphia Warriors",
+      "Rochester Royals",
+      "Chicago Stags"
+    ],
+    "correctAnswer": "Philadelphia Warriors",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "nba_q80",
+    "question": "Who is the youngest player to score 10,000 career points?",
+    "options": [
+      "Kobe Bryant",
+      "LeBron James",
+      "Kevin Durant",
+      "Tracy McGrady"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q81",
+    "question": "Which player is nicknamed 'Slim Reaper'?",
+    "options": [
+      "Giannis Antetokounmpo",
+      "Kevin Durant",
+      "Anthony Davis",
+      "Brandon Ingram"
+    ],
+    "correctAnswer": "Kevin Durant",
+    "difficulty": "medium",
+    "category": "current",
+    "team": "Suns"
+  },
+  {
+    "id": "nba_q82",
+    "question": "How many seasons did Vince Carter play in the NBA?",
+    "options": [
+      "19",
+      "20",
+      "21",
+      "22"
+    ],
+    "correctAnswer": "22",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q83",
+    "question": "Which team did Patrick Ewing spend most of his career with?",
+    "options": [
+      "Seattle SuperSonics",
+      "Orlando Magic",
+      "New York Knicks",
+      "Washington Wizards"
+    ],
+    "correctAnswer": "New York Knicks",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Knicks"
+  },
+  {
+    "id": "nba_q84",
+    "question": "Who won the 2021 NBA Finals MVP?",
+    "options": [
+      "Khris Middleton",
+      "Giannis Antetokounmpo",
+      "Jrue Holiday",
+      "Chris Paul"
+    ],
+    "correctAnswer": "Giannis Antetokounmpo",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Bucks"
+  },
+  {
+    "id": "nba_q85",
+    "question": "Which player holds the record for most three-pointers in a single game?",
+    "options": [
+      "Stephen Curry",
+      "Klay Thompson",
+      "Donyell Marshall",
+      "Damian Lillard"
+    ],
+    "correctAnswer": "Klay Thompson",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q86",
+    "question": "What is Hakeem Olajuwon's nickname?",
+    "options": [
+      "The Tower",
+      "The Dream",
+      "The Admiral",
+      "The Chief"
+    ],
+    "correctAnswer": "The Dream",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Rockets"
+  },
+  {
+    "id": "nba_q87",
+    "question": "Which team won back-to-back championships in 1994 and 1995?",
+    "options": [
+      "Chicago Bulls",
+      "San Antonio Spurs",
+      "Houston Rockets",
+      "Los Angeles Lakers"
+    ],
+    "correctAnswer": "Houston Rockets",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Rockets"
+  },
+  {
+    "id": "nba_q88",
+    "question": "Who was selected first overall in the 2007 NBA Draft?",
+    "options": [
+      "Kevin Durant",
+      "Greg Oden",
+      "Al Horford",
+      "Mike Conley"
+    ],
+    "correctAnswer": "Greg Oden",
+    "difficulty": "hard",
+    "category": "transfers"
+  },
+  {
+    "id": "nba_q89",
+    "question": "Which player scored 13 points in 33 seconds against the Spurs in 2004?",
+    "options": [
+      "Kobe Bryant",
+      "Tracy McGrady",
+      "Vince Carter",
+      "Allen Iverson"
+    ],
+    "correctAnswer": "Tracy McGrady",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Rockets"
+  },
+  {
+    "id": "nba_q90",
+    "question": "How many championships did Bill Russell win?",
+    "options": [
+      "8",
+      "9",
+      "10",
+      "11"
+    ],
+    "correctAnswer": "11",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q91",
+    "question": "Which player holds the record for highest career points per game average?",
+    "options": [
+      "Wilt Chamberlain",
+      "Michael Jordan",
+      "LeBron James",
+      "Kareem Abdul-Jabbar"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q92",
+    "question": "Who was the first overall pick in the 2017 NBA Draft?",
+    "options": [
+      "Jayson Tatum",
+      "Lonzo Ball",
+      "Markelle Fultz",
+      "De'Aaron Fox"
+    ],
+    "correctAnswer": "Markelle Fultz",
+    "difficulty": "hard",
+    "category": "transfers"
+  },
+  {
+    "id": "nba_q93",
+    "question": "Which team plays at the United Center?",
+    "options": [
+      "Detroit Pistons",
+      "Indiana Pacers",
+      "Chicago Bulls",
+      "Milwaukee Bucks"
+    ],
+    "correctAnswer": "Chicago Bulls",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q94",
+    "question": "Who holds the record for most games played in NBA history?",
+    "options": [
+      "Robert Parish",
+      "Kareem Abdul-Jabbar",
+      "Vince Carter",
+      "LeBron James"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q95",
+    "question": "Which player won the 2020 NBA Finals MVP?",
+    "options": [
+      "Anthony Davis",
+      "LeBron James",
+      "Jimmy Butler",
+      "Rajon Rondo"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q96",
+    "question": "What year did Kevin Durant join the Golden State Warriors?",
+    "options": [
+      "2014",
+      "2015",
+      "2016",
+      "2017"
+    ],
+    "correctAnswer": "2016",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q97",
+    "question": "Which player made the iconic 'We Believe' playoff run in 2007?",
+    "options": [
+      "Stephen Jackson",
+      "Baron Davis",
+      "Monta Ellis",
+      "All of them"
+    ],
+    "correctAnswer": "All of them",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q98",
+    "question": "Who is the all-time leading scorer for the Miami Heat?",
+    "options": [
+      "Dwyane Wade",
+      "LeBron James",
+      "Alonzo Mourning",
+      "Chris Bosh"
+    ],
+    "correctAnswer": "Dwyane Wade",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q99",
+    "question": "Which player won the 2017 and 2018 Finals MVP?",
+    "options": [
+      "Stephen Curry",
+      "Kevin Durant",
+      "Klay Thompson",
+      "Draymond Green"
+    ],
+    "correctAnswer": "Kevin Durant",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q100",
+    "question": "What is the most points scored by a team in a single game?",
+    "options": [
+      "168",
+      "173",
+      "186",
+      "201"
+    ],
+    "correctAnswer": "186",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q101",
+    "question": "Which player is nicknamed 'The Joker'?",
+    "options": [
+      "Luka Doncic",
+      "Nikola Jokic",
+      "Nikola Vucevic",
+      "Jonas Valanciunas"
+    ],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q102",
+    "question": "Who holds the record for most consecutive games with a three-pointer made?",
+    "options": [
+      "Stephen Curry",
+      "Kyle Korver",
+      "Ray Allen",
+      "Klay Thompson"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q103",
+    "question": "Which team drafted Dwyane Wade in 2003?",
+    "options": [
+      "Chicago Bulls",
+      "Miami Heat",
+      "Detroit Pistons",
+      "Cleveland Cavaliers"
+    ],
+    "correctAnswer": "Miami Heat",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q104",
+    "question": "Who hit the game-winner in Game 7 of the 2010 Finals?",
+    "options": [
+      "Kobe Bryant",
+      "Pau Gasol",
+      "Ron Artest",
+      "Derek Fisher"
+    ],
+    "correctAnswer": "Ron Artest",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q105",
+    "question": "Which player averaged a triple-double for three consecutive seasons?",
+    "options": [
+      "Oscar Robertson",
+      "Magic Johnson",
+      "Russell Westbrook",
+      "LeBron James"
+    ],
+    "correctAnswer": "Russell Westbrook",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q106",
+    "question": "What team does Joel Embiid play for?",
+    "options": [
+      "Boston Celtics",
+      "Brooklyn Nets",
+      "Philadelphia 76ers",
+      "New York Knicks"
+    ],
+    "correctAnswer": "Philadelphia 76ers",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "76ers"
+  },
+  {
+    "id": "nba_q107",
+    "question": "Who won the 2022 NBA MVP?",
+    "options": [
+      "Giannis Antetokounmpo",
+      "Nikola Jokic",
+      "Joel Embiid",
+      "Luka Doncic"
+    ],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q108",
+    "question": "Which team won the 2011 NBA Championship?",
+    "options": [
+      "Miami Heat",
+      "Dallas Mavericks",
+      "Los Angeles Lakers",
+      "Boston Celtics"
+    ],
+    "correctAnswer": "Dallas Mavericks",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Mavericks"
+  },
+  {
+    "id": "nba_q109",
+    "question": "Who holds the single-season assist record?",
+    "options": [
+      "Magic Johnson",
+      "John Stockton",
+      "Isiah Thomas",
+      "Kevin Porter"
+    ],
+    "correctAnswer": "John Stockton",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Jazz"
+  },
+  {
+    "id": "nba_q110",
+    "question": "Which player won Rookie of the Year in 2019?",
+    "options": [
+      "Trae Young",
+      "Luka Doncic",
+      "Deandre Ayton",
+      "Jaren Jackson Jr."
+    ],
+    "correctAnswer": "Luka Doncic",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Mavericks"
+  },
+  {
+    "id": "nba_q111",
+    "question": "What is the name of Karl Malone's famous nickname?",
+    "options": [
+      "The Postman",
+      "The Mailman",
+      "The Delivery Man",
+      "The Package"
+    ],
+    "correctAnswer": "The Mailman",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Jazz"
+  },
+  {
+    "id": "nba_q112",
+    "question": "Which player made the 'Double Nickel' game at MSG in 1995?",
+    "options": [
+      "Patrick Ewing",
+      "Michael Jordan",
+      "Reggie Miller",
+      "Scottie Pippen"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q113",
+    "question": "Who was the first pick in the 2018 NBA Draft?",
+    "options": [
+      "Luka Doncic",
+      "Trae Young",
+      "Deandre Ayton",
+      "Marvin Bagley III"
+    ],
+    "correctAnswer": "Deandre Ayton",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Suns"
+  },
+  {
+    "id": "nba_q114",
+    "question": "Which team did Ray Allen hit the famous Game 6 three-pointer for in 2013?",
+    "options": [
+      "Boston Celtics",
+      "Milwaukee Bucks",
+      "Miami Heat",
+      "Seattle SuperSonics"
+    ],
+    "correctAnswer": "Miami Heat",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q115",
+    "question": "Who is the youngest player to start an NBA All-Star Game?",
+    "options": [
+      "LeBron James",
+      "Kobe Bryant",
+      "Magic Johnson",
+      "Luka Doncic"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q116",
+    "question": "Which player scored 70 points in a game in 2024?",
+    "options": [
+      "Luka Doncic",
+      "Donovan Mitchell",
+      "Karl-Anthony Towns",
+      "Devin Booker"
+    ],
+    "correctAnswer": "Donovan Mitchell",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Cavaliers"
+  },
+  {
+    "id": "nba_q117",
+    "question": "How many championships did the San Antonio Spurs win under Gregg Popovich?",
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "correctAnswer": "5",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q118",
+    "question": "Which player holds the record for most minutes played in NBA history?",
+    "options": [
+      "Kareem Abdul-Jabbar",
+      "Karl Malone",
+      "LeBron James",
+      "Dirk Nowitzki"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q119",
+    "question": "Who was the 2023 NBA Rookie of the Year?",
+    "options": [
+      "Jalen Green",
+      "Evan Mobley",
+      "Scottie Barnes",
+      "Paolo Banchero"
+    ],
+    "correctAnswer": "Paolo Banchero",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Magic"
+  },
+  {
+    "id": "nba_q120",
+    "question": "Which team plays at Ball Arena?",
+    "options": [
+      "Utah Jazz",
+      "Denver Nuggets",
+      "Phoenix Suns",
+      "Portland Trail Blazers"
+    ],
+    "correctAnswer": "Denver Nuggets",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q121",
+    "question": "Who holds the record for most consecutive free throws made?",
+    "options": [
+      "Mark Price",
+      "Steve Nash",
+      "Michael Williams",
+      "Mahmoud Abdul-Rauf"
+    ],
+    "correctAnswer": "Michael Williams",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q122",
+    "question": "Which player won the 2011 Finals MVP?",
+    "options": [
+      "Dirk Nowitzki",
+      "Jason Terry",
+      "Jason Kidd",
+      "Tyson Chandler"
+    ],
+    "correctAnswer": "Dirk Nowitzki",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Mavericks"
+  },
+  {
+    "id": "nba_q123",
+    "question": "What team did Charles Barkley win MVP with in 1993?",
+    "options": [
+      "Philadelphia 76ers",
+      "Phoenix Suns",
+      "Houston Rockets",
+      "San Antonio Spurs"
+    ],
+    "correctAnswer": "Phoenix Suns",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Suns"
+  },
+  {
+    "id": "nba_q124",
+    "question": "Which player is nicknamed 'AK-47'?",
+    "options": [
+      "Andrei Kirilenko",
+      "Alexey Shved",
+      "Alexander Volkov",
+      "Arvydas Sabonis"
+    ],
+    "correctAnswer": "Andrei Kirilenko",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Jazz"
+  },
+  {
+    "id": "nba_q125",
+    "question": "Who scored 9 points in 9 seconds against the Spurs in 2004?",
+    "options": [
+      "Paul Pierce",
+      "Reggie Miller",
+      "Ray Allen",
+      "Gilbert Arenas"
+    ],
+    "correctAnswer": "Reggie Miller",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Pacers"
+  },
+  {
+    "id": "nba_q126",
+    "question": "Which team won the 2008 NBA Championship?",
+    "options": [
+      "Los Angeles Lakers",
+      "Detroit Pistons",
+      "San Antonio Spurs",
+      "Boston Celtics"
+    ],
+    "correctAnswer": "Boston Celtics",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q127",
+    "question": "Who was the first international player to win NBA MVP?",
+    "options": [
+      "Dirk Nowitzki",
+      "Steve Nash",
+      "Hakeem Olajuwon",
+      "Giannis Antetokounmpo"
+    ],
+    "correctAnswer": "Steve Nash",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q128",
+    "question": "Which player holds the record for most turnovers in NBA history?",
+    "options": [
+      "Karl Malone",
+      "John Stockton",
+      "LeBron James",
+      "Kobe Bryant"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q129",
+    "question": "What team does Anthony Edwards play for?",
+    "options": [
+      "Charlotte Hornets",
+      "Memphis Grizzlies",
+      "Minnesota Timberwolves",
+      "Oklahoma City Thunder"
+    ],
+    "correctAnswer": "Minnesota Timberwolves",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Timberwolves"
+  },
+  {
+    "id": "nba_q130",
+    "question": "Who hit the series-winning shot against the Thunder in Game 7 of the 2016 WCF?",
+    "options": [
+      "Stephen Curry",
+      "Klay Thompson",
+      "Draymond Green",
+      "Andre Iguodala"
+    ],
+    "correctAnswer": "Klay Thompson",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q131",
+    "question": "Which player won Defensive Player of the Year in 2024?",
+    "options": [
+      "Jaren Jackson Jr.",
+      "Rudy Gobert",
+      "Victor Wembanyama",
+      "Anthony Davis"
+    ],
+    "correctAnswer": "Rudy Gobert",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Timberwolves"
+  },
+  {
+    "id": "nba_q132",
+    "question": "Who was the first pick in the 2016 NBA Draft?",
+    "options": [
+      "Brandon Ingram",
+      "Jaylen Brown",
+      "Ben Simmons",
+      "Jamal Murray"
+    ],
+    "correctAnswer": "Ben Simmons",
+    "difficulty": "medium",
+    "category": "transfers"
+  },
+  {
+    "id": "nba_q133",
+    "question": "Which team did LeBron James return to in 2014?",
+    "options": [
+      "Miami Heat",
+      "Cleveland Cavaliers",
+      "Los Angeles Lakers",
+      "Chicago Bulls"
+    ],
+    "correctAnswer": "Cleveland Cavaliers",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Cavaliers"
+  },
+  {
+    "id": "nba_q134",
+    "question": "Who is the tallest player in NBA history?",
+    "options": [
+      "Yao Ming",
+      "Manute Bol",
+      "Gheorghe Muresan",
+      "Shawn Bradley"
+    ],
+    "correctAnswer": "Gheorghe Muresan",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q135",
+    "question": "Which player won back-to-back Finals MVP in 2000 and 2001?",
+    "options": [
+      "Kobe Bryant",
+      "Shaquille O'Neal",
+      "Tim Duncan",
+      "Allen Iverson"
+    ],
+    "correctAnswer": "Shaquille O'Neal",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q136",
+    "question": "What is the longest winning streak in NBA history?",
+    "options": [
+      "26 games",
+      "30 games",
+      "33 games",
+      "37 games"
+    ],
+    "correctAnswer": "33 games",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q137",
+    "question": "Which team did Chris Paul finally reach the Finals with in 2021?",
+    "options": [
+      "Houston Rockets",
+      "Los Angeles Clippers",
+      "Oklahoma City Thunder",
+      "Phoenix Suns"
+    ],
+    "correctAnswer": "Phoenix Suns",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Suns"
+  },
+  {
+    "id": "nba_q138",
+    "question": "Who was nicknamed 'The Human Highlight Film'?",
+    "options": [
+      "Michael Jordan",
+      "Dominique Wilkins",
+      "Julius Erving",
+      "Vince Carter"
+    ],
+    "correctAnswer": "Dominique Wilkins",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Hawks"
+  },
+  {
+    "id": "nba_q139",
+    "question": "Which player holds the record for most technical fouls in a season?",
+    "options": [
+      "Rasheed Wallace",
+      "Dennis Rodman",
+      "Draymond Green",
+      "DeMarcus Cousins"
+    ],
+    "correctAnswer": "Rasheed Wallace",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q140",
+    "question": "Who won the 2015 NBA Finals MVP?",
+    "options": [
+      "Stephen Curry",
+      "LeBron James",
+      "Andre Iguodala",
+      "Klay Thompson"
+    ],
+    "correctAnswer": "Andre Iguodala",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q141",
+    "question": "Which team plays at TD Garden?",
+    "options": [
+      "Brooklyn Nets",
+      "New York Knicks",
+      "Boston Celtics",
+      "Philadelphia 76ers"
+    ],
+    "correctAnswer": "Boston Celtics",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q142",
+    "question": "Who is the all-time leading scorer for the Celtics?",
+    "options": [
+      "Larry Bird",
+      "Paul Pierce",
+      "John Havlicek",
+      "Bob Cousy"
+    ],
+    "correctAnswer": "John Havlicek",
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q143",
+    "question": "Which player is nicknamed 'CP3'?",
+    "options": [
+      "Chris Bosh",
+      "Chris Paul",
+      "Chauncey Billups",
+      "Carmelo Anthony"
+    ],
+    "correctAnswer": "Chris Paul",
+    "difficulty": "easy",
+    "category": "current"
+  },
+  {
+    "id": "nba_q144",
+    "question": "Who was the first pick in the 2020 NBA Draft?",
+    "options": [
+      "LaMelo Ball",
+      "James Wiseman",
+      "Anthony Edwards",
+      "Tyrese Haliburton"
+    ],
+    "correctAnswer": "Anthony Edwards",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Timberwolves"
+  },
+  {
+    "id": "nba_q145",
+    "question": "Which player scored 60 points in his final NBA game?",
+    "options": [
+      "Dirk Nowitzki",
+      "Michael Jordan",
+      "Kobe Bryant",
+      "Dwyane Wade"
+    ],
+    "correctAnswer": "Kobe Bryant",
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q146",
+    "question": "Who holds the record for most blocks in NBA history?",
+    "options": [
+      "Dikembe Mutombo",
+      "Hakeem Olajuwon",
+      "Kareem Abdul-Jabbar",
+      "Mark Eaton"
+    ],
+    "correctAnswer": "Hakeem Olajuwon",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Rockets"
+  },
+  {
+    "id": "nba_q147",
+    "question": "Which team did Kawhi Leonard win his first championship with?",
+    "options": [
+      "Toronto Raptors",
+      "San Antonio Spurs",
+      "Los Angeles Clippers",
+      "Los Angeles Lakers"
+    ],
+    "correctAnswer": "San Antonio Spurs",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q148",
+    "question": "What year did the Toronto Raptors join the NBA?",
+    "options": [
+      "1993",
+      "1995",
+      "1997",
+      "1999"
+    ],
+    "correctAnswer": "1995",
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Raptors"
+  },
+  {
+    "id": "nba_q149",
+    "question": "Who won the 2016 NBA Finals MVP?",
+    "options": [
+      "Stephen Curry",
+      "LeBron James",
+      "Kyrie Irving",
+      "Kevin Love"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Cavaliers"
+  },
+  {
+    "id": "nba_q150",
+    "question": "Which player is nicknamed 'The Brow'?",
+    "options": [
+      "Joel Embiid",
+      "Anthony Davis",
+      "Karl-Anthony Towns",
+      "DeMarcus Cousins"
+    ],
+    "correctAnswer": "Anthony Davis",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q151",
+    "question": "Who holds the record for most points in a playoff game?",
+    "options": [
+      "Michael Jordan",
+      "Elgin Baylor",
+      "LeBron James",
+      "Donovan Mitchell"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q152",
+    "question": "Which team won the 2019 NBA Championship?",
+    "options": [
+      "Golden State Warriors",
+      "Milwaukee Bucks",
+      "Toronto Raptors",
+      "Philadelphia 76ers"
+    ],
+    "correctAnswer": "Toronto Raptors",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Raptors"
+  },
+  {
+    "id": "nba_q153",
+    "question": "Who was the first pick in the 2021 NBA Draft?",
+    "options": [
+      "Jalen Green",
+      "Evan Mobley",
+      "Cade Cunningham",
+      "Scottie Barnes"
+    ],
+    "correctAnswer": "Cade Cunningham",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Pistons"
+  },
+  {
+    "id": "nba_q154",
+    "question": "Which player won the 2018 MVP?",
+    "options": [
+      "LeBron James",
+      "James Harden",
+      "Russell Westbrook",
+      "Anthony Davis"
+    ],
+    "correctAnswer": "James Harden",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Rockets"
+  },
+  {
+    "id": "nba_q155",
+    "question": "What is David Robinson's nickname?",
+    "options": [
+      "The Tower",
+      "The Admiral",
+      "The Captain",
+      "The Commander"
+    ],
+    "correctAnswer": "The Admiral",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q156",
+    "question": "Who hit 'The Shot' to win the 2019 second round series vs Philadelphia?",
+    "options": [
+      "Pascal Siakam",
+      "Kyle Lowry",
+      "Kawhi Leonard",
+      "Marc Gasol"
+    ],
+    "correctAnswer": "Kawhi Leonard",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Raptors"
+  },
+  {
+    "id": "nba_q157",
+    "question": "Which player holds the record for most All-Star selections?",
+    "options": [
+      "Kareem Abdul-Jabbar",
+      "LeBron James",
+      "Kobe Bryant",
+      "Michael Jordan"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q158",
+    "question": "Who was the first overall pick in the 2022 NBA Draft?",
+    "options": [
+      "Chet Holmgren",
+      "Paolo Banchero",
+      "Jabari Smith Jr.",
+      "Jaden Ivey"
+    ],
+    "correctAnswer": "Paolo Banchero",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Magic"
+  },
+  {
+    "id": "nba_q159",
+    "question": "Which team drafted Kevin Garnett in 1995?",
+    "options": [
+      "Boston Celtics",
+      "Minnesota Timberwolves",
+      "Brooklyn Nets",
+      "Chicago Bulls"
+    ],
+    "correctAnswer": "Minnesota Timberwolves",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Timberwolves"
+  },
+  {
+    "id": "nba_q160",
+    "question": "What is Isiah Thomas's height?",
+    "options": [
+      "5'7\"",
+      "5'9\"",
+      "6'1\"",
+      "6'3\""
+    ],
+    "correctAnswer": "6'1\"",
+    "difficulty": "hard",
+    "category": "history",
+    "team": "Pistons"
+  },
+  {
+    "id": "nba_q161",
+    "question": "Which player won the 2014 Finals MVP?",
+    "options": [
+      "Tim Duncan",
+      "Tony Parker",
+      "Kawhi Leonard",
+      "Manu Ginobili"
+    ],
+    "correctAnswer": "Kawhi Leonard",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q162",
+    "question": "Who holds the single-game record for rebounds?",
+    "options": [
+      "Bill Russell",
+      "Wilt Chamberlain",
+      "Dennis Rodman",
+      "Moses Malone"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q163",
+    "question": "Which team did Carmelo Anthony start his career with?",
+    "options": [
+      "New York Knicks",
+      "Denver Nuggets",
+      "Oklahoma City Thunder",
+      "Houston Rockets"
+    ],
+    "correctAnswer": "Denver Nuggets",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q164",
+    "question": "What team does Ja Morant play for?",
+    "options": [
+      "Charlotte Hornets",
+      "Memphis Grizzlies",
+      "New Orleans Pelicans",
+      "Dallas Mavericks"
+    ],
+    "correctAnswer": "Memphis Grizzlies",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Grizzlies"
+  },
+  {
+    "id": "nba_q165",
+    "question": "Who won the 2022 Finals MVP?",
+    "options": [
+      "Klay Thompson",
+      "Stephen Curry",
+      "Andrew Wiggins",
+      "Draymond Green"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q166",
+    "question": "Which player holds the record for most offensive rebounds in a career?",
+    "options": [
+      "Dennis Rodman",
+      "Moses Malone",
+      "Shaquille O'Neal",
+      "Karl Malone"
+    ],
+    "correctAnswer": "Moses Malone",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q167",
+    "question": "What team did Paul George play for before the Clippers?",
+    "options": [
+      "Indiana Pacers",
+      "Oklahoma City Thunder",
+      "Both answers are correct",
+      "Neither"
+    ],
+    "correctAnswer": "Both answers are correct",
+    "difficulty": "easy",
+    "category": "transfers"
+  },
+  {
+    "id": "nba_q168",
+    "question": "Which player scored 71 points against the Spurs in 2024?",
+    "options": [
+      "Luka Doncic",
+      "Devin Booker",
+      "Anthony Edwards",
+      "Donovan Mitchell"
+    ],
+    "correctAnswer": "Devin Booker",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Suns"
+  },
+  {
+    "id": "nba_q169",
+    "question": "Who was the 2020 Rookie of the Year?",
+    "options": [
+      "Zion Williamson",
+      "Ja Morant",
+      "RJ Barrett",
+      "Tyler Herro"
+    ],
+    "correctAnswer": "Ja Morant",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Grizzlies"
+  },
+  {
+    "id": "nba_q170",
+    "question": "Which team plays at the Smoothie King Center?",
+    "options": [
+      "Houston Rockets",
+      "Memphis Grizzlies",
+      "New Orleans Pelicans",
+      "San Antonio Spurs"
+    ],
+    "correctAnswer": "New Orleans Pelicans",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Pelicans"
+  },
+  {
+    "id": "nba_q171",
+    "question": "Who was known as 'Big Shot Bob'?",
+    "options": [
+      "Robert Parish",
+      "Robert Horry",
+      "Robert Williams",
+      "Robert Covington"
+    ],
+    "correctAnswer": "Robert Horry",
+    "difficulty": "medium",
+    "category": "history"
+  },
+  {
+    "id": "nba_q172",
+    "question": "Which player has won the most championships as a player?",
+    "options": [
+      "Michael Jordan",
+      "Kobe Bryant",
+      "Bill Russell",
+      "Robert Horry"
+    ],
+    "correctAnswer": "Bill Russell",
+    "difficulty": "easy",
+    "category": "records",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q173",
+    "question": "Who was the first pick in the 2024 NBA Draft?",
+    "options": [
+      "Zaccharie Risacher",
+      "Alex Sarr",
+      "Reed Sheppard",
+      "Donovan Clingan"
+    ],
+    "correctAnswer": "Zaccharie Risacher",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Hawks"
+  },
+  {
+    "id": "nba_q174",
+    "question": "Which player won Sixth Man of the Year in 2018 and 2019?",
+    "options": [
+      "Jamal Crawford",
+      "Lou Williams",
+      "Montrezl Harrell",
+      "Eric Gordon"
+    ],
+    "correctAnswer": "Lou Williams",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q175",
+    "question": "What is Penny Hardaway's real first name?",
+    "options": [
+      "Pennington",
+      "Anfernee",
+      "Anthony",
+      "Andrew"
+    ],
+    "correctAnswer": "Anfernee",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Magic"
+  },
+  {
+    "id": "nba_q176",
+    "question": "Which team did James Harden request a trade from in 2021?",
+    "options": [
+      "Oklahoma City Thunder",
+      "Houston Rockets",
+      "Philadelphia 76ers",
+      "Los Angeles Clippers"
+    ],
+    "correctAnswer": "Houston Rockets",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Rockets"
+  },
+  {
+    "id": "nba_q177",
+    "question": "Who holds the record for most 50-point games in a career?",
+    "options": [
+      "Wilt Chamberlain",
+      "Michael Jordan",
+      "Kobe Bryant",
+      "James Harden"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q178",
+    "question": "Which player won the 2013 Finals MVP?",
+    "options": [
+      "LeBron James",
+      "Dwyane Wade",
+      "Chris Bosh",
+      "Ray Allen"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q179",
+    "question": "What year did the Charlotte Hornets become the New Orleans Hornets?",
+    "options": [
+      "2000",
+      "2002",
+      "2004",
+      "2006"
+    ],
+    "correctAnswer": "2002",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "nba_q180",
+    "question": "Which player is nicknamed 'The Splash Brother' alongside Stephen Curry?",
+    "options": [
+      "Draymond Green",
+      "Klay Thompson",
+      "Andrew Wiggins",
+      "Jordan Poole"
+    ],
+    "correctAnswer": "Klay Thompson",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q181",
+    "question": "Who was the 2021 Rookie of the Year?",
+    "options": [
+      "LaMelo Ball",
+      "Anthony Edwards",
+      "Tyrese Haliburton",
+      "Saddiq Bey"
+    ],
+    "correctAnswer": "LaMelo Ball",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Hornets"
+  },
+  {
+    "id": "nba_q182",
+    "question": "Which player averaged 50.4 points per game in a season?",
+    "options": [
+      "Michael Jordan",
+      "Wilt Chamberlain",
+      "Kobe Bryant",
+      "James Harden"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q183",
+    "question": "What team does Trae Young play for?",
+    "options": [
+      "Charlotte Hornets",
+      "Orlando Magic",
+      "Atlanta Hawks",
+      "Washington Wizards"
+    ],
+    "correctAnswer": "Atlanta Hawks",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Hawks"
+  },
+  {
+    "id": "nba_q184",
+    "question": "Who hit the game-winning three in Game 6 of the 2013 Finals?",
+    "options": [
+      "LeBron James",
+      "Dwyane Wade",
+      "Chris Bosh",
+      "Ray Allen"
+    ],
+    "correctAnswer": "Ray Allen",
+    "difficulty": "easy",
+    "category": "moments",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q185",
+    "question": "Which player won the 2012 Finals MVP?",
+    "options": [
+      "Dwyane Wade",
+      "Chris Bosh",
+      "LeBron James",
+      "Mario Chalmers"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q186",
+    "question": "What team did Dennis Rodman win three championships with?",
+    "options": [
+      "Detroit Pistons",
+      "San Antonio Spurs",
+      "Chicago Bulls",
+      "Los Angeles Lakers"
+    ],
+    "correctAnswer": "Chicago Bulls",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q187",
+    "question": "Who holds the record for most assists in a single game?",
+    "options": [
+      "Magic Johnson",
+      "John Stockton",
+      "Scott Skiles",
+      "Rajon Rondo"
+    ],
+    "correctAnswer": "Scott Skiles",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q188",
+    "question": "Which team did Shaquille O'Neal start his career with?",
+    "options": [
+      "Los Angeles Lakers",
+      "Orlando Magic",
+      "Miami Heat",
+      "Boston Celtics"
+    ],
+    "correctAnswer": "Orlando Magic",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Magic"
+  },
+  {
+    "id": "nba_q189",
+    "question": "Who was the 2017 MVP?",
+    "options": [
+      "James Harden",
+      "Russell Westbrook",
+      "LeBron James",
+      "Kawhi Leonard"
+    ],
+    "correctAnswer": "Russell Westbrook",
+    "difficulty": "medium",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q190",
+    "question": "Which player made 37 points in a quarter against Sacramento in 2015?",
+    "options": [
+      "Stephen Curry",
+      "Klay Thompson",
+      "Kevin Durant",
+      "James Harden"
+    ],
+    "correctAnswer": "Klay Thompson",
+    "difficulty": "hard",
+    "category": "moments",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q191",
+    "question": "What team did Gary Payton win a championship with?",
+    "options": [
+      "Seattle SuperSonics",
+      "Los Angeles Lakers",
+      "Miami Heat",
+      "Boston Celtics"
+    ],
+    "correctAnswer": "Miami Heat",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q192",
+    "question": "Who was nicknamed 'The Glove'?",
+    "options": [
+      "Scottie Pippen",
+      "Gary Payton",
+      "John Stockton",
+      "Michael Cooper"
+    ],
+    "correctAnswer": "Gary Payton",
+    "difficulty": "medium",
+    "category": "history"
+  },
+  {
+    "id": "nba_q193",
+    "question": "Which player won the 2006 Finals MVP?",
+    "options": [
+      "Shaquille O'Neal",
+      "Dwyane Wade",
+      "Jason Terry",
+      "Dirk Nowitzki"
+    ],
+    "correctAnswer": "Dwyane Wade",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q194",
+    "question": "What was the score of the highest-scoring regulation game?",
+    "options": [
+      "310",
+      "318",
+      "320",
+      "337"
+    ],
+    "correctAnswer": "320",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q195",
+    "question": "Which team plays at FedExForum?",
+    "options": [
+      "Charlotte Hornets",
+      "Memphis Grizzlies",
+      "Atlanta Hawks",
+      "New Orleans Pelicans"
+    ],
+    "correctAnswer": "Memphis Grizzlies",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Grizzlies"
+  },
+  {
+    "id": "nba_q196",
+    "question": "Who was the 2010 Finals MVP?",
+    "options": [
+      "Kobe Bryant",
+      "Pau Gasol",
+      "Derek Fisher",
+      "Ron Artest"
+    ],
+    "correctAnswer": "Kobe Bryant",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q197",
+    "question": "Which player is nicknamed 'Chef Curry'?",
+    "options": [
+      "Seth Curry",
+      "Stephen Curry",
+      "Dell Curry",
+      "JJ Redick"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q198",
+    "question": "Who holds the record for most three-pointers in a Finals game?",
+    "options": [
+      "Stephen Curry",
+      "Klay Thompson",
+      "Ray Allen",
+      "Danny Green"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q199",
+    "question": "What team did Larry Bird play his entire career for?",
+    "options": [
+      "Los Angeles Lakers",
+      "Chicago Bulls",
+      "Boston Celtics",
+      "Indiana Pacers"
+    ],
+    "correctAnswer": "Boston Celtics",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q200",
+    "question": "Who is the only player to average 30+ points and 20+ rebounds for a season?",
+    "options": [
+      "Bill Russell",
+      "Wilt Chamberlain",
+      "Kareem Abdul-Jabbar",
+      "Moses Malone"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q201",
+    "question": "Which player has the nickname 'The Claw'?",
+    "options": [
+      "Paul George",
+      "Kawhi Leonard",
+      "Jimmy Butler",
+      "Draymond Green"
+    ],
+    "correctAnswer": "Kawhi Leonard",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Clippers"
+  },
+  {
+    "id": "nba_q202",
+    "question": "Who was the first player to win MVP as the 6th seed or lower?",
+    "options": [
+      "Allen Iverson",
+      "Russell Westbrook",
+      "Derrick Rose",
+      "Steve Nash"
+    ],
+    "correctAnswer": "Russell Westbrook",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q203",
+    "question": "Which player has the nickname 'The Process'?",
+    "options": [
+      "Ben Simmons",
+      "Joel Embiid",
+      "Tyrese Maxey",
+      "James Harden"
+    ],
+    "correctAnswer": "Joel Embiid",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "76ers"
+  },
+  {
+    "id": "nba_q204",
+    "question": "What team drafted Damian Lillard?",
+    "options": [
+      "Golden State Warriors",
+      "Portland Trail Blazers",
+      "Sacramento Kings",
+      "Utah Jazz"
+    ],
+    "correctAnswer": "Portland Trail Blazers",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Trail Blazers"
+  },
+  {
+    "id": "nba_q205",
+    "question": "Which team did Michael Jordan play for after coming out of retirement in 2001?",
+    "options": [
+      "Chicago Bulls",
+      "Charlotte Hornets",
+      "Washington Wizards",
+      "New York Knicks"
+    ],
+    "correctAnswer": "Washington Wizards",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Wizards"
+  },
+  {
+    "id": "nba_q206",
+    "question": "Who holds the record for most points scored in an NBA debut?",
+    "options": [
+      "LeBron James",
+      "Wilt Chamberlain",
+      "Kareem Abdul-Jabbar",
+      "Oscar Robertson"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q207",
+    "question": "What year did the NBA merge with the ABA?",
+    "options": [
+      "1972",
+      "1976",
+      "1980",
+      "1984"
+    ],
+    "correctAnswer": "1976",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "nba_q209",
+    "question": "What year did the NBA introduce the shot clock?",
+    "options": [
+      "1946",
+      "1954",
+      "1960",
+      "1967"
+    ],
+    "correctAnswer": "1954",
+    "difficulty": "hard",
+    "category": "history"
+  },
+  {
+    "id": "nba_q210",
+    "question": "Which NBA player has the most career blocks?",
+    "options": [
+      "Dikembe Mutombo",
+      "Hakeem Olajuwon",
+      "Kareem Abdul-Jabbar",
+      "Mark Eaton"
+    ],
+    "correctAnswer": "Hakeem Olajuwon",
+    "difficulty": "medium",
+    "category": "records"
+  },
+  {
+    "id": "nba_q211",
+    "question": "What is the name of the arena where the Chicago Bulls play?",
+    "options": [
+      "Madison Square Garden",
+      "United Center",
+      "Staples Center",
+      "TD Garden"
+    ],
+    "correctAnswer": "United Center",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q212",
+    "question": "Who won the 2023 NBA MVP award?",
+    "options": [
+      "Giannis Antetokounmpo",
+      "Joel Embiid",
+      "Nikola Jokic",
+      "Luka Doncic"
+    ],
+    "correctAnswer": "Joel Embiid",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "76ers"
+  },
+  {
+    "id": "nba_q213",
+    "question": "Which team won the 2023 NBA Championship?",
+    "options": [
+      "Miami Heat",
+      "Boston Celtics",
+      "Denver Nuggets",
+      "Golden State Warriors"
+    ],
+    "correctAnswer": "Denver Nuggets",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q214",
+    "question": "Who was the 2023 NBA Finals MVP?",
+    "options": [
+      "Jamal Murray",
+      "Nikola Jokic",
+      "Jimmy Butler",
+      "Bam Adebayo"
+    ],
+    "correctAnswer": "Nikola Jokic",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Nuggets"
+  },
+  {
+    "id": "nba_q215",
+    "question": "Which arena is nicknamed 'The Loud House'?",
+    "options": [
+      "Paycom Center",
+      "Chase Center",
+      "Frost Bank Center",
+      "Delta Center"
+    ],
+    "correctAnswer": "Paycom Center",
+    "difficulty": "hard",
+    "category": "team",
+    "team": "Thunder"
+  },
+  {
+    "id": "nba_q216",
+    "question": "What team has never made it to the NBA Finals?",
+    "options": [
+      "Sacramento Kings",
+      "Los Angeles Clippers",
+      "Minnesota Timberwolves",
+      "All of the above"
+    ],
+    "correctAnswer": "Los Angeles Clippers",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Clippers"
+  },
+  {
+    "id": "nba_q217",
+    "question": "Who holds the record for most consecutive games with a made three-pointer?",
+    "options": [
+      "Ray Allen",
+      "Klay Thompson",
+      "Stephen Curry",
+      "Kyle Korver"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q218",
+    "question": "Which player was known as 'The Big Fundamental'?",
+    "options": [
+      "Shaquille O'Neal",
+      "Tim Duncan",
+      "Kevin Garnett",
+      "Dirk Nowitzki"
+    ],
+    "correctAnswer": "Tim Duncan",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q219",
+    "question": "What jersey number did Reggie Miller wear?",
+    "options": [
+      "24",
+      "31",
+      "8",
+      "33"
+    ],
+    "correctAnswer": "31",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Pacers"
+  },
+  {
+    "id": "nba_q220",
+    "question": "Who is the youngest player to score 60 points in a game?",
+    "options": [
+      "LeBron James",
+      "Devin Booker",
+      "Kobe Bryant",
+      "Luka Doncic"
+    ],
+    "correctAnswer": "Devin Booker",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Suns"
+  },
+  {
+    "id": "nba_q221",
+    "question": "Which team did the Bulls beat in the 1997 NBA Finals?",
+    "options": [
+      "Seattle SuperSonics",
+      "Utah Jazz",
+      "Phoenix Suns",
+      "Portland Trail Blazers"
+    ],
+    "correctAnswer": "Utah Jazz",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q222",
+    "question": "Who was nicknamed 'The Admiral'?",
+    "options": [
+      "Hakeem Olajuwon",
+      "David Robinson",
+      "Patrick Ewing",
+      "Alonzo Mourning"
+    ],
+    "correctAnswer": "David Robinson",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q223",
+    "question": "What team plays at Crypto.com Arena?",
+    "options": [
+      "Golden State Warriors",
+      "Los Angeles Lakers",
+      "Sacramento Kings",
+      "Phoenix Suns"
+    ],
+    "correctAnswer": "Los Angeles Lakers",
+    "difficulty": "easy",
+    "category": "team",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q224",
+    "question": "Who holds the single-game playoff scoring record with 63 points?",
+    "options": [
+      "LeBron James",
+      "Michael Jordan",
+      "Wilt Chamberlain",
+      "Elgin Baylor"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "medium",
+    "category": "records",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q225",
+    "question": "Who was the 2021 Finals MVP?",
+    "options": [
+      "Giannis Antetokounmpo",
+      "Chris Paul",
+      "Khris Middleton",
+      "Devin Booker"
+    ],
+    "correctAnswer": "Giannis Antetokounmpo",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Bucks"
+  },
+  {
+    "id": "nba_q226",
+    "question": "Which team did Shaquille O'Neal win his fourth championship with?",
+    "options": [
+      "Los Angeles Lakers",
+      "Miami Heat",
+      "Phoenix Suns",
+      "Boston Celtics"
+    ],
+    "correctAnswer": "Miami Heat",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Heat"
+  },
+  {
+    "id": "nba_q227",
+    "question": "Who was the first player to average a triple-double for an entire season?",
+    "options": [
+      "Oscar Robertson",
+      "Russell Westbrook",
+      "Magic Johnson",
+      "LeBron James"
+    ],
+    "correctAnswer": "Oscar Robertson",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q228",
+    "question": "Which team drafted Kevin Durant in 2007?",
+    "options": [
+      "Oklahoma City Thunder",
+      "Golden State Warriors",
+      "Seattle SuperSonics",
+      "Brooklyn Nets"
+    ],
+    "correctAnswer": "Seattle SuperSonics",
+    "difficulty": "medium",
+    "category": "transfers"
+  },
+  {
+    "id": "nba_q229",
+    "question": "Who hit 'The Shot' over Craig Ehlo in the 1989 playoffs?",
+    "options": [
+      "Larry Bird",
+      "Magic Johnson",
+      "Michael Jordan",
+      "Isiah Thomas"
+    ],
+    "correctAnswer": "Michael Jordan",
+    "difficulty": "medium",
+    "category": "moments",
+    "team": "Bulls"
+  },
+  {
+    "id": "nba_q230",
+    "question": "What team did Scottie Pippen play for besides the Bulls and Trail Blazers?",
+    "options": [
+      "Lakers",
+      "Rockets",
+      "Knicks",
+      "Heat"
+    ],
+    "correctAnswer": "Rockets",
+    "difficulty": "hard",
+    "category": "transfers"
+  },
+  {
+    "id": "nba_q231",
+    "question": "Who was the first European player to win NBA MVP?",
+    "options": [
+      "Dirk Nowitzki",
+      "Pau Gasol",
+      "Tony Parker",
+      "Manu Ginobili"
+    ],
+    "correctAnswer": "Dirk Nowitzki",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Mavericks"
+  },
+  {
+    "id": "nba_q232",
+    "question": "Which coach has the most NBA wins in history?",
+    "options": [
+      "Phil Jackson",
+      "Gregg Popovich",
+      "Pat Riley",
+      "Don Nelson"
+    ],
+    "correctAnswer": "Gregg Popovich",
+    "difficulty": "medium",
+    "category": "history",
+    "team": "Spurs"
+  },
+  {
+    "id": "nba_q233",
+    "question": "What is Anthony Edwards' nickname?",
+    "options": [
+      "Ant",
+      "AE",
+      "Ant-Man",
+      "The Answer"
+    ],
+    "correctAnswer": "Ant-Man",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Timberwolves"
+  },
+  {
+    "id": "nba_q235",
+    "question": "Which team won 33 consecutive games in 1971-72?",
+    "options": [
+      "Boston Celtics",
+      "Los Angeles Lakers",
+      "Milwaukee Bucks",
+      "New York Knicks"
+    ],
+    "correctAnswer": "Los Angeles Lakers",
+    "difficulty": "hard",
+    "category": "records",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q236",
+    "question": "Who was the 2022 Finals MVP?",
+    "options": [
+      "Klay Thompson",
+      "Draymond Green",
+      "Stephen Curry",
+      "Andrew Wiggins"
+    ],
+    "correctAnswer": "Stephen Curry",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Warriors"
+  },
+  {
+    "id": "nba_q237",
+    "question": "What team did Chris Paul play for before the Suns?",
+    "options": [
+      "Rockets",
+      "Clippers",
+      "Thunder",
+      "Lakers"
+    ],
+    "correctAnswer": "Thunder",
+    "difficulty": "medium",
+    "category": "transfers"
+  },
+  {
+    "id": "nba_q238",
+    "question": "Who holds the record for most points in a rookie season?",
+    "options": [
+      "LeBron James",
+      "Michael Jordan",
+      "Wilt Chamberlain",
+      "Allen Iverson"
+    ],
+    "correctAnswer": "Wilt Chamberlain",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q239",
+    "question": "What number did Allen Iverson wear with the 76ers?",
+    "options": [
+      "1",
+      "3",
+      "11",
+      "23"
+    ],
+    "correctAnswer": "3",
+    "difficulty": "easy",
+    "category": "history",
+    "team": "76ers"
+  },
+  {
+    "id": "nba_q240",
+    "question": "Which team did the Celtics beat in the 2024 NBA Finals?",
+    "options": [
+      "Miami Heat",
+      "Denver Nuggets",
+      "Dallas Mavericks",
+      "Minnesota Timberwolves"
+    ],
+    "correctAnswer": "Dallas Mavericks",
+    "difficulty": "easy",
+    "category": "current",
+    "team": "Celtics"
+  },
+  {
+    "id": "nba_q241",
+    "question": "Who won the 2020 Finals MVP?",
+    "options": [
+      "LeBron James",
+      "Anthony Davis",
+      "Jimmy Butler",
+      "Bam Adebayo"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "easy",
+    "category": "awards",
+    "team": "Lakers"
+  },
+  {
+    "id": "nba_q242",
+    "question": "What team did Kyrie Irving play for before the Mavericks?",
+    "options": [
+      "Celtics",
+      "Nets",
+      "Cavaliers",
+      "Lakers"
+    ],
+    "correctAnswer": "Nets",
+    "difficulty": "easy",
+    "category": "transfers",
+    "team": "Mavericks"
+  },
+  {
+    "id": "nba_q243",
+    "question": "Who holds the record for most turnovers in NBA history?",
+    "options": [
+      "Karl Malone",
+      "LeBron James",
+      "John Stockton",
+      "Kobe Bryant"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "hard",
+    "category": "records"
+  },
+  {
+    "id": "nba_q244",
+    "question": "Which arena is nicknamed 'The Mecca of Basketball'?",
+    "options": [
+      "United Center",
+      "Madison Square Garden",
+      "TD Garden",
+      "Chase Center"
+    ],
+    "correctAnswer": "Madison Square Garden",
+    "difficulty": "medium",
+    "category": "team",
+    "team": "Knicks"
+  },
+  {
+    "id": "nba_q245",
+    "question": "Who was the first undrafted player to win NBA MVP?",
+    "options": [
+      "Ben Wallace",
+      "No one has done it",
+      "John Starks",
+      "Bruce Bowen"
+    ],
+    "correctAnswer": "No one has done it",
+    "difficulty": "hard",
+    "category": "awards"
+  },
+  {
+    "id": "nba_q246",
+    "question": "What team did James Harden request a trade from in 2024?",
+    "options": [
+      "Brooklyn Nets",
+      "Houston Rockets",
+      "Philadelphia 76ers",
+      "Los Angeles Clippers"
+    ],
+    "correctAnswer": "Philadelphia 76ers",
+    "difficulty": "medium",
+    "category": "transfers",
+    "team": "Clippers"
+  },
+  {
+    "id": "nba_q248",
+    "question": "What is Shai Gilgeous-Alexander's nationality?",
+    "options": [
+      "American",
+      "Canadian",
+      "Australian",
+      "British"
+    ],
+    "correctAnswer": "Canadian",
+    "difficulty": "medium",
+    "category": "current",
+    "team": "Thunder"
+  },
+  {
+    "id": "nba_q249",
+    "question": "Who was the 2023 Rookie of the Year?",
+    "options": [
+      "Paolo Banchero",
+      "Jalen Williams",
+      "Keegan Murray",
+      "Bennedict Mathurin"
+    ],
+    "correctAnswer": "Paolo Banchero",
+    "difficulty": "medium",
+    "category": "awards",
+    "team": "Magic"
+  },
+  {
+    "id": "nba_q250",
+    "question": "Which player has the most games played in NBA history?",
+    "options": [
+      "Robert Parish",
+      "Kareem Abdul-Jabbar",
+      "LeBron James",
+      "Vince Carter"
+    ],
+    "correctAnswer": "LeBron James",
+    "difficulty": "medium",
+    "category": "records"
   }
 ]

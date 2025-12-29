@@ -21,18 +21,49 @@ export function calculatePuzzlePoints(cluesUsed: number): number {
 export const DUEL_WIN_POINTS = 3;
 export const DUEL_LOSS_POINTS = 1;
 
-// Award points to a user (updates weekly, monthly, and all-time)
+// Award points to a user (updates weekly, monthly, and all-time in user_stats)
 export async function awardPoints(userId: string, points: number): Promise<boolean> {
-  const { error } = await supabase.rpc('award_leaderboard_points', {
-    p_user_id: userId,
-    p_points: points,
-  });
+  console.log(`[Points] Awarding ${points} points to user ${userId}`);
 
-  if (error) {
-    console.error('Error awarding points:', error);
+  // First get current points
+  const { data: currentStats, error: fetchError } = await supabase
+    .from('user_stats')
+    .select('points_all_time, points_weekly, points_monthly')
+    .eq('id', userId)
+    .single();
+
+  if (fetchError) {
+    // If no row exists, the stats might not be initialized
+    if (fetchError.code === 'PGRST116') {
+      console.log('[Points] No user_stats row found, cannot award points');
+    } else {
+      console.error('[Points] Error fetching current points:', fetchError);
+    }
     return false;
   }
 
+  const newPointsAllTime = (currentStats?.points_all_time || 0) + points;
+  const newPointsWeekly = (currentStats?.points_weekly || 0) + points;
+  const newPointsMonthly = (currentStats?.points_monthly || 0) + points;
+
+  console.log(`[Points] Updating: all_time=${newPointsAllTime}, weekly=${newPointsWeekly}, monthly=${newPointsMonthly}`);
+
+  // Update with new points
+  const { error: updateError } = await supabase
+    .from('user_stats')
+    .update({
+      points_all_time: newPointsAllTime,
+      points_weekly: newPointsWeekly,
+      points_monthly: newPointsMonthly,
+    })
+    .eq('id', userId);
+
+  if (updateError) {
+    console.error('[Points] Error awarding points:', updateError);
+    return false;
+  }
+
+  console.log('[Points] Successfully awarded points');
   return true;
 }
 
@@ -116,4 +147,73 @@ export async function getUserRank(userId: string, timePeriod: TimePeriod = 'week
   const leaderboard = await getGlobalLeaderboard(timePeriod, undefined, 1000);
   const userEntry = leaderboard.find(entry => entry.user_id === userId);
   return userEntry?.rank || null;
+}
+
+// Get leaderboard directly from user_stats points columns
+export async function getFallbackLeaderboard(limit: number = 50): Promise<LeaderboardEntry[]> {
+  console.log('[Leaderboard] Fetching from user_stats...');
+
+  // Get user_stats with actual points
+  const { data: statsData, error: statsError } = await supabase
+    .from('user_stats')
+    .select('id, points_all_time')
+    .gt('points_all_time', 0)
+    .order('points_all_time', { ascending: false })
+    .limit(limit);
+
+  if (statsError) {
+    console.error('[Leaderboard] Error fetching user stats:', statsError);
+    return [];
+  }
+
+  console.log(`[Leaderboard] Found ${statsData?.length || 0} users with points`);
+
+  if (!statsData || statsData.length === 0) return [];
+
+  // Get profiles for these users
+  const userIds = statsData.map((u: any) => u.id);
+  const { data: profilesData, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, username, country')
+    .in('id', userIds);
+
+  if (profilesError) {
+    console.error('Error fetching profiles:', profilesError);
+    return [];
+  }
+
+  // Create a map of profiles by id
+  const profilesMap = new Map(
+    (profilesData || []).map((p: any) => [p.id, p])
+  );
+
+  // Combine and create leaderboard entries with actual points
+  const entries: LeaderboardEntry[] = statsData.map((user: any, index: number) => {
+    const profile = profilesMap.get(user.id);
+    return {
+      rank: index + 1,
+      user_id: user.id,
+      username: profile?.username || 'Unknown',
+      country: profile?.country || null,
+      points: user.points_all_time || 0,
+      avatar: null,
+    };
+  });
+
+  return entries;
+}
+
+// Get player count (users with points)
+export async function getFallbackPlayerCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('user_stats')
+    .select('*', { count: 'exact', head: true })
+    .gt('points_all_time', 0);
+
+  if (error) {
+    console.error('Error fetching player count:', error);
+    return 0;
+  }
+
+  return count || 0;
 }

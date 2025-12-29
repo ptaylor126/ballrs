@@ -12,6 +12,7 @@ import {
   Easing,
   AppState,
   AppStateStatus,
+  Platform,
 } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -36,8 +37,9 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { colors, shadows, getSportColor, getSportName, getSportEmoji, Sport, borders, borderRadius } from './src/lib/theme';
 import { getUserXP, getXPProgressInLevel, getXPForLevel } from './src/lib/xpService';
-import { fetchUserStats, UserStats, getTotalPlayStreak } from './src/lib/statsService';
+import { fetchUserStats, UserStats } from './src/lib/statsService';
 import { StatusBar } from 'expo-status-bar';
+import * as ScreenCapture from 'expo-screen-capture';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import CluePuzzleScreen from './src/screens/CluePuzzleScreen';
@@ -67,7 +69,7 @@ import { getProfile, updateLastActive } from './src/lib/profilesService';
 import { joinPresence, leavePresence } from './src/lib/presenceService';
 import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getPendingAsyncChallengesCount, createInviteDuel, createAsyncDuel } from './src/lib/duelService';
 import { getPendingFriendRequestsCount, subscribeToFriendRequests, unsubscribeFromFriendRequests } from './src/lib/friendsService';
-import { addNotificationListeners } from './src/lib/notificationService';
+import { addNotificationListeners, updateStreakReminderFromStats } from './src/lib/notificationService';
 import { getDuelById } from './src/lib/duelService';
 import { getCompletedSportsToday } from './src/lib/dailyPuzzleService';
 import { LeagueWithMemberCount } from './src/lib/leaguesService';
@@ -193,6 +195,8 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
         }
         if (userStats) {
           setStats(userStats);
+          // Schedule streak reminder notification for 8pm if user hasn't played today
+          updateStreakReminderFromStats(user.id);
         }
       } else {
         setXP(0);
@@ -203,10 +207,10 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
     loadData();
   }, [user, refreshKey]);
 
-  // Calculate total play streak (sum of all play streaks across sports)
+  // Get daily streak (consecutive days played)
   const getTotalStreak = () => {
     if (!stats) return 0;
-    return getTotalPlayStreak(stats);
+    return stats.daily_streak || 0;
   };
 
   const progress = getXPProgressInLevel(xp);
@@ -419,6 +423,45 @@ function AppContent() {
   const [autoStartDuelSport, setAutoStartDuelSport] = useState<Sport | null>(null);
   const [isAsyncDuel, setIsAsyncDuel] = useState(false);
   const [isAsyncChallenger, setIsAsyncChallenger] = useState(false);
+
+  // Screenshot toast state
+  const [showScreenshotToast, setShowScreenshotToast] = useState(false);
+  const screenshotToastShownRef = useRef(false);
+  const screenshotToastAnim = useRef(new Animated.Value(0)).current;
+
+  // Screenshot detection listener (native only - not supported on web)
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    const subscription = ScreenCapture.addScreenshotListener(() => {
+      // Only show once per session
+      if (screenshotToastShownRef.current) return;
+      screenshotToastShownRef.current = true;
+      setShowScreenshotToast(true);
+
+      // Animate toast in
+      Animated.timing(screenshotToastAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.ease),
+      }).start();
+
+      // Auto-dismiss after 2 seconds
+      setTimeout(() => {
+        Animated.timing(screenshotToastAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.in(Easing.ease),
+        }).start(() => {
+          setShowScreenshotToast(false);
+        });
+      }, 2000);
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   // Check if onboarding has been completed
   useEffect(() => {
@@ -837,6 +880,7 @@ function AppContent() {
   // Only hide nav bar during active gameplay (duel game) and auth flows
   const hideNavBar = [
     'duelGame',
+    'asyncDuelGame',
     'setUsername',
     'selectCountry',
     'linkEmail',
@@ -845,6 +889,7 @@ function AppContent() {
   // Show ads on all screens except active duel game and auth flows
   const showAdBanner = ![
     'duelGame',
+    'asyncDuelGame',
     'setUsername',
     'selectCountry',
     'linkEmail',
@@ -1109,6 +1154,28 @@ function AppContent() {
           friendsBadgeCount={pendingFriendRequestsCount + pendingAsyncChallengesCount}
         />
       )}
+      {/* Screenshot Toast */}
+      {showScreenshotToast && (
+        <Animated.View
+          style={[
+            styles.screenshotToast,
+            {
+              opacity: screenshotToastAnim,
+              transform: [
+                {
+                  translateY: screenshotToastAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-50, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+          pointerEvents="none"
+        >
+          <Text style={styles.screenshotToastText}>Sharing? Tag us @ballrsgame 📸</Text>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -1202,7 +1269,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   headerAvatarIcon: {
     width: 20,
@@ -1228,7 +1295,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   levelSection_left: {
     backgroundColor: '#F2C94C',
@@ -1293,7 +1360,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   xpBarFillContainer: {
     height: '100%',
@@ -1404,5 +1471,30 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_900Black',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  screenshotToast: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    backgroundColor: '#FFFDF5',
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    shadowColor: '#1A1A1A',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  screenshotToastText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 14,
+    color: '#1A1A1A',
+    textAlign: 'center',
   },
 });

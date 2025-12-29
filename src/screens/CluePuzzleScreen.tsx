@@ -30,7 +30,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { awardXP, calculateLevel, XPAwardResult } from '../lib/xpService';
 import { awardPuzzlePoints } from '../lib/pointsService';
 import { awardLeaguePoints } from '../lib/leaguesService';
-import { fetchUserStats, getPlayStreak, getWinStreak, UserStats, updateStatsAfterWin, updateStatsAfterLoss } from '../lib/statsService';
+import { fetchUserStats, getPlayStreak, getWinStreak, UserStats, updateStatsAfterWin, updateStatsAfterLoss, updateDailyStreak } from '../lib/statsService';
+import { cancelStreakReminder } from '../lib/notificationService';
 import XPEarnedModal from '../components/XPEarnedModal';
 import LevelUpModal from '../components/LevelUpModal';
 import JerseyReveal, { getFullTeamName } from '../components/JerseyReveal';
@@ -160,37 +161,49 @@ function getPlayersForSport(sport: Sport): CluePlayer[] {
   }
 }
 
+// Get all players for autocomplete, ensuring mystery players are always included
+// and removing duplicates by name (case-insensitive)
 function getAllPlayersForSport(sport: Sport): AutocompletePlayer[] {
+  // Get base all-players list
+  let basePlayers: AutocompletePlayer[];
   switch (sport) {
     case 'nba':
-      return nbaAllPlayers.players;
+      basePlayers = nbaAllPlayers.players;
+      break;
     case 'pl':
-      return plAllPlayers.players;
+      basePlayers = plAllPlayers.players;
+      break;
     case 'nfl':
-      return nflAllPlayers.players;
+      basePlayers = nflAllPlayers.players;
+      break;
     case 'mlb':
-      return mlbAllPlayers.players;
+      basePlayers = mlbAllPlayers.players;
+      break;
   }
-}
 
-// Validate that all mystery players are in the searchable list
-// This prevents the bug where a mystery player can't be found in autocomplete
-function validateMysteryPlayersAreSearchable(sport: Sport): void {
+  // Get mystery players and convert to autocomplete format
   const mysteryPlayers = getPlayersForSport(sport);
-  const searchablePlayers = getAllPlayersForSport(sport);
-  const searchableNames = new Set(searchablePlayers.map(p => p.name.toLowerCase()));
+  const mysteryAsAutocomplete: AutocompletePlayer[] = mysteryPlayers.map(p => ({
+    id: p.id,
+    name: p.name,
+    team: p.team,
+  }));
 
-  const missingPlayers = mysteryPlayers.filter(
-    mp => !searchableNames.has(mp.name.toLowerCase())
-  );
+  // Combine both lists
+  const combined = [...basePlayers, ...mysteryAsAutocomplete];
 
-  if (missingPlayers.length > 0) {
-    console.error(
-      `[${sport.toUpperCase()}] DATA INTEGRITY ERROR: ${missingPlayers.length} mystery player(s) not in searchable list:`,
-      missingPlayers.map(p => p.name).join(', '),
-      '\nFix: Add these players to data/*-all-players.json'
-    );
-  }
+  // Deduplicate by name (case-insensitive), keeping first occurrence
+  const seen = new Set<string>();
+  const deduplicated = combined.filter(player => {
+    const nameLower = player.name.toLowerCase();
+    if (seen.has(nameLower)) {
+      return false;
+    }
+    seen.add(nameLower);
+    return true;
+  });
+
+  return deduplicated;
 }
 
 function getSportNameLocal(sport: Sport): string {
@@ -322,7 +335,7 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
   }, [pulseAnim]);
 
   // Handle timer expiry
-  const handleTimerExpiry = useCallback(() => {
+  const handleTimerExpiry = useCallback(async () => {
     if (solved || gaveUp || loading) return;
 
     // Haptic feedback
@@ -347,7 +360,8 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
       // Clue 6: Time's up! - Reveal answer (same as Give Up)
       setGaveUp(true);
       setTimeRemaining(0);
-      saveGameState(currentClueIndex, wrongGuesses, false, 0, false, true);
+      // Await to ensure state is saved before user can navigate back
+      await saveGameState(currentClueIndex, wrongGuesses, false, 0, false, true);
 
       // Update stats (loss - but play streak continues)
       if (user && userStats) {
@@ -460,10 +474,6 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
   const gameOver = solved || gaveUp;
 
   useEffect(() => {
-    // Validate data integrity on mount (development aid)
-    if (__DEV__) {
-      validateMysteryPlayersAreSearchable(sport);
-    }
     loadGameState();
   }, []);
 
@@ -575,7 +585,7 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     ]).start();
   }
 
-  function handleSelectPlayer(selectedPlayer: AutocompletePlayer) {
+  async function handleSelectPlayer(selectedPlayer: AutocompletePlayer) {
     if (!mysteryPlayer || solved || gaveUp) return;
 
     // Light haptic feedback for any guess submission
@@ -636,6 +646,17 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
           console.error('Error calling awardPuzzlePoints:', err);
         }
 
+        // Update daily streak (consecutive days played)
+        try {
+          updateDailyStreak(user.id).catch((err) => {
+            console.error('Error updating daily streak:', err);
+          });
+          // Cancel 8pm streak reminder since they've played today
+          cancelStreakReminder();
+        } catch (err) {
+          console.error('Error calling updateDailyStreak:', err);
+        }
+
         // Award league points
         try {
           awardLeaguePoints(user.id, sport, cluesUsed, true).catch((err) => {
@@ -687,12 +708,20 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
         setWrongToastMessage('Out of guesses!');
         setShowWrongMessage(true);
         setGaveUp(true);
-        saveGameState(currentClueIndex, newWrongGuesses, false, 0, false, true);
+        // Await to ensure state is saved before user can navigate back
+        await saveGameState(currentClueIndex, newWrongGuesses, false, 0, false, true);
 
         // Update stats (loss - but play streak continues)
         if (user && userStats) {
           // Award league points (0 for loss)
           awardLeaguePoints(user.id, sport, MAX_GUESSES, false);
+
+          // Update daily streak (consecutive days played - counts even on loss)
+          updateDailyStreak(user.id).catch((err) => {
+            console.error('Error updating daily streak:', err);
+          });
+          // Cancel 8pm streak reminder since they've played today
+          cancelStreakReminder();
 
           // Calculate daily streak (play streak continues even on loss)
           calculateDailyStreak(sport).then((dailyStreak) => {
@@ -753,14 +782,15 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     }
   }
 
-  function handleGiveUp() {
+  async function handleGiveUp() {
     // Warning haptic for giving up
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
 
     setGaveUp(true);
     setSolved(false);
     setPointsEarned(0);
-    saveGameState(currentClueIndex, wrongGuesses, false, 0, false, true);
+    // Await to ensure state is saved before user can navigate back
+    await saveGameState(currentClueIndex, wrongGuesses, false, 0, false, true);
 
     // Scroll to center the jersey card on screen
     setTimeout(() => {
@@ -778,6 +808,13 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     if (user && userStats) {
       // Award league points (0 for give up)
       awardLeaguePoints(user.id, sport, MAX_GUESSES, false);
+
+      // Update daily streak (consecutive days played - counts even on give up)
+      updateDailyStreak(user.id).catch((err) => {
+        console.error('Error updating daily streak:', err);
+      });
+      // Cancel 8pm streak reminder since they've played today
+      cancelStreakReminder();
 
       // Calculate daily streak (play streak continues even on give up)
       calculateDailyStreak(sport).then((dailyStreak) => {

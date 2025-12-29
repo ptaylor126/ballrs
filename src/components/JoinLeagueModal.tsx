@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonDisabled: {
-    backgroundColor: '#F9EECC',
+    backgroundColor: '#A8E6CF',
     shadowOpacity: 0.4,
   },
   buttonDisabledText: {

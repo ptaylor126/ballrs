@@ -8,6 +8,7 @@ interface GameState {
   wrongGuesses: number;
   solved: boolean;
   pointsEarned: number;
+  gaveUp?: boolean;
 }
 
 const getStorageKey = (sport: string) => `ballrs_clue_puzzle_state_${sport}`;
@@ -19,6 +20,7 @@ function getTodayString(): string {
 
 /**
  * Check if a specific sport's daily puzzle has been completed today
+ * Returns true if the puzzle was solved OR if the user gave up (done for today)
  */
 export async function isDailyPuzzleCompletedToday(sport: Sport): Promise<boolean> {
   try {
@@ -28,7 +30,8 @@ export async function isDailyPuzzleCompletedToday(sport: Sport): Promise<boolean
     const state: GameState = JSON.parse(stored);
     const today = getTodayString();
 
-    return state.date === today && state.solved === true;
+    // Completed means either solved or gave up (done for today either way)
+    return state.date === today && (state.solved === true || state.gaveUp === true);
   } catch (error) {
     console.error(`Error checking daily puzzle status for ${sport}:`, error);
     return false;

@@ -30,6 +30,8 @@ const DISABLED_TEXT = '#AAAAAA';
 
 // Icons
 const swordsIcon = require('../../assets/images/icon-duel.png');
+const crownIcon = require('../../assets/images/icon-crown.png');
+const trophyIcon = require('../../assets/images/icon-trophy.png');
 
 // Sport icons for selector
 const sportIcons: Record<Sport, any> = {
@@ -67,6 +69,7 @@ import {
   cancelDuel,
   createInviteDuel,
   createAsyncDuel,
+  markResultSeen,
 } from '../lib/duelService';
 import { getFriends, FriendWithProfile, sendFriendChallenge } from '../lib/friendsService';
 import { sendChallengeNotification } from '../lib/notificationService';
@@ -160,15 +163,11 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
   };
 
   const handleCardPress = () => {
-    if (isWaitingForOpponent) {
-      // Do nothing - card is not interactive when waiting for opponent
-      return;
-    }
+    // Only allow swipe reset - don't navigate anywhere on tap
     if (isSwiped) {
       resetSwipe();
-    } else {
-      onPress();
     }
+    // Do nothing else - active duels should not be tappable to navigate
   };
 
   // Animate the card sliding out to the left and collapsing
@@ -279,7 +278,6 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
                   {duel.status === 'waiting' || duel.status === 'invite' ? 'Waiting' : 'In Progress'}
                 </Text>
               </View>
-              <Text style={styles.arrowIcon}>→</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -456,6 +454,10 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
   const [sendingFriendChallenge, setSendingFriendChallenge] = useState(false);
   const [myUsername, setMyUsername] = useState<string>('Someone');
 
+  // View results modal state
+  const [resultsModalVisible, setResultsModalVisible] = useState(false);
+  const [selectedDuelForResults, setSelectedDuelForResults] = useState<DuelWithOpponent | null>(null);
+
   // Auto-open Start Duel modal when navigating from home screen
   useEffect(() => {
     if (autoStartDuelSport) {
@@ -629,6 +631,20 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
     onNavigateToDuel(duel);
   };
 
+  const handleViewResults = async (duel: DuelWithOpponent) => {
+    setSelectedDuelForResults(duel);
+    setResultsModalVisible(true);
+
+    // Mark as seen if current user is player1 and hasn't seen it yet
+    if (user && duel.player1_id === user.id && !duel.player1_seen_result) {
+      await markResultSeen(duel.id);
+      // Update local state to remove NEW badge
+      setDuelHistory(prev =>
+        prev.map(d => d.id === duel.id ? { ...d, player1_seen_result: true } : d)
+      );
+    }
+  };
+
   const handleQuickDuelPress = () => {
     if (!user) return;
     setSportSelectorAction('quickDuel');
@@ -675,12 +691,28 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
   };
 
   const handleCancelFriendConfirm = () => {
+    console.log('[handleCancelFriendConfirm] Called - closing modal');
     setSelectedFriendForChallenge(null);
     setConfirmFriendModalVisible(false);
   };
 
   const handleConfirmFriendChallenge = async () => {
-    if (!selectedFriendForChallenge || !user || !selectedSport) return;
+    console.log('[handleConfirmFriendChallenge] Called with:', {
+      selectedFriendForChallenge: selectedFriendForChallenge?.username,
+      friendUserId: selectedFriendForChallenge?.friendUserId,
+      user: user?.id,
+      selectedSport,
+      selectedQuestionCount,
+    });
+
+    if (!selectedFriendForChallenge || !user || !selectedSport) {
+      console.log('[handleConfirmFriendChallenge] Early return - missing:', {
+        hasFriend: !!selectedFriendForChallenge,
+        hasUser: !!user,
+        hasSport: !!selectedSport,
+      });
+      return;
+    }
 
     setSendingFriendChallenge(true);
 
@@ -973,17 +1005,28 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             </View>
           ) : (
             duelHistory.map((duel) => {
-              const isPlayer1 = duel.player1_id === user.id;
-              const won = duel.winner_id === user.id;
+              const isPlayer1 = duel.player1_id === user?.id;
+              const won = duel.winner_id === user?.id;
               const tie = duel.winner_id === null;
               const myScore = isPlayer1 ? duel.player1_score : duel.player2_score;
               const theirScore = isPlayer1 ? duel.player2_score : duel.player1_score;
+              const showNewBadge = isPlayer1 && !duel.player1_seen_result;
 
               return (
-                <View key={duel.id} style={styles.historyCard}>
+                <TouchableOpacity
+                  key={duel.id}
+                  style={styles.historyCard}
+                  onPress={() => handleViewResults(duel)}
+                  activeOpacity={0.7}
+                >
+                  {showNewBadge && (
+                    <View style={styles.newBadge}>
+                      <Text style={styles.newBadgeText}>NEW</Text>
+                    </View>
+                  )}
                   <View style={styles.historyLeft}>
                     <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
-                      <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+                      <Text style={styles.sportBadgeText}>{duel.sport === 'pl' ? 'EPL' : duel.sport.toUpperCase()}</Text>
                     </View>
                     <View style={styles.historyInfo}>
                       <Text
@@ -1003,7 +1046,7 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                     <Text style={styles.scoreLabel}>You: {myScore ?? 0}</Text>
                     <Text style={styles.scoreLabel}>Them: {theirScore ?? 0}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           )}
@@ -1145,15 +1188,13 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
         animationType="fade"
         onRequestClose={handleCancelFriendConfirm}
       >
-        <TouchableOpacity
+        <Pressable
           style={styles.modalOverlay}
-          activeOpacity={1}
           onPress={handleCancelFriendConfirm}
         >
-          <TouchableOpacity
+          <Pressable
             style={styles.confirmFriendModalContent}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
+            onPress={() => {}} // Prevent tap from propagating to overlay
           >
             <Text style={styles.confirmFriendTitle}>
               Challenge {truncateUsername(selectedFriendForChallenge?.username)}?
@@ -1196,8 +1237,8 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                 )}
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       {/* Cancel Duel Confirmation Modal */}
@@ -1350,6 +1391,105 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Duel Results Modal */}
+      <Modal
+        visible={resultsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setResultsModalVisible(false)}
+      >
+        <View style={styles.resultsModalOverlay}>
+          <View style={styles.resultsModalContent}>
+            {selectedDuelForResults && (() => {
+              const isPlayer1 = selectedDuelForResults.player1_id === user?.id;
+              const won = selectedDuelForResults.winner_id === user?.id;
+              const tie = selectedDuelForResults.winner_id === null;
+              const myScore = isPlayer1 ? selectedDuelForResults.player1_score : selectedDuelForResults.player2_score;
+              const theirScore = isPlayer1 ? selectedDuelForResults.player2_score : selectedDuelForResults.player1_score;
+              const totalQuestions = selectedDuelForResults.question_count || Math.max(myScore ?? 0, theirScore ?? 0, 1);
+              const opponentLost = !won && !tie;
+
+              return (
+                <>
+                  {/* Sport Badge */}
+                  <View style={[styles.resultsSportBadge, { backgroundColor: getSportColor(selectedDuelForResults.sport) }]}>
+                    <Image source={sportIcons[selectedDuelForResults.sport as Sport]} style={styles.resultsSportIcon} resizeMode="contain" />
+                    <Text style={styles.resultsSportText}>{sportNames[selectedDuelForResults.sport as Sport]}</Text>
+                  </View>
+
+                  {/* Header */}
+                  <Text style={styles.resultsHeader}>DUEL COMPLETE</Text>
+
+                  {/* Players Card */}
+                  <View style={styles.resultsPlayersCard}>
+                    {/* Your Row */}
+                    <View style={styles.resultsPlayerRow}>
+                      <View style={[styles.resultsAvatar, won && styles.resultsAvatarWinner]}>
+                        <Text style={styles.resultsAvatarText}>Y</Text>
+                      </View>
+                      <View style={styles.resultsNameContainer}>
+                        <Text style={[styles.resultsPlayerName, won && styles.resultsPlayerNameWinner]}>
+                          You
+                        </Text>
+                        {won && (
+                          <Image source={crownIcon} style={styles.resultsCrownIcon} resizeMode="contain" />
+                        )}
+                      </View>
+                      <Text style={[styles.resultsPlayerScoreText, won && styles.resultsPlayerScoreWinner]}>
+                        {myScore ?? 0}/{totalQuestions}
+                      </Text>
+                    </View>
+
+                    {/* Opponent Row */}
+                    <View style={styles.resultsPlayerRow}>
+                      <View style={[styles.resultsAvatar, opponentLost && styles.resultsAvatarWinner]}>
+                        <Text style={styles.resultsAvatarText}>
+                          {selectedDuelForResults.opponent_username?.charAt(0).toUpperCase() || 'O'}
+                        </Text>
+                      </View>
+                      <View style={styles.resultsNameContainer}>
+                        <Text style={[styles.resultsPlayerName, opponentLost && styles.resultsPlayerNameWinner]}>
+                          {truncateUsername(selectedDuelForResults.opponent_username) || 'Opponent'}
+                        </Text>
+                        {opponentLost && (
+                          <Image source={crownIcon} style={styles.resultsCrownIcon} resizeMode="contain" />
+                        )}
+                      </View>
+                      <Text style={[styles.resultsPlayerScoreText, opponentLost && styles.resultsPlayerScoreWinner]}>
+                        {theirScore ?? 0}/{totalQuestions}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Result Message */}
+                  <View style={styles.resultsMessageContainer}>
+                    <Text style={[
+                      styles.resultsMessage,
+                      won && styles.resultsMessageWin,
+                      opponentLost && styles.resultsMessageLose,
+                      tie && styles.resultsMessageTie,
+                    ]}>
+                      {tie ? "IT'S A TIE!" : won ? 'YOU WIN! ' : 'Better luck next time!'}
+                    </Text>
+                    {won && (
+                      <Image source={trophyIcon} style={styles.resultsWinIcon} resizeMode="contain" />
+                    )}
+                  </View>
+
+                  {/* Close Button */}
+                  <TouchableOpacity
+                    style={styles.resultsCloseButton}
+                    onPress={() => setResultsModalVisible(false)}
+                  >
+                    <Text style={styles.resultsCloseButtonText}>DONE</Text>
+                  </TouchableOpacity>
+                </>
+              );
+            })()}
+          </View>
+        </View>
       </Modal>
 
       {/* Toast Notification */}
@@ -1801,6 +1941,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'DMSans_600SemiBold',
     color: '#666666',
+  },
+  // NEW Badge for unseen results
+  newBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#F2C94C',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    zIndex: 1,
+    shadowColor: '#1A1A1A',
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -2541,5 +2704,162 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'DMSans_600SemiBold',
     color: '#888888',
+  },
+  // Results Modal (matches DuelGameScreen)
+  resultsModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultsModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
+    alignItems: 'center',
+    width: '90%',
+    maxWidth: 340,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  resultsSportBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  resultsSportIcon: {
+    width: 20,
+    height: 20,
+  },
+  resultsSportText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  resultsHeader: {
+    fontSize: 12,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+    letterSpacing: 2,
+    marginBottom: 16,
+  },
+  resultsPlayersCard: {
+    width: '100%',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 12,
+    marginBottom: 16,
+  },
+  resultsPlayerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  resultsAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  resultsAvatarWinner: {
+    backgroundColor: '#1ABC9C',
+  },
+  resultsAvatarText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+  },
+  resultsNameContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  resultsPlayerName: {
+    fontSize: 16,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#666666',
+  },
+  resultsPlayerNameWinner: {
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  resultsCrownIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 6,
+  },
+  resultsPlayerScoreText: {
+    fontSize: 18,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+  },
+  resultsPlayerScoreWinner: {
+    color: '#1ABC9C',
+  },
+  resultsMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  resultsMessage: {
+    fontSize: 22,
+    fontFamily: 'DMSans_900Black',
+    textAlign: 'center',
+  },
+  resultsMessageWin: {
+    color: '#1ABC9C',
+  },
+  resultsMessageLose: {
+    color: '#666666',
+  },
+  resultsMessageTie: {
+    color: '#F2C94C',
+  },
+  resultsWinIcon: {
+    width: 28,
+    height: 28,
+  },
+  resultsCloseButton: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    shadowColor: '#1A1A1A',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  resultsCloseButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
   },
 });

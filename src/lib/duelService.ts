@@ -41,6 +41,8 @@ export interface Duel {
   expires_at: string | null;
   player1_result: PlayerResult | null;
   player2_result: PlayerResult | null;
+  // Result seen tracking
+  player1_seen_result: boolean;
 }
 
 export type QuestionCategory = 'records' | 'history' | 'current' | 'awards' | 'transfers' | 'moments' | 'team';
@@ -604,6 +606,21 @@ export async function getDuelHistory(userId: string, limit: number = 20): Promis
   return duelsWithOpponents;
 }
 
+// Mark duel result as seen by player 1
+export async function markResultSeen(duelId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('duels')
+    .update({ player1_seen_result: true })
+    .eq('id', duelId);
+
+  if (error) {
+    console.error('Error marking result as seen:', error);
+    return false;
+  }
+
+  return true;
+}
+
 // Decline a challenge by updating status to 'declined'
 export async function declineChallenge(
   duelId: string,
@@ -972,7 +989,7 @@ export async function submitOpponentResult(
   const p1Result = duel.player1_result as PlayerResult | null;
   const p2Result = result;
 
-  // Determine winner
+  // Determine winner and calculate scores
   let winnerId: string | null = null;
   let player1Score = 0;
   let player2Score = 0;
@@ -983,33 +1000,34 @@ export async function submitOpponentResult(
     winnerId = duel.player2_id;
     player2Score = p2Result.correct ? 1 : 0;
   } else {
-    // Normal case - both players submitted
-    if (p1Result.correct && !p2Result.correct) {
-      winnerId = duel.player1_id;
-    } else if (!p1Result.correct && p2Result.correct) {
-      winnerId = duel.player2_id;
-    } else if (p1Result.correct && p2Result.correct) {
-      // Both correct - faster wins
-      if (p1Result.time < p2Result.time) {
-        winnerId = duel.player1_id;
-      } else if (p2Result.time < p1Result.time) {
-        winnerId = duel.player2_id;
-      }
-      // If times are equal, winnerId stays null (tie)
-    }
-    // If both wrong, winnerId stays null (tie)
-
-    // Calculate scores from player results
+    // Calculate scores from player results first
+    let isMultiQuestion = false;
     try {
       // For multi-question duels, result.answer contains JSON array of round results
       const p1RoundResults = JSON.parse(p1Result.answer) as PlayerResult[];
       const p2RoundResults = JSON.parse(p2Result.answer) as PlayerResult[];
       player1Score = p1RoundResults.filter(r => r.correct).length;
       player2Score = p2RoundResults.filter(r => r.correct).length;
+      isMultiQuestion = true;
     } catch {
       // Single question duel
       player1Score = p1Result.correct ? 1 : 0;
       player2Score = p2Result.correct ? 1 : 0;
+    }
+
+    // Determine winner based on scores
+    if (player1Score > player2Score) {
+      winnerId = duel.player1_id;
+    } else if (player2Score > player1Score) {
+      winnerId = duel.player2_id;
+    } else {
+      // Scores are tied - use time as tiebreaker
+      if (p1Result.time < p2Result.time) {
+        winnerId = duel.player1_id;
+      } else if (p2Result.time < p1Result.time) {
+        winnerId = duel.player2_id;
+      }
+      // If times are also equal, winnerId stays null (true tie)
     }
   }
 

@@ -14,6 +14,11 @@ export interface UserStats {
   mlb_current_streak: number;
   mlb_best_streak: number;
   mlb_total_solved: number;
+  points_all_time: number;
+  points_weekly: number;
+  points_monthly: number;
+  daily_streak: number;
+  last_played_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -178,6 +183,77 @@ export async function updateStatsAfterLoss(
   return data;
 }
 
+// Update daily streak when user completes any puzzle
+// - If last_played_date was yesterday → increment daily_streak
+// - If last_played_date was today → do nothing (already played today)
+// - If last_played_date was earlier or null → reset to 1 (streak broken)
+export async function updateDailyStreak(userId: string): Promise<{ newStreak: number; updated: boolean }> {
+  // Get current stats
+  const { data: stats, error: fetchError } = await supabase
+    .from('user_stats')
+    .select('daily_streak, last_played_date')
+    .eq('id', userId)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching stats for daily streak:', fetchError);
+    return { newStreak: 0, updated: false };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split('T')[0];
+
+  const lastPlayedStr = stats?.last_played_date;
+  const currentStreak = stats?.daily_streak || 0;
+
+  // If already played today, don't update
+  if (lastPlayedStr === todayStr) {
+    console.log('[DailyStreak] Already played today, no update needed');
+    return { newStreak: currentStreak, updated: false };
+  }
+
+  let newStreak: number;
+
+  if (lastPlayedStr) {
+    const lastPlayed = new Date(lastPlayedStr);
+    lastPlayed.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (lastPlayed.getTime() === yesterday.getTime()) {
+      // Played yesterday - increment streak
+      newStreak = currentStreak + 1;
+      console.log(`[DailyStreak] Played yesterday, incrementing streak to ${newStreak}`);
+    } else {
+      // Missed a day - reset to 1
+      newStreak = 1;
+      console.log('[DailyStreak] Streak broken, resetting to 1');
+    }
+  } else {
+    // First time playing
+    newStreak = 1;
+    console.log('[DailyStreak] First play, setting streak to 1');
+  }
+
+  // Update the database
+  const { error: updateError } = await supabase
+    .from('user_stats')
+    .update({
+      daily_streak: newStreak,
+      last_played_date: todayStr,
+    })
+    .eq('id', userId);
+
+  if (updateError) {
+    console.error('Error updating daily streak:', updateError);
+    return { newStreak: currentStreak, updated: false };
+  }
+
+  return { newStreak, updated: true };
+}
+
 // Reset play streak when user misses a day (called on app load if needed)
 export async function resetPlayStreakIfMissedDay(
   userId: string,
@@ -202,3 +278,4 @@ export async function resetPlayStreakIfMissedDay(
       .eq('id', userId);
   }
 }
+

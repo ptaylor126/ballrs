@@ -12,6 +12,7 @@ import {
   AppStateStatus,
   ScrollView,
   Modal,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -158,7 +159,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
   // Async mode state
   const [asyncWaitingForFriend, setAsyncWaitingForFriend] = useState(false);
-  const [asyncTimeRemaining, setAsyncTimeRemaining] = useState<{ hours: number; minutes: number } | null>(null);
+  const [asyncTimeRemaining, setAsyncTimeRemaining] = useState<{ hours: number; minutes: number; expired: boolean } | null>(null);
   // Track local results for async multi-round duels
   const [asyncLocalResults, setAsyncLocalResults] = useState<PlayerResult[]>([]);
   // Track round summaries for end-of-duel display
@@ -195,6 +196,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   const hasSubmittedTimeoutRef = useRef<boolean>(false);
   const roundResultTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [skipRoundResult, setSkipRoundResult] = useState(false);
+  const [hidingRoundResult, setHidingRoundResult] = useState(false);
 
   // Helper to check if this is a multi-question duel
   const isMultiQuestion = duel.question_count > 1;
@@ -438,6 +440,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           // Both answered - handle round end
           if (isMultiQuestion) {
             // Show round result, then advance
+            setHidingRoundResult(false);
             setGamePhase('roundResult');
           } else {
             // Single question - show final results
@@ -642,16 +645,8 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           }
         }
 
-        // Reset round state
-        setSelectedAnswer(null);
-        setHasAnswered(false);
-        setOpponentAnswered(false);
-        setTimeRemaining(TIMER_DURATION);
-        setRoundWon(null);
-        setIsAdvancingRound(false);
-        hasSubmittedTimeoutRef.current = false; // Reset for next round
-        lastTickSecond.current = -1; // Reset tick sound tracker
-
+        // Change game phase FIRST to hide the modal before resetting roundWon
+        // This prevents the modal from briefly showing "Wrong!" when roundWon becomes null
         if (isAsyncMode) {
           // Async mode: start next round immediately
           setRoundStartTimeState(Date.now());
@@ -661,6 +656,16 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           setRoundStartTimeState(null);
           setGamePhase('waiting');
         }
+
+        // Reset round state after hiding the modal
+        // Note: Don't reset roundWon here - it will be set correctly when next round result shows
+        setSelectedAnswer(null);
+        setHasAnswered(false);
+        setOpponentAnswered(false);
+        setTimeRemaining(TIMER_DURATION);
+        setIsAdvancingRound(false);
+        hasSubmittedTimeoutRef.current = false; // Reset for next round
+        lastTickSecond.current = -1; // Reset tick sound tracker
       }
     };
 
@@ -772,6 +777,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       setRoundSummaries(prev => [...prev, roundSummary]);
 
       // Show round result feedback
+      setHidingRoundResult(false);
       setGamePhase('roundResult');
       return;
     }
@@ -889,6 +895,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       }
 
       // Show round result feedback (correct/incorrect)
+      setHidingRoundResult(false);
       setGamePhase('roundResult');
       return;
     }
@@ -956,6 +963,21 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     setShowForfeitModal(false);
     onBack();
   };
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // During playing phase or async waiting, show forfeit modal
+      if (gamePhase === 'playing' || asyncWaitingForFriend) {
+        setShowForfeitModal(true);
+        return true; // Prevent default back behavior
+      }
+      // For other phases, allow normal back navigation
+      return false;
+    });
+
+    return () => backHandler.remove();
+  }, [gamePhase, asyncWaitingForFriend]);
 
   // Award XP when game ends
   useEffect(() => {
@@ -1447,9 +1469,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
       {/* Round Result Overlay (for multi-question duels) */}
       <Modal
-        visible={gamePhase === 'roundResult' && !!question}
+        visible={gamePhase === 'roundResult' && !!question && !hidingRoundResult}
         transparent
-        animationType="fade"
+        animationType="none"
       >
         <View style={styles.modalOverlayFullScreen}>
           <View style={styles.roundResultCard}>
@@ -1489,7 +1511,10 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             {currentRound < totalQuestions ? (
               <TouchableOpacity
                 style={styles.roundResultNextButton}
-                onPress={() => setSkipRoundResult(true)}
+                onPress={() => {
+                  setHidingRoundResult(true); // Hide modal immediately
+                  setSkipRoundResult(true);
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={styles.roundResultNextButtonText}>NEXT QUESTION</Text>
@@ -1637,7 +1662,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
                   if (isAsyncMode && onRematch) {
                     // For async duels, start a rematch with the same opponent
                     const opponentId = isPlayer1 ? duel.player2_id : duel.player1_id;
-                    onRematch(opponentId, duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb', duel.question_count);
+                    if (opponentId) {
+                      onRematch(opponentId, duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb', duel.question_count);
+                    }
                   } else {
                     // For sync duels, use regular play again
                     onPlayAgain(duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb');

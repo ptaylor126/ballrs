@@ -375,6 +375,12 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     <Text style={styles.statsNumValue}>{stats?.mlb_best_streak ?? 0}</Text>
                   </View>
                 </View>
+
+                {/* Total Points Row */}
+                <View style={styles.totalPointsRow}>
+                  <Text style={styles.totalPointsLabel}>LEADERBOARD POINTS</Text>
+                  <Text style={styles.totalPointsValue}>{stats?.points_all_time ?? 0}</Text>
+                </View>
               </View>
             )}
 
@@ -761,6 +767,28 @@ const styles = StyleSheet.create({
   },
   statsDataRowLast: {
     borderBottomWidth: 0,
+  },
+  totalPointsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    backgroundColor: '#F5F5F0',
+    borderTopWidth: 2,
+    borderTopColor: '#E5E5E0',
+    marginTop: 4,
+  },
+  totalPointsLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
+  },
+  totalPointsValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.primary,
   },
   statsSportCol: {
     width: 70,

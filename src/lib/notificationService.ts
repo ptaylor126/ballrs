@@ -436,3 +436,102 @@ export async function sendAsyncDuelCompletedNotification(
     duelId
   );
 }
+
+// ============================================
+// STREAK REMINDER NOTIFICATIONS
+// ============================================
+
+const STREAK_REMINDER_ID = 'streak-reminder-8pm';
+
+// Schedule a daily streak reminder notification at 8pm local time
+// This will only show if the user hasn't played today and has an active streak
+export async function scheduleStreakReminder(
+  dailyStreak: number,
+  lastPlayedDate: string | null
+): Promise<void> {
+  // Skip if no streak to protect
+  if (dailyStreak < 1) {
+    console.log('[StreakReminder] No streak to protect, skipping');
+    await cancelStreakReminder();
+    return;
+  }
+
+  // Check if already played today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split('T')[0];
+
+  if (lastPlayedDate === todayStr) {
+    console.log('[StreakReminder] Already played today, cancelling reminder');
+    await cancelStreakReminder();
+    return;
+  }
+
+  // Cancel any existing reminder first
+  await cancelStreakReminder();
+
+  // Schedule for 8pm today (or tomorrow if past 8pm)
+  const now = new Date();
+  const trigger8pm = new Date();
+  trigger8pm.setHours(20, 0, 0, 0); // 8:00 PM
+
+  // If it's already past 8pm today, don't schedule
+  // (they'll get reminded tomorrow if they still haven't played)
+  if (now.getTime() >= trigger8pm.getTime()) {
+    console.log('[StreakReminder] Past 8pm, will check again tomorrow');
+    return;
+  }
+
+  // Calculate seconds until 8pm
+  const secondsUntil8pm = Math.floor((trigger8pm.getTime() - now.getTime()) / 1000);
+
+  try {
+    await Notifications.scheduleNotificationAsync({
+      identifier: STREAK_REMINDER_ID,
+      content: {
+        title: "Don't lose your streak! 🔥",
+        body: `You're on a ${dailyStreak} day streak. Play today to keep it going!`,
+        sound: 'default',
+        data: { type: 'streak_reminder' },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: secondsUntil8pm,
+      },
+    });
+    console.log(`[StreakReminder] Scheduled for ${secondsUntil8pm} seconds (8pm local)`);
+  } catch (error) {
+    console.error('[StreakReminder] Error scheduling notification:', error);
+  }
+}
+
+// Cancel any scheduled streak reminder
+export async function cancelStreakReminder(): Promise<void> {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(STREAK_REMINDER_ID);
+    console.log('[StreakReminder] Cancelled existing reminder');
+  } catch (error) {
+    // Ignore errors - notification might not exist
+  }
+}
+
+// Check and schedule streak reminder based on user stats
+// Call this on app launch and after playing
+export async function updateStreakReminderFromStats(userId: string): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('user_stats')
+      .select('daily_streak, last_played_date')
+      .eq('id', userId)
+      .single();
+
+    if (error || !data) {
+      console.log('[StreakReminder] No stats found for user');
+      return;
+    }
+
+    await scheduleStreakReminder(data.daily_streak || 0, data.last_played_date);
+  } catch (error) {
+    console.error('[StreakReminder] Error updating reminder:', error);
+  }
+}

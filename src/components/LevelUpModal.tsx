@@ -25,7 +25,7 @@ interface Unlock {
 interface Props {
   visible: boolean;
   newLevel: number;
-  previousLevel: number;
+  previousLevel?: number;
   unlocks?: Unlock[];
   onClose: () => void;
 }
@@ -64,7 +64,7 @@ function getNewTitleUnlocked(previousLevel: number, newLevel: number): string | 
   return null;
 }
 
-export default function LevelUpModal({ visible, newLevel, previousLevel, unlocks = [], onClose }: Props) {
+export default function LevelUpModal({ visible, newLevel, previousLevel = newLevel - 1, unlocks = [], onClose }: Props) {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const badgeScaleAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;

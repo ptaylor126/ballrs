@@ -64,6 +64,13 @@ export const shadows = {
     shadowRadius: 0,
     elevation: 2,
   },
+  button: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
   none: {
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
