@@ -10,7 +10,7 @@ import { colors } from '../lib/theme';
 import { AnimatedNavIcon } from './AnimatedComponents';
 
 const ACCENT_COLOR = '#1ABC9C';
-const FRIENDS_BADGE_COLOR = '#F2C94C'; // Yellow for pending friend requests
+const BADGE_COLOR = '#F2C94C'; // Yellow for notification badges
 
 export type TabName = 'home' | 'duels' | 'leagues' | 'friends';
 
@@ -63,14 +63,14 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
                 {showDuelsBadge && (
                   <View style={styles.badge}>
                     <Svg width={10} height={10} viewBox="0 0 10 10">
-                      <Circle cx={5} cy={5} r={5} fill={ACCENT_COLOR} />
+                      <Circle cx={5} cy={5} r={5} fill={BADGE_COLOR} />
                     </Svg>
                   </View>
                 )}
                 {showFriendsBadge && (
                   <View style={styles.badge}>
                     <Svg width={10} height={10} viewBox="0 0 10 10">
-                      <Circle cx={5} cy={5} r={5} fill={FRIENDS_BADGE_COLOR} />
+                      <Circle cx={5} cy={5} r={5} fill={BADGE_COLOR} />
                     </Svg>
                   </View>
                 )}

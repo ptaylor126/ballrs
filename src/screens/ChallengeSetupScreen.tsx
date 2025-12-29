@@ -15,6 +15,21 @@ import { useAuth } from '../contexts/AuthContext';
 import { Duel, createInviteDuel, createAsyncDuel } from '../lib/duelService';
 import { getFriends, FriendWithProfile } from '../lib/friendsService';
 import { getSportColor, Sport, truncateUsername } from '../lib/theme';
+import { selectQuestionsForDuel } from '../lib/questionSelectionService';
+import nbaTriviaData from '../../data/nba-trivia.json';
+import plTriviaData from '../../data/pl-trivia.json';
+import nflTriviaData from '../../data/nfl-trivia.json';
+import mlbTriviaData from '../../data/mlb-trivia.json';
+
+// Get trivia questions by sport
+const getTriviaQuestions = (sport: 'nba' | 'pl' | 'nfl' | 'mlb'): any[] => {
+  switch (sport) {
+    case 'nba': return nbaTriviaData as any[];
+    case 'pl': return plTriviaData as any[];
+    case 'nfl': return nflTriviaData as any[];
+    case 'mlb': return mlbTriviaData as any[];
+  }
+};
 
 // Sport icons
 const sportIcons: Record<Sport, any> = {
@@ -82,10 +97,14 @@ export default function ChallengeSetupScreen({
     if (!user || creatingDuel) return;
 
     setCreatingDuel(true);
-    const questionId = getRandomQuestionId(sport);
+
+    // Pre-generate ALL question IDs for the duel upfront using smart selection
+    const questions = getTriviaQuestions(sport);
+    const questionIds = selectQuestionsForDuel(sport, questions, questionCount);
+    const allQuestionIds = questionIds.join(',');
 
     // Create async duel for friend challenges - challenger plays first
-    const duel = await createAsyncDuel(user.id, friend.friendUserId, sport, questionId, questionCount);
+    const duel = await createAsyncDuel(user.id, friend.friendUserId, sport, allQuestionIds, questionCount);
 
     if (duel) {
       // Navigate to async duel game to play immediately
@@ -100,8 +119,13 @@ export default function ChallengeSetupScreen({
     if (!user || creatingDuel) return;
 
     setCreatingDuel(true);
-    const questionId = getRandomQuestionId(sport);
-    const duel = await createInviteDuel(user.id, sport, questionId, questionCount);
+
+    // Pre-generate ALL question IDs for the duel upfront using smart selection
+    const questions = getTriviaQuestions(sport);
+    const questionIds = selectQuestionsForDuel(sport, questions, questionCount);
+    const allQuestionIds = questionIds.join(',');
+
+    const duel = await createInviteDuel(user.id, sport, allQuestionIds, questionCount);
 
     if (duel) {
       onDuelCreated(duel);

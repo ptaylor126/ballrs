@@ -65,7 +65,7 @@ import DuelsScreen from './src/screens/DuelsScreen';
 import AnimatedSplashScreen from './src/screens/AnimatedSplashScreen';
 import { getProfile, updateLastActive } from './src/lib/profilesService';
 import { joinPresence, leavePresence } from './src/lib/presenceService';
-import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getPendingAsyncChallengesCount, createInviteDuel } from './src/lib/duelService';
+import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getPendingAsyncChallengesCount, createInviteDuel, createAsyncDuel } from './src/lib/duelService';
 import { getPendingFriendRequestsCount, subscribeToFriendRequests, unsubscribeFromFriendRequests } from './src/lib/friendsService';
 import { addNotificationListeners } from './src/lib/notificationService';
 import { getDuelById } from './src/lib/duelService';
@@ -76,7 +76,7 @@ import plTriviaData from './data/pl-trivia.json';
 import nflTriviaData from './data/nfl-trivia.json';
 import mlbTriviaData from './data/mlb-trivia.json';
 import { TriviaQuestion } from './src/lib/duelService';
-import { getSmartQuestionId, resetDuelSession } from './src/lib/questionSelectionService';
+import { getSmartQuestionId, resetDuelSession, selectQuestionsForDuel } from './src/lib/questionSelectionService';
 
 const ONBOARDING_KEY = '@ballrs_onboarding_complete';
 
@@ -378,7 +378,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
                     style={styles.secondaryButton}
                     onPress={() => onDuel(card.sport)}
                   >
-                    <Text style={styles.secondaryButtonText}>DUEL</Text>
+                    <Text style={styles.secondaryButtonText}>TRIVIA DUEL</Text>
                   </AnimatedButton>
                 </View>
                 </AnimatedCard>
@@ -424,10 +424,15 @@ function AppContent() {
   useEffect(() => {
     const checkOnboarding = async () => {
       try {
+        // DEBUG: Uncomment to force onboarding on every app start
+        // await AsyncStorage.removeItem(ONBOARDING_KEY);
+
         const seen = await AsyncStorage.getItem(ONBOARDING_KEY);
+        console.log('Onboarding check:', { seen, hasSeenOnboarding: seen === 'true' });
         setHasSeenOnboarding(seen === 'true');
       } catch (error) {
         // If error reading, assume onboarding completed to not block users
+        console.error('Error checking onboarding:', error);
         setHasSeenOnboarding(true);
       }
     };
@@ -440,8 +445,11 @@ function AppContent() {
     setShowAnimatedSplash(false);
   };
 
-  const handleReplayOnboarding = () => {
+  const handleReplayOnboarding = async () => {
+    // Clear the AsyncStorage key so onboarding will show on next app launch too
+    await AsyncStorage.removeItem(ONBOARDING_KEY);
     setHasSeenOnboarding(false);
+    setShowAnimatedSplash(true); // Show splash animation before onboarding
   };
 
   const [authError, setAuthError] = useState<string | null>(null);
@@ -519,7 +527,9 @@ function AppContent() {
   useEffect(() => {
     const checkProfile = async () => {
       if (user) {
+        console.log('checkProfile: checking for user', user.id, 'isAnonymous:', user.is_anonymous);
         const profile = await getProfile(user.id);
+        console.log('checkProfile: profile result', { userId: user.id, hasProfile: !!profile, profile });
         setHasProfile(!!profile);
         if (!profile) {
           setCurrentScreen('setUsername');
@@ -640,6 +650,12 @@ function AppContent() {
     setCurrentScreen('selectCountry');
   };
 
+  // Handler for when user signs in with existing account
+  const handleSignInComplete = () => {
+    setHasProfile(true);
+    setCurrentScreen('home');
+  };
+
   const handleCountrySelected = () => {
     setCurrentScreen('home');
   };
@@ -728,12 +744,13 @@ function AppContent() {
     try {
       setDuelSport(sport);
       setDuelQuestionCount(questionCount);
-      // Reset duel session for fresh question selection
-      resetDuelSession(sport);
 
-      // Create the duel immediately with invite code
-      const questionId = getRandomTriviaQuestion(sport);
-      const duel = await createInviteDuel(user.id, sport, questionId, questionCount);
+      // Pre-generate ALL question IDs for the duel upfront using smart selection
+      const questions = getTriviaQuestions(sport);
+      const questionIds = selectQuestionsForDuel(sport, questions, questionCount);
+      const allQuestionIds = questionIds.join(',');
+
+      const duel = await createInviteDuel(user.id, sport, allQuestionIds, questionCount);
 
       if (duel) {
         setCurrentDuel(duel);
@@ -757,6 +774,40 @@ function AppContent() {
     setIsAsyncDuel(true);
     setIsAsyncChallenger(true);
     setCurrentScreen('asyncDuelGame');
+  };
+
+  const handleAsyncRematch = async (opponentId: string, sport: Sport, questionCount: number) => {
+    if (!user) return;
+
+    try {
+      // Generate new questions for the rematch
+      const questions = getTriviaQuestions(sport);
+      const questionIds = selectQuestionsForDuel(sport, questions, questionCount);
+      const allQuestionIds = questionIds.join(',');
+
+      // Create new async duel with isRematch=true for custom notification
+      const duel = await createAsyncDuel(
+        user.id,
+        opponentId,
+        sport,
+        allQuestionIds,
+        questionCount,
+        true // isRematch - sends "wants a rematch!" notification
+      );
+
+      if (duel) {
+        setCurrentDuel(duel);
+        setDuelSport(sport);
+        setIsAsyncDuel(true);
+        setIsAsyncChallenger(true);
+        setCurrentScreen('asyncDuelGame');
+      } else {
+        Alert.alert('Error', 'Failed to create rematch. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error in handleAsyncRematch:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    }
   };
 
   const handleAcceptFriendChallenge = async (duel: Duel) => {
@@ -829,12 +880,26 @@ function AppContent() {
     );
   }
 
+  // Wait for auth to complete before showing anything
+  // This ensures we don't flash the main content while auth is in progress
+  if (authLoading) {
+    return null;
+  }
+
+  // If no user yet (auth completed but user is null), wait for auto sign-in to complete
+  // This happens right after onboarding when signInAnonymously is being called
+  if (!user && hasSeenOnboarding) {
+    return null;
+  }
+
   if (user && hasProfile === false) {
     return (
       <>
         <StatusBar style="dark" />
         <SetUsernameScreen
           onComplete={handleUsernameSet}
+          onSignInComplete={handleSignInComplete}
+          onReplayOnboarding={handleReplayOnboarding}
         />
       </>
     );
@@ -855,16 +920,30 @@ function AppContent() {
         {activeTab === 'duels' && currentScreen === 'home' && (
           <DuelsScreen
             onNavigateToDuel={(duel) => {
+              console.log('App.tsx onNavigateToDuel:', {
+                status: duel.status,
+                player2_id: duel.player2_id,
+                user_id: user?.id,
+                isAsyncCondition: duel.status === 'invite' && duel.player2_id === user?.id,
+              });
               setDuelSport(duel.sport);
               setCurrentDuel(duel);
               // Check if this is an async friend duel (opponent needs to play)
-              if (duel.status === 'invite' && duel.player2_id === user?.id && duel.player1_completed_at) {
+              // Friend challenges have player2_id set to the specific friend
+              if (duel.status === 'invite' && duel.player2_id === user?.id) {
+                console.log('Routing to asyncDuelGame');
                 setIsAsyncDuel(true);
                 setIsAsyncChallenger(false);
                 setCurrentScreen('asyncDuelGame');
               } else if (duel.status === 'waiting') {
+                console.log('Routing to waitingForOpponent');
                 setCurrentScreen('waitingForOpponent');
               } else if (duel.status === 'active') {
+                console.log('Routing to duelGame (active)');
+                setCurrentScreen('duelGame');
+              } else if (duel.status === 'invite') {
+                console.log('Routing to duelGame (invite)');
+                // Regular invite code duel - join then play
                 setCurrentScreen('duelGame');
               }
             }}
@@ -922,6 +1001,8 @@ function AppContent() {
         {currentScreen === 'setUsername' && (
           <SetUsernameScreen
             onComplete={handleUsernameSet}
+            onSignInComplete={handleSignInComplete}
+            onReplayOnboarding={handleReplayOnboarding}
           />
         )}
         {currentScreen === 'selectCountry' && (
@@ -964,6 +1045,7 @@ function AppContent() {
             getRandomQuestionId={getRandomTriviaQuestion}
             isAsyncMode={true}
             isChallenger={isAsyncChallenger}
+            onRematch={handleAsyncRematch}
           />
         )}
         {currentScreen === 'inviteFriend' && currentDuel && (

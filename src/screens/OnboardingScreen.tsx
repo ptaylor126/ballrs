@@ -10,7 +10,7 @@ import {
   Easing,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, shadows, spacing, borderRadius, borders, typography } from '../lib/theme';
@@ -385,7 +385,7 @@ function AnimatedButton({
 }
 
 // Screen 1: Welcome - seamless transition from splash
-function WelcomeScreen() {
+function WelcomeScreen({ topInset }: { topInset: number }) {
   const textOpacity = useRef(new Animated.Value(0)).current;
   const textTranslateY = useRef(new Animated.Value(20)).current;
 
@@ -411,15 +411,21 @@ function WelcomeScreen() {
     return () => clearTimeout(timeout);
   }, []);
 
+  // Adjust positions to account for SafeAreaView offset
+  // These values match AnimatedSplashScreen which positions from actual screen top
+  const logoTop = 180 - topInset;
+  const ballsTop = 290 - topInset;
+  const textTop = 400 - topInset;
+
   return (
     <View style={styles.screen1}>
       {/* BALLRS logo - positioned to match splash screen exactly */}
-      <View style={styles.screen1LogoContainer}>
+      <View style={[styles.screen1LogoContainer, { top: logoTop }]}>
         <Text style={styles.logo}>BALLRS</Text>
       </View>
 
       {/* Sport balls - icons visible, colored backgrounds scale up */}
-      <View style={styles.screen1BallsContainer}>
+      <View style={[styles.screen1BallsContainer, { top: ballsTop }]}>
         <BallWithExpandingBackground
           delay={0}
           icon={sportIcons.nba}
@@ -447,6 +453,7 @@ function WelcomeScreen() {
         style={[
           styles.screen1TextContainer,
           {
+            top: textTop,
             opacity: textOpacity,
             transform: [{ translateY: textTranslateY }],
           },
@@ -1135,6 +1142,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   const [currentPage, setCurrentPage] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
 
   // Interpolate back button opacity: 0 at page 0, fade in during scroll to page 1
   const backButtonOpacity = scrollX.interpolate({
@@ -1243,7 +1251,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         scrollEventThrottle={16}
         bounces={false}
       >
-        <WelcomeScreen />
+        <WelcomeScreen topInset={insets.top} />
         <DailyChallengeScreen isActive={currentPage === 1} />
         <LevelUpScreen isActive={currentPage === 2} />
         <CompeteScreen />

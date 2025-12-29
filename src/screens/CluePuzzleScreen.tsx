@@ -649,10 +649,8 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
           awardXP(user.id, xpAmount).then((result) => {
             if (result) {
               setXpResult(result);
-              // Show XP modal after confetti finishes (delay 1.5s)
-              setTimeout(() => {
-                setShowXPModal(true);
-              }, 1500);
+              // Show XP modal immediately
+              setShowXPModal(true);
             }
           }).catch((err) => {
             console.error('Error awarding XP:', err);

@@ -168,6 +168,7 @@ export function selectQuestionsForDuel(
     selectedIds.push(questionId);
   }
 
+  console.log('[selectQuestionsForDuel] Generated question IDs:', selectedIds);
   return selectedIds;
 }
 

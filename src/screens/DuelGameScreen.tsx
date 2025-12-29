@@ -11,9 +11,11 @@ import {
   AppState,
   AppStateStatus,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getSportColor, Sport, truncateUsername } from '../lib/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { getSportColor, Sport, truncateUsername, colors as themeColors } from '../lib/theme';
 import { soundService } from '../lib/soundService';
 
 // Sport icons
@@ -28,6 +30,7 @@ const sportIcons: Record<Sport, any> = {
 const handshakeIcon = require('../../assets/images/icon-handshake.png');
 const trophyIcon = require('../../assets/images/icon-trophy.png');
 const thumbsDownIcon = require('../../assets/images/icon-thumbs-down.png');
+const crownIcon = require('../../assets/images/icon-crown.png');
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
@@ -52,6 +55,7 @@ import {
   submitOpponentResult,
   getTimeRemaining,
   PlayerResult,
+  forfeitDuel,
 } from '../lib/duelService';
 import { areFriends, addFriend } from '../lib/friendsService';
 import { supabase } from '../lib/supabase';
@@ -73,6 +77,7 @@ interface Props {
   onBack: () => void;
   onComplete: (won: boolean) => void;
   onPlayAgain: (sport: 'nba' | 'pl' | 'nfl' | 'mlb') => void;
+  onRematch?: (opponentId: string, sport: 'nba' | 'pl' | 'nfl' | 'mlb', questionCount: number) => void;
   getRandomQuestionId?: (sport: 'nba' | 'pl' | 'nfl' | 'mlb') => string;
   // Async duel props
   isAsyncMode?: boolean;
@@ -114,7 +119,7 @@ const getTriviaQuestions = (sport: 'nba' | 'pl' | 'nfl' | 'mlb'): TriviaQuestion
   }
 };
 
-export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, onPlayAgain, getRandomQuestionId, isAsyncMode = false, isChallenger = false }: Props) {
+export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, onPlayAgain, onRematch, getRandomQuestionId, isAsyncMode = false, isChallenger = false }: Props) {
   const { user } = useAuth();
   const [duel, setDuel] = useState<Duel>(initialDuel);
   const [question, setQuestion] = useState<TriviaQuestion | null>(null);
@@ -122,10 +127,16 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   const [hasAnswered, setHasAnswered] = useState(false);
   const [opponentAnswered, setOpponentAnswered] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(TIMER_DURATION);
-  const [gamePhase, setGamePhase] = useState<'waiting' | 'countdown' | 'playing' | 'roundResult' | 'results'>('waiting');
+  // For async mode, start with countdown immediately (skip waiting phase)
+  // For completed async duels (from notification tap), start with results
+  const initialGamePhase = isAsyncMode
+    ? (initialDuel.status === 'completed' ? 'results' : 'countdown')
+    : 'waiting';
+  const [gamePhase, setGamePhase] = useState<'waiting' | 'countdown' | 'playing' | 'roundResult' | 'results'>(initialGamePhase);
   const [countdownNumber, setCountdownNumber] = useState(3);
   const countdownScaleAnim = useRef(new Animated.Value(0)).current;
-  const [showResultModal, setShowResultModal] = useState(false);
+  // Show result modal immediately for completed async duels
+  const [showResultModal, setShowResultModal] = useState(isAsyncMode && initialDuel.status === 'completed');
   const [roundStartTime, setRoundStartTimeState] = useState<number | null>(null);
 
   // Multi-question state
@@ -164,6 +175,10 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   const [showAsyncResultModal, setShowAsyncResultModal] = useState(false);
   const [showFullAnswers, setShowFullAnswers] = useState(false);
 
+  // Forfeit modal state
+  const [showForfeitModal, setShowForfeitModal] = useState(false);
+  const [isForfeiting, setIsForfeiting] = useState(false);
+
   // XP progress bar state
   const [xpProgressInfo, setXpProgressInfo] = useState<{
     previousXP: number;
@@ -178,6 +193,8 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const hasSubmittedTimeoutRef = useRef<boolean>(false);
+  const roundResultTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [skipRoundResult, setSkipRoundResult] = useState(false);
 
   // Helper to check if this is a multi-question duel
   const isMultiQuestion = duel.question_count > 1;
@@ -302,9 +319,18 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   useEffect(() => {
     const questions = getTriviaQuestions(duel.sport);
     const currentQuestionId = getCurrentQuestionId(duel);
+    console.log('[DuelGameScreen] Loading question:', {
+      round: duel.current_round,
+      totalQuestions: duel.question_count,
+      mysteryPlayerIds: duel.mystery_player_id,
+      currentQuestionId,
+    });
     const q = questions.find(q => q.id === currentQuestionId);
     if (q) {
+      console.log('[DuelGameScreen] Found question:', q.question?.substring(0, 50));
       setQuestion(q);
+    } else {
+      console.error('[DuelGameScreen] Question not found for ID:', currentQuestionId);
     }
   }, [duel.mystery_player_id, duel.sport, duel.current_round]);
 
@@ -333,6 +359,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   // Start async game immediately when entering async mode
   useEffect(() => {
     if (isAsyncMode) {
+      // Initialize scores from duel object for async mode
+      const myCurrentScore = isPlayer1 ? duel.player1_score : duel.player2_score;
+      const oppCurrentScore = isPlayer1 ? duel.player2_score : duel.player1_score;
+      setMyScore(myCurrentScore);
+      setOpponentScore(oppCurrentScore);
+
       // Check if duel is already completed (e.g., navigating from notification tap)
       if (duel.status === 'completed') {
         setGamePhase('results');
@@ -343,7 +375,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       setCountdownNumber(3);
       setGamePhase('countdown');
     }
-  }, [isAsyncMode, duel.status]);
+  }, [isAsyncMode, duel.status, isPlayer1, duel.player1_score, duel.player2_score]);
 
   // Start the game when duel becomes active (for sync mode only)
   useEffect(() => {
@@ -487,8 +519,8 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
     const isLastRound = currentRound >= totalQuestions;
 
-    // Wait 3.5 seconds to show correct/incorrect feedback, then auto-advance
-    const timer = setTimeout(async () => {
+    // Function to advance from round result
+    const advanceFromRoundResult = async () => {
       if (isLastRound) {
         // ASYNC MODE: Submit all results and show waiting screen
         if (isAsyncMode) {
@@ -509,11 +541,42 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
               const remaining = getTimeRemaining(result.expires_at);
               setAsyncTimeRemaining(remaining);
             }
+            setGamePhase('results'); // Exit roundResult phase to hide that modal
             setAsyncWaitingForFriend(true);
             setShowAsyncResultModal(true);
           } else {
             const result = await submitOpponentResult(duel.id, aggregatedResult);
             if (result) {
+              // Calculate scores from the player results
+              const p1Result = result.player1_result as PlayerResult | null;
+              const p2Result = result.player2_result as PlayerResult | null;
+
+              // Parse the answer field to count correct answers (it's a JSON array)
+              let p1Score = 0;
+              let p2Score = 0;
+
+              if (p1Result?.answer) {
+                try {
+                  const p1Answers = JSON.parse(p1Result.answer);
+                  p1Score = Array.isArray(p1Answers) ? p1Answers.filter((a: PlayerResult) => a.correct).length : (p1Result.correct ? 1 : 0);
+                } catch {
+                  p1Score = p1Result.correct ? 1 : 0;
+                }
+              }
+
+              if (p2Result?.answer) {
+                try {
+                  const p2Answers = JSON.parse(p2Result.answer);
+                  p2Score = Array.isArray(p2Answers) ? p2Answers.filter((a: PlayerResult) => a.correct).length : (p2Result.correct ? 1 : 0);
+                } catch {
+                  p2Score = p2Result.correct ? 1 : 0;
+                }
+              }
+
+              // Set scores based on which player this user is
+              setMyScore(isPlayer1 ? p1Score : p2Score);
+              setOpponentScore(isPlayer1 ? p2Score : p1Score);
+
               setDuel(result);
               setGamePhase('results');
               setShowResultModal(true);
@@ -555,16 +618,11 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       } else {
         // Not last round - advance to next round
         if (isAsyncMode) {
-          // ASYNC MODE: Advance locally without database
-          const newQuestionId = getNewQuestionId();
-          const currentQuestionIds = duel.mystery_player_id.split(',');
-          currentQuestionIds.push(newQuestionId);
-
-          // Update local duel state
+          // ASYNC MODE: All questions are pre-stored in mystery_player_id
+          // Just advance the round counter - questions are already there
           setDuel(prev => ({
             ...prev,
             current_round: prev.current_round + 1,
-            mystery_player_id: currentQuestionIds.join(','),
           }));
         } else {
           // SYNC MODE: Advance through database (only player 1 does this)
@@ -604,10 +662,27 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           setGamePhase('waiting');
         }
       }
-    }, 3500); // Show correct/incorrect modal for 3.5 seconds
+    };
 
-    return () => clearTimeout(timer);
-  }, [gamePhase, question, isPlayer1, currentRound, totalQuestions, duel, isAdvancingRound, getNewQuestionId, isAsyncMode, asyncLocalResults, isChallenger]);
+    // If skip was triggered, advance immediately
+    if (skipRoundResult) {
+      setSkipRoundResult(false);
+      advanceFromRoundResult();
+      return;
+    }
+
+    // Otherwise wait 3.5 seconds to show correct/incorrect feedback, then auto-advance
+    roundResultTimerRef.current = setTimeout(() => {
+      advanceFromRoundResult();
+    }, 3500);
+
+    return () => {
+      if (roundResultTimerRef.current) {
+        clearTimeout(roundResultTimerRef.current);
+        roundResultTimerRef.current = null;
+      }
+    };
+  }, [gamePhase, question, isPlayer1, currentRound, totalQuestions, duel, isAdvancingRound, getNewQuestionId, isAsyncMode, asyncLocalResults, isChallenger, skipRoundResult]);
 
   // Timer countdown with tick sounds and safety timeout
   useEffect(() => {
@@ -849,6 +924,39 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     }
   };
 
+  // Handle back button during gameplay - show forfeit warning
+  const handleBackPress = () => {
+    // During waiting phase, countdown, or results, just go back
+    if (gamePhase === 'waiting' || gamePhase === 'countdown' || gamePhase === 'results' || gamePhase === 'roundResult') {
+      onBack();
+      return;
+    }
+    // During playing phase (and async waiting), show forfeit modal
+    if (gamePhase === 'playing' || asyncWaitingForFriend) {
+      setShowForfeitModal(true);
+    }
+  };
+
+  // Confirm forfeit and exit
+  const handleConfirmForfeit = async () => {
+    if (!user) return;
+
+    setIsForfeiting(true);
+
+    // Call forfeit API - opponent wins, forfeiter gets 0 XP
+    const result = await forfeitDuel(duel.id, user.id);
+
+    if (result) {
+      // Successfully forfeited - opponent gets win (handled by server)
+      // Forfeiter gets 0 XP (we don't award anything)
+      onComplete(false); // Mark as loss
+    }
+
+    setIsForfeiting(false);
+    setShowForfeitModal(false);
+    onBack();
+  };
+
   // Award XP when game ends
   useEffect(() => {
     // Don't award XP for async challenger waiting - they'll get it when viewing final results
@@ -986,6 +1094,29 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
   // Determine result for both single and multi-question duels
   const getResult = () => {
+    // For async completed duels, we can determine result even without question loaded
+    // Use winner_id and scores from duel directly
+    if (!question && isAsyncMode && duel.status === 'completed') {
+      const won = duel.winner_id === user?.id;
+      const tie = duel.winner_id === null;
+      const finalMyScore = myScore;
+      const finalOppScore = opponentScore;
+
+      let subtitle = '';
+      if (tie) {
+        subtitle = `Tied ${finalMyScore}-${finalOppScore}!`;
+      } else if (won) {
+        subtitle = `You won ${finalMyScore}-${finalOppScore}!`;
+      } else {
+        subtitle = `You lost ${finalMyScore}-${finalOppScore}`;
+      }
+
+      const xpResult: 'win' | 'loss' | 'tie' = tie ? 'tie' : won ? 'win' : 'loss';
+      const xpEarned = calculateDuelXP(xpResult);
+
+      return { won, tie, subtitle, xpEarned, finalScore: { me: finalMyScore, opp: finalOppScore } };
+    }
+
     if (!question) return { won: false, tie: false, subtitle: '', xpEarned: 0, finalScore: { me: 0, opp: 0 } };
 
     let won: boolean;
@@ -1138,11 +1269,17 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           <View style={styles.roundScoreCard}>
             <Text style={styles.roundScoreRound}>Round {currentRound} of {totalQuestions}</Text>
             <View style={styles.roundScoreDivider} />
-            <Text style={styles.roundScoreScore}>
-              You <Text style={{ color: sportColor }}>{myScore}</Text>
-              <Text style={styles.roundScoreDash}> - </Text>
-              <Text style={{ color: colors.opponent }}>{opponentScore}</Text> {opponentUsername || 'Opp'}
-            </Text>
+            {isAsyncMode ? (
+              <Text style={styles.roundScoreScore}>
+                <Text style={{ color: sportColor }}>{myScore}</Text>/{totalQuestions} correct
+              </Text>
+            ) : (
+              <Text style={styles.roundScoreScore}>
+                You <Text style={{ color: sportColor }}>{myScore}</Text>
+                <Text style={styles.roundScoreDash}> - </Text>
+                <Text style={{ color: colors.opponent }}>{opponentScore}</Text> {opponentUsername || 'Opp'}
+              </Text>
+            )}
           </View>
 
           {/* Timer Bar */}
@@ -1208,7 +1345,11 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         <View style={styles.countdownContainer}>
           {/* Sport Badge */}
           <View style={[styles.waitingSportBadge, { backgroundColor: sportColor }]}>
-            <Image source={sportIcons[duel.sport as Sport]} style={styles.waitingSportIcon} resizeMode="contain" />
+            <Image
+              source={sportIcons[duel.sport as Sport]}
+              style={styles.waitingSportIcon}
+              resizeMode="contain"
+            />
           </View>
 
           {/* Title */}
@@ -1244,7 +1385,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         >
           {/* Scrollable Header - LEAVE button and sport badge */}
           <View style={styles.scrollableHeader}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
               <Text style={styles.backButtonText}>← LEAVE</Text>
             </TouchableOpacity>
             <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
@@ -1305,8 +1446,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       )}
 
       {/* Round Result Overlay (for multi-question duels) */}
-      {gamePhase === 'roundResult' && question && (
-        <View style={styles.roundResultOverlay}>
+      <Modal
+        visible={gamePhase === 'roundResult' && !!question}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlayFullScreen}>
           <View style={styles.roundResultCard}>
             {/* Icon Circle */}
             <View style={[
@@ -1328,7 +1473,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
             {/* Question Text */}
             <Text style={styles.roundResultQuestion} numberOfLines={3}>
-              {question.question}
+              {question?.question}
             </Text>
 
             {/* Answer Pill */}
@@ -1337,12 +1482,18 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
               roundWon === true ? styles.answerPillCorrect : styles.answerPillWrong,
             ]}>
               <Text style={styles.roundResultAnswerLabel}>Answer:</Text>
-              <Text style={styles.roundResultAnswerText}>{question.correctAnswer}</Text>
+              <Text style={styles.roundResultAnswerText}>{question?.correctAnswer}</Text>
             </View>
 
-            {/* Next Text */}
+            {/* Next Button */}
             {currentRound < totalQuestions ? (
-              <Text style={styles.roundResultNext}>Next question...</Text>
+              <TouchableOpacity
+                style={styles.roundResultNextButton}
+                onPress={() => setSkipRoundResult(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.roundResultNextButtonText}>NEXT QUESTION</Text>
+              </TouchableOpacity>
             ) : (
               <Text style={styles.roundResultNext}>
                 {isAsyncMode ? 'Submitting results...' : 'Final results...'}
@@ -1350,11 +1501,15 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             )}
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Duel Results Modal */}
-      {showResultModal && question && (
-        <View style={styles.modalOverlay}>
+      <Modal
+        visible={showResultModal && !!(question || (isAsyncMode && duel.status === 'completed'))}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlayFullScreen}>
           <View style={styles.duelResultsContent}>
             {/* Sport Badge */}
             <View style={[styles.duelResultsSportBadge, { backgroundColor: sportColor }]}>
@@ -1367,15 +1522,19 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
             {/* Players Section */}
             <View style={styles.duelResultsPlayersCard}>
-              {/* Winner Row */}
+              {/* Your Row */}
               <View style={styles.duelResultsPlayerRow}>
-                <Text style={styles.duelResultsCrown}>{result.won ? '👑' : (result.tie ? '' : '')}</Text>
                 <View style={[styles.duelResultsAvatar, result.won && styles.duelResultsAvatarWinner]}>
                   <Text style={styles.duelResultsAvatarText}>Y</Text>
                 </View>
-                <Text style={[styles.duelResultsPlayerName, result.won && styles.duelResultsPlayerNameWinner]}>
-                  You
-                </Text>
+                <View style={styles.duelResultsNameContainer}>
+                  <Text style={[styles.duelResultsPlayerName, result.won && styles.duelResultsPlayerNameWinner]}>
+                    You
+                  </Text>
+                  {result.won && (
+                    <Image source={crownIcon} style={styles.duelResultsCrownIcon} resizeMode="contain" />
+                  )}
+                </View>
                 <Text style={[styles.duelResultsPlayerScore, result.won && styles.duelResultsPlayerScoreWinner]}>
                   {result.finalScore.me}/{totalQuestions}
                 </Text>
@@ -1383,15 +1542,19 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
               {/* Opponent Row */}
               <View style={styles.duelResultsPlayerRow}>
-                <Text style={styles.duelResultsCrown}>{!result.won && !result.tie ? '👑' : ''}</Text>
                 <View style={[styles.duelResultsAvatar, !result.won && !result.tie && styles.duelResultsAvatarWinner]}>
                   <Text style={styles.duelResultsAvatarText}>
                     {opponentUsername?.charAt(0).toUpperCase() || 'O'}
                   </Text>
                 </View>
-                <Text style={[styles.duelResultsPlayerName, !result.won && !result.tie && styles.duelResultsPlayerNameWinner]}>
-                  {opponentUsername || 'Opponent'}
-                </Text>
+                <View style={styles.duelResultsNameContainer}>
+                  <Text style={[styles.duelResultsPlayerName, !result.won && !result.tie && styles.duelResultsPlayerNameWinner]}>
+                    {opponentUsername || 'Opponent'}
+                  </Text>
+                  {!result.won && !result.tie && (
+                    <Image source={crownIcon} style={styles.duelResultsCrownIcon} resizeMode="contain" />
+                  )}
+                </View>
                 <Text style={[styles.duelResultsPlayerScore, !result.won && !result.tie && styles.duelResultsPlayerScoreWinner]}>
                   {result.finalScore.opp}/{totalQuestions}
                 </Text>
@@ -1399,14 +1562,19 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             </View>
 
             {/* Result Message */}
-            <Text style={[
-              styles.duelResultsMessage,
-              result.won && styles.duelResultsMessageWin,
-              !result.won && !result.tie && styles.duelResultsMessageLose,
-              result.tie && styles.duelResultsMessageTie,
-            ]}>
-              {result.tie ? "IT'S A TIE!" : result.won ? 'YOU WIN! 🎉' : 'Better luck next time!'}
-            </Text>
+            <View style={styles.duelResultsMessageContainer}>
+              <Text style={[
+                styles.duelResultsMessage,
+                result.won && styles.duelResultsMessageWin,
+                !result.won && !result.tie && styles.duelResultsMessageLose,
+                result.tie && styles.duelResultsMessageTie,
+              ]}>
+                {result.tie ? "IT'S A TIE!" : result.won ? 'YOU WIN! ' : 'Better luck next time!'}
+              </Text>
+              {result.won && (
+                <Image source={trophyIcon} style={styles.duelResultsWinIcon} resizeMode="contain" />
+              )}
+            </View>
 
             {/* XP Earned */}
             <View style={styles.duelResultsXpBadge}>
@@ -1416,10 +1584,10 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             {/* XP Progress Bar */}
             {xpProgressInfo && (
               <View style={styles.xpProgressContainer}>
-                <View style={styles.xpProgressBarBackground}>
+                <View style={styles.xpBarOuter}>
                   <Animated.View
                     style={[
-                      styles.xpProgressBarFill,
+                      styles.xpBarFillContainer,
                       {
                         width: xpBarAnimatedWidth.interpolate({
                           inputRange: [0, 100],
@@ -1427,7 +1595,14 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
                         }),
                       },
                     ]}
-                  />
+                  >
+                    <LinearGradient
+                      colors={[themeColors.xpGradientStart, themeColors.xpGradientEnd]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.xpBarFill}
+                    />
+                  </Animated.View>
                 </View>
                 <Text style={styles.xpProgressText}>
                   {xpProgressInfo.current}/{xpProgressInfo.required}
@@ -1438,9 +1613,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             {/* View Answers Link */}
             <TouchableOpacity
               style={styles.duelResultsViewAnswers}
-              onPress={() => {
-                // TODO: Show answers modal
-              }}
+              onPress={() => setShowFullAnswers(true)}
             >
               <Text style={styles.duelResultsViewAnswersText}>View Answers</Text>
             </TouchableOpacity>
@@ -1461,7 +1634,14 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
                 style={styles.duelResultsRematchButton}
                 onPress={() => {
                   setShowResultModal(false);
-                  onPlayAgain(duel.sport);
+                  if (isAsyncMode && onRematch) {
+                    // For async duels, start a rematch with the same opponent
+                    const opponentId = isPlayer1 ? duel.player2_id : duel.player1_id;
+                    onRematch(opponentId, duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb', duel.question_count);
+                  } else {
+                    // For sync duels, use regular play again
+                    onPlayAgain(duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb');
+                  }
                 }}
               >
                 <Text style={styles.duelResultsRematchButtonText}>REMATCH?</Text>
@@ -1469,11 +1649,15 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             </View>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Turn Complete Screen (Player A waiting for Player B) */}
-      {showAsyncResultModal && roundSummaries.length > 0 && (
-        <View style={styles.modalOverlay}>
+      <Modal
+        visible={showAsyncResultModal && roundSummaries.length > 0}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlayFullScreen}>
           <View style={styles.turnCompleteContent}>
             {/* Teal Checkmark */}
             <View style={styles.turnCompleteCheckCircle}>
@@ -1510,20 +1694,37 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
 
-      {/* Async Waiting for Friend Screen (fallback, kept for compatibility) */}
-      {asyncWaitingForFriend && !showAsyncResultModal && (
-        <View style={styles.modalOverlay}>
+      {/* Async Waiting for Friend Screen */}
+      <Modal
+        visible={asyncWaitingForFriend && !showAsyncResultModal}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlayFullScreen}>
           <View style={styles.asyncWaitingContent}>
+            {/* Sport Badge */}
+            <View style={[styles.duelResultsSportBadge, { backgroundColor: sportColor }]}>
+              <Image source={sportIcons[duel.sport as Sport]} style={styles.duelResultsSportIcon} resizeMode="contain" />
+              <Text style={styles.duelResultsSportText}>{sportNames[duel.sport as Sport]}</Text>
+            </View>
+
             {/* Checkmark Icon */}
             <View style={styles.asyncCheckContainer}>
               <Text style={styles.asyncCheckText}>✓</Text>
             </View>
 
-            <Text style={styles.asyncWaitingTitle}>Turn Complete!</Text>
+            <Text style={styles.asyncWaitingTitle}>Your Turn Complete!</Text>
+
+            {/* Show player's score */}
+            <View style={styles.asyncScoreContainer}>
+              <Text style={styles.asyncScoreLabel}>Your Score</Text>
+              <Text style={styles.asyncScoreValue}>{myScore}/{totalQuestions}</Text>
+            </View>
+
             <Text style={styles.asyncWaitingSubtitle}>
-              Waiting for {opponentUsername || 'your friend'} to play...
+              Waiting for {opponentUsername || 'your friend'} to finish...
             </Text>
 
             {asyncTimeRemaining && !asyncTimeRemaining.expired && (
@@ -1536,19 +1737,121 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             )}
 
             <Text style={styles.asyncInfoText}>
-              You'll be notified when they complete the challenge.
-              Results will be revealed after both players finish.
+              We'll notify you when the results are ready!
             </Text>
 
             <TouchableOpacity
               style={styles.asyncBackButton}
               onPress={onBack}
             >
-              <Text style={styles.asyncBackButtonText}>Back to Home</Text>
+              <Text style={styles.asyncBackButtonText}>BACK TO HOME</Text>
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
+
+      {/* Forfeit Confirmation Modal */}
+      <Modal
+        visible={showForfeitModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowForfeitModal(false)}
+      >
+        <View style={styles.modalOverlayFullScreen}>
+          <View style={styles.forfeitModalContent}>
+            <Text style={styles.forfeitModalTitle}>Leave Duel?</Text>
+            <Text style={styles.forfeitModalText}>
+              If you leave now, you'll forfeit and your opponent will win.{'\n\n'}
+              You will receive 0 XP.
+            </Text>
+            <View style={styles.forfeitModalButtons}>
+              <TouchableOpacity
+                style={styles.forfeitStayButton}
+                onPress={() => setShowForfeitModal(false)}
+                disabled={isForfeiting}
+              >
+                <Text style={styles.forfeitStayButtonText}>STAY</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.forfeitLeaveButton}
+                onPress={handleConfirmForfeit}
+                disabled={isForfeiting}
+              >
+                {isForfeiting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.forfeitLeaveButtonText}>FORFEIT</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Full Answers Modal */}
+      <Modal
+        visible={showFullAnswers}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowFullAnswers(false)}
+      >
+        <View style={styles.modalOverlayFullScreen}>
+          <View style={styles.fullAnswersContent}>
+            <View style={styles.fullAnswersHeader}>
+              <Text style={styles.fullAnswersTitle}>Your Answers</Text>
+              <TouchableOpacity onPress={() => setShowFullAnswers(false)}>
+                <Text style={styles.fullAnswersClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.fullAnswersList}>
+              {roundSummaries.map((summary, index) => (
+                <View key={index} style={styles.fullAnswerItem}>
+                  <View style={styles.fullAnswerHeader}>
+                    <Text style={styles.fullAnswerRound}>Q{summary.roundNumber}</Text>
+                    <View style={[
+                      styles.fullAnswerStatus,
+                      summary.isCorrect ? styles.fullAnswerStatusCorrect : styles.fullAnswerStatusWrong
+                    ]}>
+                      <Text style={[
+                        styles.fullAnswerStatusText,
+                        { color: summary.isCorrect ? '#3BA978' : '#DC2626' }
+                      ]}>
+                        {summary.isCorrect ? '✓' : '✗'}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.fullAnswerQuestion} numberOfLines={2}>
+                    {summary.question}
+                  </Text>
+                  <View style={styles.fullAnswerDetails}>
+                    <Text style={styles.fullAnswerLabel}>Your answer:</Text>
+                    <Text style={[
+                      styles.fullAnswerValue,
+                      summary.isCorrect ? styles.fullAnswerValueCorrect : styles.fullAnswerValueWrong
+                    ]}>
+                      {summary.userAnswer || 'Timed out'}
+                    </Text>
+                  </View>
+                  {!summary.isCorrect && (
+                    <View style={styles.fullAnswerDetails}>
+                      <Text style={styles.fullAnswerLabel}>Correct:</Text>
+                      <Text style={[styles.fullAnswerValue, styles.fullAnswerValueCorrect]}>
+                        {summary.correctAnswer}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.fullAnswersDoneButton}
+              onPress={() => setShowFullAnswers(false)}
+            >
+              <Text style={styles.fullAnswersDoneText}>DONE</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Level Up Modal */}
       <LevelUpModal
@@ -1576,7 +1879,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 16,
     paddingHorizontal: 16,
   },
   stickyHeader: {
@@ -1757,9 +2060,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   waitingSportIcon: {
-    width: 32,
-    height: 32,
-    tintColor: '#FFFFFF',
+    width: 40,
+    height: 40,
   },
   waitingTitle: {
     fontSize: 28,
@@ -1958,7 +2260,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
+  },
+  modalOverlayFullScreen: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
@@ -2364,17 +2673,17 @@ const styles = StyleSheet.create({
   roundResultCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#000000',
     padding: 24,
     alignItems: 'center',
     width: '90%',
     maxWidth: 320,
     shadowColor: '#000000',
-    shadowOffset: { width: 4, height: 4 },
+    shadowOffset: { width: 6, height: 6 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 4,
+    elevation: 6,
   },
   roundResultIconCircle: {
     width: 64,
@@ -2456,6 +2765,26 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontStyle: 'italic',
   },
+  roundResultNextButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    marginTop: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  roundResultNextButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
   // Final score display in results modal
   finalScoreContainer: {
     flexDirection: 'row',
@@ -2529,8 +2858,29 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'DMSans_900Black',
     color: colors.textDark,
-    marginBottom: 8,
+    marginBottom: 16,
     textAlign: 'center',
+  },
+  asyncScoreContainer: {
+    backgroundColor: '#F5F2EB',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  asyncScoreLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: colors.textMuted,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  asyncScoreValue: {
+    fontSize: 28,
+    fontFamily: 'DMSans_900Black',
+    color: colors.primary,
   },
   asyncWaitingSubtitle: {
     fontSize: 16,
@@ -2786,6 +3136,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000000',
     marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   duelResultsSportIcon: {
     width: 20,
@@ -2817,9 +3172,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
-  duelResultsCrown: {
-    fontSize: 20,
-    width: 28,
+  duelResultsCrownIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 6,
+  },
+  duelResultsNameContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   duelResultsAvatar: {
     width: 36,
@@ -2828,7 +3189,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A1A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
     borderWidth: 2,
     borderColor: '#000000',
   },
@@ -2841,7 +3202,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   duelResultsPlayerName: {
-    flex: 1,
     fontSize: 16,
     fontFamily: 'DMSans_600SemiBold',
     color: '#666666',
@@ -2858,11 +3218,21 @@ const styles = StyleSheet.create({
   duelResultsPlayerScoreWinner: {
     color: '#1ABC9C',
   },
+  duelResultsMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
   duelResultsMessage: {
     fontSize: 22,
     fontFamily: 'DMSans_900Black',
-    marginBottom: 16,
     textAlign: 'center',
+  },
+  duelResultsWinIcon: {
+    width: 28,
+    height: 28,
   },
   duelResultsMessageWin: {
     color: '#1ABC9C',
@@ -2898,20 +3268,28 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 20,
   },
-  xpProgressBarBackground: {
+  xpBarOuter: {
     width: '100%',
-    height: 12,
-    backgroundColor: '#E5E5E0',
-    borderRadius: 6,
+    height: 16,
+    backgroundColor: '#E8E8E8',
     borderWidth: 2,
     borderColor: '#000000',
-    overflow: 'hidden',
+    borderRadius: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
     marginBottom: 6,
   },
-  xpProgressBarFill: {
+  xpBarFillContainer: {
     height: '100%',
-    backgroundColor: '#1ABC9C',
-    borderRadius: 4,
+    overflow: 'hidden',
+    borderRadius: 6,
+  },
+  xpBarFill: {
+    flex: 1,
+    borderRadius: 6,
   },
   xpProgressText: {
     fontSize: 12,
@@ -3025,19 +3403,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  asyncScoreLabel: {
-    fontSize: 12,
-    fontFamily: 'DMSans_700Bold',
-    color: '#888888',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  asyncScoreValue: {
-    fontSize: 36,
-    fontFamily: 'DMSans_900Black',
-    color: '#1A1A1A',
-  },
   // Simplified Round Icons styles
   roundIconsContainer: {
     flexDirection: 'row',
@@ -3102,6 +3467,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: '#E5E5E0',
+    marginBottom: 8,
   },
   fullAnswerHeader: {
     flexDirection: 'row',
@@ -3146,5 +3512,178 @@ const styles = StyleSheet.create({
   fullAnswerCorrectAnswer: {
     fontFamily: 'DMSans_600SemiBold',
     color: '#1ABC9C',
+  },
+  // Full Answers Modal Styles
+  fullAnswersOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'flex-end',
+  },
+  fullAnswersContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: '80%',
+  },
+  fullAnswersHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  fullAnswersTitle: {
+    fontSize: 20,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  fullAnswersClose: {
+    fontSize: 24,
+    color: '#888888',
+    padding: 4,
+  },
+  fullAnswersList: {
+    marginBottom: 16,
+  },
+  fullAnswerStatus: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullAnswerStatusCorrect: {
+    backgroundColor: '#BBF7D0',
+  },
+  fullAnswerStatusWrong: {
+    backgroundColor: '#FECACA',
+  },
+  fullAnswerStatusText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+  },
+  fullAnswerDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  fullAnswerLabel: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    marginRight: 6,
+  },
+  fullAnswerValue: {
+    fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    flex: 1,
+  },
+  fullAnswerValueCorrect: {
+    color: '#3BA978',
+  },
+  fullAnswerValueWrong: {
+    color: '#DC2626',
+  },
+  fullAnswersDoneButton: {
+    backgroundColor: '#1ABC9C',
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  fullAnswersDoneText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  // Forfeit Modal Styles
+  forfeitModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  forfeitModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
+    width: '100%',
+    maxWidth: 320,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  forfeitModalTitle: {
+    fontSize: 22,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    marginBottom: 12,
+  },
+  forfeitModalText: {
+    fontSize: 15,
+    fontFamily: 'DMSans_400Regular',
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  forfeitModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  forfeitStayButton: {
+    flex: 1,
+    backgroundColor: '#1ABC9C',
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  forfeitStayButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  forfeitLeaveButton: {
+    flex: 1,
+    backgroundColor: '#E53935',
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  forfeitLeaveButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
 });

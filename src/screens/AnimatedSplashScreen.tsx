@@ -7,6 +7,7 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,6 +37,9 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: Props) {
   const fadeOut = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    // Hide the native splash screen as our animated version takes over
+    SplashScreen.hideAsync();
+
     // Animate letters sequentially sliding in from left
     const letterAnimations = letters.map((_, index) => {
       return Animated.parallel([

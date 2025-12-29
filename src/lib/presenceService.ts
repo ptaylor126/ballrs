@@ -74,8 +74,16 @@ export async function joinPresence(userId: string): Promise<void> {
  */
 export async function leavePresence(): Promise<void> {
   if (presenceChannel) {
-    await presenceChannel.untrack();
-    await supabase.removeChannel(presenceChannel);
+    try {
+      await presenceChannel.untrack();
+    } catch (error) {
+      console.log('Error untracking presence:', error);
+    }
+    try {
+      await supabase.removeChannel(presenceChannel);
+    } catch (error) {
+      console.log('Error removing presence channel:', error);
+    }
     presenceChannel = null;
     currentUserId = null;
     onlineUsers.clear();

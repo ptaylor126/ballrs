@@ -34,8 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .select('username')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
+      // maybeSingle() returns null for 0 rows instead of throwing error
+      // This is expected for new users who haven't set a username yet
       if (error) {
         console.error('Error fetching username:', error);
         return null;

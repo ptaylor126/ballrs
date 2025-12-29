@@ -95,13 +95,13 @@ export default function LevelUpModal({ visible, newLevel, previousLevel, unlocks
           toValue: 1,
           friction: 6,
           tension: 100,
-          useNativeDriver: true,
+          useNativeDriver: false, // Match other animations on same view
         }),
         Animated.spring(badgeScaleAnim, {
           toValue: 1,
           friction: 4,
           tension: 80,
-          useNativeDriver: true,
+          useNativeDriver: false, // Match other animations on same view
         }),
       ]).start(() => {
         // Start pulse animation after entrance
@@ -132,13 +132,13 @@ export default function LevelUpModal({ visible, newLevel, previousLevel, unlocks
           toValue: 1.08,
           duration: 800,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: false, // Must match glow animation driver
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
           duration: 800,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: false, // Must match glow animation driver
         }),
       ])
     ).start();

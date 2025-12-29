@@ -269,7 +269,8 @@ export async function sendDuelChallengeNotification(
   opponentUserId: string,
   challengerUsername: string,
   sport: string,
-  duelId: string
+  duelId: string,
+  isRematch: boolean = false
 ): Promise<boolean> {
   const pushToken = await getUserPushToken(opponentUserId);
 
@@ -280,14 +281,41 @@ export async function sendDuelChallengeNotification(
 
   const sportName = sportNames[sport] || sport.toUpperCase();
 
+  const title = isRematch ? 'Rematch! 🔥' : 'New Challenge! ⚔️';
+  const body = isRematch
+    ? `${challengerUsername} wants a rematch!`
+    : `${challengerUsername} challenged you to ${sportName} trivia!`;
+
   return sendPushNotification(
     pushToken,
-    'New Challenge! ⚔️',
-    `${challengerUsername} challenged you to ${sportName} trivia!`,
+    title,
+    body,
     {
       type: 'duel_challenge',
       duelId,
       sport,
+    }
+  );
+}
+
+// Send notification when a challenge is declined
+export async function sendChallengeDeclinedNotification(
+  challengerUserId: string,
+  declinerUsername: string
+): Promise<boolean> {
+  const pushToken = await getUserPushToken(challengerUserId);
+
+  if (!pushToken) {
+    console.log('Challenger does not have push notifications enabled');
+    return false;
+  }
+
+  return sendPushNotification(
+    pushToken,
+    'Challenge Declined',
+    `${declinerUsername} declined your challenge`,
+    {
+      type: 'challenge_declined',
     }
   );
 }

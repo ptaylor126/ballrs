@@ -233,12 +233,7 @@ export default function XPEarnedModal({
           {/* Progress Bar - Matching home page style */}
           <View style={styles.progressSection}>
             <View style={styles.progressBar}>
-              <Animated.View
-                style={[
-                  styles.progressFillContainer,
-                  { width: progressWidth },
-                ]}
-              >
+              <Animated.View style={[styles.progressFillContainer, { width: progressWidth }]}>
                 <LinearGradient
                   colors={[...GRADIENT_COLORS]}
                   start={{ x: 0, y: 0 }}
@@ -367,20 +362,26 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   progressBar: {
-    height: 14,
+    height: 16,
     backgroundColor: '#E8E8E8',
-    borderRadius: 7,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
-    overflow: 'hidden',
     marginBottom: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   progressFillContainer: {
     height: '100%',
+    overflow: 'hidden',
+    borderRadius: 6,
   },
   progressFill: {
     flex: 1,
-    borderRadius: 5,
+    borderRadius: 6,
   },
   xpLabels: {
     flexDirection: 'row',

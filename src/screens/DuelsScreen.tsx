@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  Pressable,
   TextInput,
   ActivityIndicator,
   RefreshControl,
@@ -68,7 +70,7 @@ import {
 } from '../lib/duelService';
 import { getFriends, FriendWithProfile, sendFriendChallenge } from '../lib/friendsService';
 import { sendChallengeNotification } from '../lib/notificationService';
-import { getSmartQuestionId } from '../lib/questionSelectionService';
+import { selectQuestionsForDuel } from '../lib/questionSelectionService';
 import nbaTriviaData from '../../data/nba-trivia.json';
 import plTriviaData from '../../data/pl-trivia.json';
 import nflTriviaData from '../../data/nfl-trivia.json';
@@ -98,22 +100,34 @@ interface SwipeableDuelCardProps {
 
 function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: SwipeableDuelCardProps) {
   const translateX = useRef(new Animated.Value(0)).current;
-  const cardHeight = useRef(new Animated.Value(1)).current;
+  const cardHeight = useRef(new Animated.Value(80)).current; // Start at full height
   const cardOpacity = useRef(new Animated.Value(1)).current;
   const [isSwiped, setIsSwiped] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+
+  // User has already played, waiting for opponent to play
+  const isWaitingForOpponent = duel.status === 'waiting_for_p2';
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to horizontal swipes
-        return Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 10;
+        // Disable swipe for waiting_for_p2 duels (can't cancel after playing)
+        if (isWaitingForOpponent) return false;
+        // Only respond to horizontal swipes with sufficient movement
+        return Math.abs(gestureState.dx) > 5 && Math.abs(gestureState.dy) < 20;
+      },
+      onPanResponderGrant: () => {
+        // Stop any running animations when gesture starts
+        translateX.stopAnimation();
       },
       onPanResponderMove: (_, gestureState) => {
         // Only allow left swipe (negative dx)
         if (gestureState.dx < 0) {
           translateX.setValue(Math.max(gestureState.dx, -SWIPE_THRESHOLD - 20));
+        } else if (!isSwiped) {
+          // Allow slight right movement to reset
+          translateX.setValue(Math.min(gestureState.dx, 0));
         }
       },
       onPanResponderRelease: (_, gestureState) => {
@@ -123,18 +137,17 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
             toValue: -SWIPE_THRESHOLD,
             useNativeDriver: true,
             friction: 8,
-          }).start();
-          setIsSwiped(true);
+          }).start(() => setIsSwiped(true));
         } else {
           // Snap back to original position
           Animated.spring(translateX, {
             toValue: 0,
             useNativeDriver: true,
             friction: 8,
-          }).start();
-          setIsSwiped(false);
+          }).start(() => setIsSwiped(false));
         }
       },
+      onPanResponderTerminationRequest: () => false, // Don't let scroll view take over
     })
   ).current;
 
@@ -143,11 +156,14 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
       toValue: 0,
       useNativeDriver: true,
       friction: 8,
-    }).start();
-    setIsSwiped(false);
+    }).start(() => setIsSwiped(false));
   };
 
   const handleCardPress = () => {
+    if (isWaitingForOpponent) {
+      // Do nothing - card is not interactive when waiting for opponent
+      return;
+    }
     if (isSwiped) {
       resetSwipe();
     } else {
@@ -191,59 +207,196 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
     }
   };
 
-  const heightInterpolate = cardHeight.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 80], // Approximate card height including margin
-  });
-
+  // Separate wrapper for height animation (non-native driver)
+  // This prevents mixing native and non-native animated values
   return (
     <Animated.View
       style={[
-        styles.swipeableContainer,
-        isAnimatingOut && { height: heightInterpolate, marginBottom: 0 },
-        { opacity: cardOpacity },
+        styles.swipeableContainerOuter,
+        isAnimatingOut && { height: cardHeight, marginBottom: 0, overflow: 'hidden' },
       ]}
     >
-      {/* Cancel Button (behind the card) */}
-      <View style={styles.cancelButtonContainer}>
-        <TouchableOpacity
-          style={styles.swipeCancelButton}
-          onPress={handleCancelPress}
-        >
-          <Text style={styles.swipeCancelButtonText}>CANCEL</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* The Card */}
       <Animated.View
         style={[
-          styles.duelCardWrapper,
-          { transform: [{ translateX }] },
+          styles.swipeableContainer,
+          { opacity: cardOpacity },
         ]}
-        {...panResponder.panHandlers}
       >
-        <TouchableOpacity
-          style={styles.duelCard}
-          onPress={handleCardPress}
-          activeOpacity={0.9}
-        >
-          <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
-            <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+        {/* Cancel Button (behind the card) */}
+        <View style={styles.cancelButtonContainer}>
+          <TouchableOpacity
+            style={styles.swipeCancelButton}
+            onPress={handleCancelPress}
+          >
+            <Text style={styles.swipeCancelButtonText}>CANCEL</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* The Card */}
+        {isWaitingForOpponent ? (
+          // Completely non-interactive card for waiting_for_p2 duels
+          <View style={styles.duelCardWrapper} pointerEvents="none">
+            <View style={[styles.duelCard, styles.duelCardWaiting]}>
+              <View style={[styles.sportBadge, { backgroundColor: '#CCCCCC' }]}>
+                <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+              </View>
+              <View style={styles.duelInfo}>
+                <Text style={[styles.opponentName, styles.opponentNameWaiting]}>
+                  {duel.opponent_username
+                    ? `vs ${truncateUsername(duel.opponent_username)}`
+                    : 'Waiting for opponent...'}
+                </Text>
+                <Text style={[styles.duelStatus, { color: '#999999' }]}>
+                  Waiting for opponent
+                </Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.duelInfo}>
-            <Text style={styles.opponentName}>
-              {duel.status === 'waiting' || duel.status === 'invite'
-                ? 'Waiting for opponent...'
-                : `vs ${truncateUsername(duel.opponent_username) || 'Unknown'}`}
-            </Text>
-            <Text style={[styles.duelStatus, { color: getSportColor(duel.sport) }]}>
-              {duel.status === 'waiting' || duel.status === 'invite' ? 'Waiting' : 'In Progress'}
-            </Text>
-          </View>
-          <Text style={styles.arrowIcon}>→</Text>
-        </TouchableOpacity>
+        ) : (
+          // Interactive card for other duels
+          <Animated.View
+            style={[
+              styles.duelCardWrapper,
+              { transform: [{ translateX }] },
+            ]}
+            {...panResponder.panHandlers}
+          >
+            <TouchableOpacity
+              style={styles.duelCard}
+              onPress={handleCardPress}
+              activeOpacity={0.9}
+            >
+              <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
+                <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+              </View>
+              <View style={styles.duelInfo}>
+                <Text style={styles.opponentName}>
+                  {duel.opponent_username
+                    ? `vs ${truncateUsername(duel.opponent_username)}`
+                    : 'Waiting for opponent...'}
+                </Text>
+                <Text style={[styles.duelStatus, { color: getSportColor(duel.sport) }]}>
+                  {duel.status === 'waiting' || duel.status === 'invite' ? 'Waiting' : 'In Progress'}
+                </Text>
+              </View>
+              <Text style={styles.arrowIcon}>→</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </Animated.View>
     </Animated.View>
+  );
+}
+
+// Swipeable Challenge Card Component (for declining incoming challenges)
+interface SwipeableChallengeCardProps {
+  duel: DuelWithOpponent;
+  onPlay: () => void;
+  onDecline: () => void;
+  isProcessing?: boolean;
+}
+
+function SwipeableChallengeCard({ duel, onPlay, onDecline, isProcessing }: SwipeableChallengeCardProps) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const [isSwiped, setIsSwiped] = useState(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dx) > 5 && Math.abs(gestureState.dy) < 20;
+      },
+      onPanResponderGrant: () => {
+        translateX.stopAnimation();
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx < 0) {
+          translateX.setValue(Math.max(gestureState.dx, -SWIPE_THRESHOLD - 20));
+        } else if (!isSwiped) {
+          translateX.setValue(Math.min(gestureState.dx, 0));
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx < -SWIPE_THRESHOLD / 2) {
+          Animated.spring(translateX, {
+            toValue: -SWIPE_THRESHOLD,
+            useNativeDriver: true,
+            friction: 8,
+          }).start(() => setIsSwiped(true));
+        } else {
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            friction: 8,
+          }).start(() => setIsSwiped(false));
+        }
+      },
+      onPanResponderTerminationRequest: () => false,
+    })
+  ).current;
+
+  const resetSwipe = () => {
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+      friction: 8,
+    }).start(() => setIsSwiped(false));
+  };
+
+  const handleCardPress = () => {
+    if (isSwiped) {
+      resetSwipe();
+    } else {
+      onPlay();
+    }
+  };
+
+  return (
+    <View style={styles.swipeableContainerOuter}>
+      <View style={styles.swipeableContainer}>
+        {/* Decline Button (behind the card) */}
+        <View style={styles.declineButtonContainer}>
+          <TouchableOpacity
+            style={styles.swipeDeclineButton}
+            onPress={onDecline}
+          >
+            <Text style={styles.swipeDeclineButtonText}>DECLINE</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* The Card */}
+        <Animated.View
+          style={[
+            styles.duelCardWrapper,
+            { transform: [{ translateX }] },
+          ]}
+          {...panResponder.panHandlers}
+        >
+          <TouchableOpacity
+            style={styles.playNowCard}
+            onPress={handleCardPress}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
+              <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+            </View>
+            <View style={styles.duelInfo}>
+              <Text style={styles.opponentName}>
+                vs {truncateUsername(duel.opponent_username) || 'Unknown'}
+              </Text>
+              <Text style={styles.playNowStatus}>Your turn!</Text>
+            </View>
+            {isProcessing ? (
+              <ActivityIndicator size="small" color="#1A1A1A" />
+            ) : (
+              <View style={styles.playNowButton}>
+                <Text style={styles.playNowButtonText}>PLAY</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </View>
   );
 }
 
@@ -286,6 +439,10 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
   const [duelToCancel, setDuelToCancel] = useState<DuelWithOpponent | null>(null);
   const [cancellingDuel, setCancellingDuel] = useState(false);
   const [showCancelToast, setShowCancelToast] = useState(false);
+  // Decline challenge modal states
+  const [declineModalVisible, setDeclineModalVisible] = useState(false);
+  const [challengeToDecline, setChallengeToDecline] = useState<DuelWithOpponent | null>(null);
+  const [decliningChallenge, setDecliningChallenge] = useState(false);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(50)).current;
   const [startDuelModalVisible, setStartDuelModalVisible] = useState(false);
@@ -339,17 +496,21 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
     }
 
     try {
-      const [active, incoming, history, duelStats] = await Promise.all([
+      const [active, incoming, history, duelStats, profile] = await Promise.all([
         getActiveDuels(user.id),
         getIncomingChallenges(user.id),
         getDuelHistory(user.id, 20),
         getDuelStats(user.id),
+        supabase.from('profiles').select('username').eq('id', user.id).single(),
       ]);
 
       setActiveDuels(active);
       setIncomingChallenges(incoming);
       setDuelHistory(history);
       setStats(duelStats);
+      if (profile.data?.username) {
+        setMyUsername(profile.data.username);
+      }
     } catch (error) {
       console.error('Error loading duels data:', error);
     } finally {
@@ -399,19 +560,32 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
 
     setProcessingDuelId(duel.id);
 
-    // Check if this is an async friend duel (already has player2_id and challenger completed)
-    if (duel.player2_id === user.id && duel.player1_completed_at) {
-      // This is an async duel - don't call joinDuel, just navigate
+    console.log('handleAcceptChallenge - duel:', {
+      id: duel.id,
+      status: duel.status,
+      player1_id: duel.player1_id,
+      player2_id: duel.player2_id,
+      user_id: user.id,
+      isAsyncFriendDuel: duel.player2_id === user.id,
+    });
+
+    // Check if this is an async friend duel (player2_id is set to this user)
+    // Friend challenges have player2_id set from creation, regular invites don't
+    if (duel.player2_id === user.id) {
+      // This is an async friend duel - don't call joinDuel, just navigate
+      console.log('Navigating to async friend duel');
       setProcessingDuelId(null);
       onNavigateToDuel(duel);
       return;
     }
 
-    // Regular invite duel - join and make active
+    // Regular invite code duel - join and make active
+    console.log('Joining regular invite duel');
     const joinedDuel = await joinDuel(duel.id, user.id);
     setProcessingDuelId(null);
 
     if (joinedDuel) {
+      console.log('Joined duel:', { status: joinedDuel.status, player2_id: joinedDuel.player2_id });
       onNavigateToDuel(joinedDuel);
     } else {
       Alert.alert('Error', 'Failed to accept challenge. It may have expired.');
@@ -419,16 +593,36 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
     }
   };
 
-  const handleDeclineChallenge = async (duel: DuelWithOpponent) => {
-    setProcessingDuelId(duel.id);
-    const success = await declineChallenge(duel.id);
-    setProcessingDuelId(null);
+  // Show decline confirmation modal
+  const showDeclineConfirmation = (duel: DuelWithOpponent) => {
+    setChallengeToDecline(duel);
+    setDeclineModalVisible(true);
+  };
+
+  // Confirm decline challenge with notification
+  const handleConfirmDeclineChallenge = async () => {
+    if (!challengeToDecline) return;
+
+    setDecliningChallenge(true);
+    const success = await declineChallenge(
+      challengeToDecline.id,
+      challengeToDecline.player1_id, // The challenger
+      myUsername // The user declining
+    );
+    setDecliningChallenge(false);
+    setDeclineModalVisible(false);
 
     if (success) {
-      setIncomingChallenges((prev) => prev.filter((d) => d.id !== duel.id));
+      setIncomingChallenges((prev) => prev.filter((d) => d.id !== challengeToDecline.id));
+      setChallengeToDecline(null);
     } else {
       Alert.alert('Error', 'Failed to decline challenge');
     }
+  };
+
+  const handleCancelDecline = () => {
+    setDeclineModalVisible(false);
+    setChallengeToDecline(null);
   };
 
   const handleActiveDuelPress = (duel: DuelWithOpponent) => {
@@ -473,6 +667,9 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
 
   // Friend challenge handlers
   const handleFriendSelect = (friend: FriendWithProfile) => {
+    console.log('Friend selected:', friend.username);
+    // Close the question count modal first, then show confirm modal
+    setQuestionCountPickerVisible(false);
     setSelectedFriendForChallenge(friend);
     setConfirmFriendModalVisible(true);
   };
@@ -488,12 +685,13 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
     setSendingFriendChallenge(true);
 
     try {
-      // Get a random question ID for the duel
+      // Pre-generate ALL question IDs for the duel upfront using smart selection
       const questions = getTriviaQuestions(selectedSport);
-      const questionId = getSmartQuestionId(selectedSport, questions);
+      const questionIds = selectQuestionsForDuel(selectedSport, questions, selectedQuestionCount);
+      const allQuestionIds = questionIds.join(',');
 
       // Create async duel for friend challenges - challenger plays first
-      const duel = await createAsyncDuel(user.id, selectedFriendForChallenge.friendUserId, selectedSport, questionId, selectedQuestionCount);
+      const duel = await createAsyncDuel(user.id, selectedFriendForChallenge.friendUserId, selectedSport, allQuestionIds, selectedQuestionCount);
 
       if (duel) {
         // Close modals
@@ -684,76 +882,45 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
           </AnimatedButton>
         </View>
 
-        {/* Active Duels Section */}
+        {/* Active Duels Section - includes both your duels and incoming challenges */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>ACTIVE DUELS</Text>
-            {activeDuels.length > 0 && (
-              <Text style={styles.swipeHint}>← Swipe to cancel</Text>
+            {(activeDuels.length > 0 || incomingChallenges.length > 0) && (
+              <Text style={styles.swipeHint}>← Swipe to {incomingChallenges.length > 0 ? 'decline' : 'cancel'}</Text>
             )}
           </View>
-          {activeDuels.length === 0 ? (
+          {activeDuels.length === 0 && incomingChallenges.length === 0 ? (
             <View style={styles.emptyCard}>
               <Image source={swordsIcon} style={styles.emptyIcon} />
               <Text style={styles.emptyText}>No active duels</Text>
               <Text style={styles.emptySubtext}>Challenge a friend or start a quick duel</Text>
             </View>
           ) : (
-            activeDuels.map((duel) => (
-              <SwipeableDuelCard
-                key={duel.id}
-                duel={duel}
-                onPress={() => handleActiveDuelPress(duel)}
-                onCancelPress={() => showCancelConfirmation(duel)}
-                onAnimatedCancel={() => handleAnimatedCancel(duel)}
-              />
-            ))
+            <>
+              {/* Duels needing your action (incoming challenges) - shown first with highlight */}
+              {incomingChallenges.map((duel) => (
+                <SwipeableChallengeCard
+                  key={duel.id}
+                  duel={duel}
+                  onPlay={() => handleAcceptChallenge(duel)}
+                  onDecline={() => showDeclineConfirmation(duel)}
+                  isProcessing={processingDuelId === duel.id}
+                />
+              ))}
+              {/* Duels waiting for opponent */}
+              {activeDuels.map((duel) => (
+                <SwipeableDuelCard
+                  key={duel.id}
+                  duel={duel}
+                  onPress={() => handleActiveDuelPress(duel)}
+                  onCancelPress={() => showCancelConfirmation(duel)}
+                  onAnimatedCancel={() => handleAnimatedCancel(duel)}
+                />
+              ))}
+            </>
           )}
         </View>
-
-        {/* Incoming Challenges Section */}
-        {incomingChallenges.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>INCOMING CHALLENGES</Text>
-            {incomingChallenges.map((duel) => (
-              <View key={duel.id} style={styles.challengeCard}>
-                <View style={styles.challengeHeader}>
-                  <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
-                    <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
-                  </View>
-                  <View style={styles.challengeInfo}>
-                    <Text style={styles.challengerName}>
-                      {truncateUsername(duel.opponent_username) || 'Someone'} challenged you!
-                    </Text>
-                    <Text style={styles.challengeSport}>
-                      {duel.sport.toUpperCase()} Trivia
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.challengeActions}>
-                  {processingDuelId === duel.id ? (
-                    <ActivityIndicator size="small" color="#A17FFF" />
-                  ) : (
-                    <>
-                      <AnimatedButton
-                        style={styles.declineButton}
-                        onPress={() => handleDeclineChallenge(duel)}
-                      >
-                        <Text style={styles.declineButtonText}>Decline</Text>
-                      </AnimatedButton>
-                      <AnimatedButton
-                        style={[styles.acceptButton, { backgroundColor: getSportColor(duel.sport) }]}
-                        onPress={() => handleAcceptChallenge(duel)}
-                      >
-                        <Text style={styles.acceptButtonText}>Accept</Text>
-                      </AnimatedButton>
-                    </>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
 
         {/* Join by Code Section */}
         <View style={styles.section}>
@@ -794,7 +961,10 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
 
         {/* Duel History Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>DUEL HISTORY</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>DUEL HISTORY</Text>
+            <Text style={styles.historyNote}>Last 48 hours</Text>
+          </View>
           {duelHistory.length === 0 ? (
             <View style={styles.emptyCard}>
               <Image source={swordsIcon} style={styles.emptyIcon} />
@@ -806,8 +976,8 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
               const isPlayer1 = duel.player1_id === user.id;
               const won = duel.winner_id === user.id;
               const tie = duel.winner_id === null;
-              const myTime = isPlayer1 ? duel.player1_answer_time : duel.player2_answer_time;
-              const theirTime = isPlayer1 ? duel.player2_answer_time : duel.player1_answer_time;
+              const myScore = isPlayer1 ? duel.player1_score : duel.player2_score;
+              const theirScore = isPlayer1 ? duel.player2_score : duel.player1_score;
 
               return (
                 <View key={duel.id} style={styles.historyCard}>
@@ -829,9 +999,9 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                       </Text>
                     </View>
                   </View>
-                  <View style={styles.historyTimes}>
-                    <Text style={styles.timeLabel}>You: {formatTime(myTime)}</Text>
-                    <Text style={styles.timeLabel}>Them: {formatTime(theirTime)}</Text>
+                  <View style={styles.historyScores}>
+                    <Text style={styles.scoreLabel}>You: {myScore ?? 0}</Text>
+                    <Text style={styles.scoreLabel}>Them: {theirScore ?? 0}</Text>
                   </View>
                 </View>
               );
@@ -888,16 +1058,9 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
         animationType="fade"
         onRequestClose={() => setQuestionCountPickerVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setQuestionCountPickerVisible(false)}
-        >
-          <TouchableOpacity
-            style={styles.questionCountModalContent}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+        <View style={styles.modalOverlay}>
+          {/* Modal content */}
+          <View style={styles.questionCountModalContent}>
             <Text style={styles.modalTitle}>How many questions?</Text>
             <Text style={styles.modalSubtitle}>
               {selectedSport && sportNames[selectedSport]} Trivia
@@ -932,13 +1095,13 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             ) : friends.length === 0 ? (
               <Text style={styles.noFriendsHint}>No friends yet. Use the code below to invite someone!</Text>
             ) : (
-              <ScrollView style={styles.friendsScrollView} showsVerticalScrollIndicator={false}>
+              <View style={styles.friendsListContainer}>
                 {friends.map((friend) => (
                   <TouchableOpacity
                     key={friend.id}
                     style={styles.friendOptionCard}
                     onPress={() => handleFriendSelect(friend)}
-                    activeOpacity={0.8}
+                    activeOpacity={0.7}
                   >
                     <View style={styles.friendOptionAvatar}>
                       <Text style={styles.friendOptionAvatarText}>
@@ -949,7 +1112,7 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                     <Text style={styles.friendOptionArrow}>→</Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </View>
             )}
 
             {/* Divider */}
@@ -971,8 +1134,8 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             >
               <Text style={styles.questionCountCancelText}>CANCEL</Text>
             </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
       {/* Confirm Friend Challenge Modal */}
@@ -997,9 +1160,14 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             </Text>
             {selectedFriendForChallenge && onlineUserIds.has(selectedFriendForChallenge.friendUserId) ? (
               <View style={styles.onlineSubtitleContainer}>
-                <View style={styles.onlineDotSmall} />
+                <View style={styles.onlineStatusRow}>
+                  <View style={styles.onlineDotSmall} />
+                  <Text style={styles.onlineStatusText}>
+                    {truncateUsername(selectedFriendForChallenge.username)} is online
+                  </Text>
+                </View>
                 <Text style={styles.confirmFriendSubtitleOnline}>
-                  {truncateUsername(selectedFriendForChallenge.username)} is online —{'\n'}they might play right away!
+                  They might play right away!
                 </Text>
               </View>
             ) : (
@@ -1072,6 +1240,53 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <Text style={styles.confirmCancelButtonText}>Yes, Cancel</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Decline Challenge Confirmation Modal */}
+      <Modal
+        visible={declineModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelDecline}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={handleCancelDecline}
+        >
+          <TouchableOpacity
+            style={styles.cancelModalContent}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.cancelModalTitle}>
+              Decline this challenge{challengeToDecline?.opponent_username ? ` from ${truncateUsername(challengeToDecline.opponent_username)}` : ''}?
+            </Text>
+            <Text style={styles.cancelModalSubtitle}>
+              {challengeToDecline?.opponent_username || 'They'} will be notified.
+            </Text>
+            <View style={styles.cancelModalButtons}>
+              <TouchableOpacity
+                style={styles.keepButton}
+                onPress={handleCancelDecline}
+                disabled={decliningChallenge}
+              >
+                <Text style={styles.keepButtonText}>Keep</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.confirmCancelButton}
+                onPress={handleConfirmDeclineChallenge}
+                disabled={decliningChallenge}
+              >
+                {decliningChallenge ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmCancelButtonText}>Yes, Decline</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1322,6 +1537,41 @@ const styles = StyleSheet.create({
     color: '#888888',
     textAlign: 'center',
   },
+  // Play Now Card (incoming challenges)
+  playNowCard: {
+    backgroundColor: '#F2C94C',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  playNowStatus: {
+    fontSize: 13,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  playNowButton: {
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  playNowButtonText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
   // Duel Cards
   duelCard: {
     backgroundColor: '#FFFFFF',
@@ -1337,6 +1587,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
+  },
+  duelCardWaiting: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#CCCCCC',
+    shadowOpacity: 0.3,
+  },
+  opponentNameWaiting: {
+    color: '#888888',
   },
   sportBadge: {
     paddingHorizontal: 10,
@@ -1536,13 +1794,24 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_400Regular',
     color: '#666666',
   },
-  historyTimes: {
+  historyScores: {
     alignItems: 'flex-end',
   },
-  timeLabel: {
+  scoreLabel: {
     fontSize: 12,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#666666',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  historyNote: {
+    fontSize: 11,
     fontFamily: 'DMSans_400Regular',
-    color: '#888888',
+    color: '#999999',
   },
   // Action Buttons
   actionButtons: {
@@ -1578,6 +1847,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalOverlayTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
@@ -1792,7 +2069,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 5,
   },
   friendsSectionLabel: {
     fontSize: 12,
@@ -1813,6 +2090,9 @@ const styles = StyleSheet.create({
   },
   friendsScrollView: {
     maxHeight: 180,
+    marginBottom: 8,
+  },
+  friendsListContainer: {
     marginBottom: 8,
   },
   friendOptionCard: {
@@ -1903,28 +2183,37 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   onlineSubtitleContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 12,
+    gap: 4,
+  },
+  onlineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   onlineDotSmall: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#22C55E',
-    marginRight: 8,
+  },
+  onlineStatusText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#15803D',
   },
   confirmFriendSubtitleOnline: {
-    fontSize: 14,
-    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    fontFamily: 'DMSans_500Medium',
     color: '#15803D',
     textAlign: 'center',
-    lineHeight: 20,
   },
   confirmFriendButtons: {
     flexDirection: 'row',
@@ -1981,8 +2270,10 @@ const styles = StyleSheet.create({
     color: '#999999',
   },
   // Swipeable Card
-  swipeableContainer: {
+  swipeableContainerOuter: {
     marginBottom: 12,
+  },
+  swipeableContainer: {
     position: 'relative',
     borderRadius: 8,
   },
@@ -2012,6 +2303,37 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   swipeCancelButtonText: {
+    fontSize: 11,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  declineButtonContainer: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 12, // Account for marginBottom
+    width: SWIPE_THRESHOLD + 4, // Extra space for shadow
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 4, // Space for shadow
+  },
+  swipeDeclineButton: {
+    backgroundColor: '#E53935',
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  swipeDeclineButtonText: {
     fontSize: 11,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
@@ -2098,7 +2420,7 @@ const styles = StyleSheet.create({
   // Toast
   toast: {
     position: 'absolute',
-    bottom: 135, // Just above ad banner + nav bar
+    bottom: 20, // Just above nav bar
     left: 24,
     right: 24,
     backgroundColor: '#F2C94C',

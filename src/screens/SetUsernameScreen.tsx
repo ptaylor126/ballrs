@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,9 +19,11 @@ import {
   validateUsername,
   isUsernameAvailable,
   createProfile,
+  getProfile,
 } from '../lib/profilesService';
 import { AnimatedButton } from '../components/AnimatedComponents';
 import { colors, shadows, borders, borderRadius } from '../lib/theme';
+import { supabase } from '../lib/supabase';
 
 // Word pools for random username generation (short words for 10 char limit)
 const ADJECTIVES = [
@@ -64,9 +67,36 @@ const generateRandomUsername = (): string => {
 
 interface Props {
   onComplete: () => void;
+  onSignInComplete?: () => void;
+  onReplayOnboarding?: () => void;
 }
 
-export default function SetUsernameScreen({ onComplete }: Props) {
+export default function SetUsernameScreen({ onComplete, onSignInComplete, onReplayOnboarding }: Props) {
+  // Triple-tap on logo to reset onboarding (for testing)
+  const tapCountRef = useRef(0);
+  const lastTapTimeRef = useRef(0);
+
+  const handleLogoPress = () => {
+    const now = Date.now();
+    // Reset count if more than 500ms since last tap
+    if (now - lastTapTimeRef.current > 500) {
+      tapCountRef.current = 0;
+    }
+    tapCountRef.current += 1;
+    lastTapTimeRef.current = now;
+
+    if (tapCountRef.current >= 3 && onReplayOnboarding) {
+      tapCountRef.current = 0;
+      Alert.alert(
+        'Reset Onboarding',
+        'Do you want to replay the onboarding screens?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Reset', onPress: onReplayOnboarding },
+        ]
+      );
+    }
+  };
   const { user, signInWithEmail, refreshProfile } = useAuth();
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
@@ -133,10 +163,42 @@ export default function SetUsernameScreen({ onComplete }: Props) {
       setSignInError(error.message || 'Invalid email or password');
       setSignInLoading(false);
     } else {
-      // Success - onComplete will be called by App.tsx when it detects
-      // the user now has a profile (from their existing account)
-      setShowSignInModal(false);
-      setSignInLoading(false);
+      try {
+        // Sign-in successful - check if the user has a profile
+        console.log('Sign-in successful, getting session...');
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session obtained:', session?.user?.id);
+
+        if (session?.user) {
+          console.log('Checking profile for user:', session.user.id);
+          const profile = await getProfile(session.user.id);
+          console.log('Sign-in profile check:', { userId: session.user.id, hasProfile: !!profile });
+
+          if (profile) {
+            // User has existing profile - refresh the auth context and go to home
+            console.log('Profile found, refreshing and navigating to home...');
+            await refreshProfile();
+            setShowSignInModal(false);
+            setSignInLoading(false);
+            // Use onSignInComplete to go directly to home (skip country selection)
+            if (onSignInComplete) {
+              onSignInComplete();
+            } else {
+              onComplete();
+            }
+            return;
+          }
+        }
+
+        // No profile found - user will need to create one
+        console.log('No profile found for signed-in user');
+        setShowSignInModal(false);
+        setSignInLoading(false);
+      } catch (err) {
+        console.error('Error during sign-in profile check:', err);
+        setSignInError('Sign-in succeeded but failed to load profile. Please try again.');
+        setSignInLoading(false);
+      }
     }
   };
 
@@ -178,8 +240,10 @@ export default function SetUsernameScreen({ onComplete }: Props) {
         style={styles.keyboardView}
       >
         <View style={styles.content}>
-          {/* Logo */}
-          <Text style={styles.logo}>BALLRS</Text>
+          {/* Logo - Triple tap to reset onboarding (for testing) */}
+          <TouchableOpacity onPress={handleLogoPress} activeOpacity={1}>
+            <Text style={styles.logo}>BALLRS</Text>
+          </TouchableOpacity>
 
           {/* Title */}
           <Text style={styles.title}>Choose a Username</Text>
@@ -391,34 +455,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   input: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     padding: 16,
+    height: 54,
     fontSize: 16,
     fontFamily: 'DMSans_400Regular',
     color: colors.text,
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    shadowColor: '#000000',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   randomButton: {
     backgroundColor: '#F2C94C',
-    borderRadius: borderRadius.card,
+    borderRadius: 8,
     width: 54,
+    height: 54,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: borders.card,
-    borderColor: colors.border,
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   randomButtonText: {
     fontSize: 24,
@@ -540,14 +595,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   modalInput: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     padding: 14,
     fontSize: 16,
     fontFamily: 'DMSans_400Regular',
     color: colors.text,
-    borderWidth: borders.card,
-    borderColor: colors.border,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -556,16 +611,15 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: colors.accent,
+    backgroundColor: '#F2C94C',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    ...shadows.button,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   cancelButtonText: {
-    color: colors.text,
+    color: '#1A1A1A',
     fontSize: 14,
     fontFamily: 'DMSans_700Bold',
   },
@@ -575,9 +629,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: borders.button,
-    borderColor: colors.border,
-    ...shadows.button,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   signInButtonText: {
     color: '#FFFFFF',

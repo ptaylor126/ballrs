@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -34,13 +37,10 @@ import {
   areFriends,
 } from '../lib/friendsService';
 import {
-  getPendingAsyncChallenges,
-  DuelWithOpponent,
-  getTimeRemaining,
   createAsyncDuel,
   Duel,
 } from '../lib/duelService';
-import { getSmartQuestionId, resetDuelSession } from '../lib/questionSelectionService';
+import { selectQuestionsForDuel } from '../lib/questionSelectionService';
 import { countryCodeToFlag } from '../lib/countryUtils';
 import nbaTriviaData from '../../data/nba-trivia.json';
 import plTriviaData from '../../data/pl-trivia.json';
@@ -67,6 +67,138 @@ const getTriviaQuestions = (sport: Sport): any[] => {
 
 // Icons
 const friendsIcon = require('../../assets/images/icon-friends.png');
+const searchIcon = require('../../assets/images/icon-search.png');
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SWIPE_THRESHOLD = 100;
+
+// Swipeable Friend Card Component
+interface SwipeableFriendCardProps {
+  friend: FriendWithOnlineStatus;
+  isOnline: boolean;
+  onChallenge: () => void;
+  onRemove: () => void;
+}
+
+function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove }: SwipeableFriendCardProps) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const [isSwipeOpen, setIsSwipeOpen] = useState(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to horizontal swipes
+        return Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 20;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow swipe left (negative dx)
+        if (gestureState.dx < 0) {
+          translateX.setValue(Math.max(gestureState.dx, -SWIPE_THRESHOLD));
+        } else if (isSwipeOpen) {
+          // Allow swipe right to close
+          translateX.setValue(Math.max(-SWIPE_THRESHOLD + gestureState.dx, 0) - SWIPE_THRESHOLD);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx < -40 && !isSwipeOpen) {
+          // Swipe left - open delete button
+          Animated.spring(translateX, {
+            toValue: -SWIPE_THRESHOLD,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 10,
+          }).start();
+          setIsSwipeOpen(true);
+        } else {
+          // Swipe right or insufficient swipe - close
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 10,
+          }).start();
+          setIsSwipeOpen(false);
+        }
+      },
+    })
+  ).current;
+
+  const handleRemove = () => {
+    // Just call onRemove - it will show the confirmation alert
+    // Don't close the swipe until confirmed
+    onRemove();
+  };
+
+  const closeSwipe = () => {
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 10,
+    }).start();
+    setIsSwipeOpen(false);
+  };
+
+  return (
+    <View style={styles.swipeContainer}>
+      {/* Swipeable card */}
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={[
+          styles.friendCardSwipeable,
+          { transform: [{ translateX }] },
+        ]}
+      >
+        <View style={styles.friendInfo}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {truncateUsername(friend.username).charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.onlineIndicator,
+                { backgroundColor: isOnline ? '#22C55E' : '#9CA3AF' },
+              ]}
+            />
+          </View>
+          <View style={styles.friendDetails}>
+            <View style={styles.friendNameRow}>
+              <Text style={styles.friendName}>{truncateUsername(friend.username)}</Text>
+              {friend.country && (
+                <Text style={styles.countryFlag}>
+                  {countryCodeToFlag(friend.country)}
+                </Text>
+              )}
+            </View>
+            <Text style={[
+              styles.friendStatus,
+              isOnline && styles.friendStatusOnline
+            ]}>
+              {isOnline ? 'Online' : 'Offline'}
+            </Text>
+          </View>
+        </View>
+        <AnimatedButton
+          style={styles.challengeButton}
+          onPress={onChallenge}
+        >
+          <Text style={styles.challengeButtonText}>CHALLENGE</Text>
+        </AnimatedButton>
+      </Animated.View>
+
+      {/* Delete button - rendered on top, only visible when swiped */}
+      {isSwipeOpen && (
+        <View style={styles.deleteButtonContainer}>
+          <TouchableOpacity style={styles.deleteButton} onPress={handleRemove}>
+            <Text style={styles.deleteButtonText}>REMOVE</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
 
 // Sport icons for challenges
 const sportIcons: Record<Sport, any> = {
@@ -83,7 +215,6 @@ interface FriendsScreenProps {
 export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenProps) {
   const { user } = useAuth();
   const [friends, setFriends] = useState<FriendWithOnlineStatus[]>([]);
-  const [pendingChallenges, setPendingChallenges] = useState<DuelWithOpponent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -94,6 +225,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
   const [showQuestionCountModal, setShowQuestionCountModal] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState<FriendWithOnlineStatus | null>(null);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
+  const [selectedQuestionCount, setSelectedQuestionCount] = useState<number | null>(5); // Default to 5
   const [creatingChallenge, setCreatingChallenge] = useState(false);
 
   // Friend request state
@@ -109,6 +241,12 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
   const [pendingDuelNavigation, setPendingDuelNavigation] = useState<{ duel: Duel; isChallenger: boolean; opponentUsername: string } | null>(null);
   const [requestingNotifications, setRequestingNotifications] = useState(false);
 
+  // Remove friend confirmation modal state
+  const [showRemoveConfirmModal, setShowRemoveConfirmModal] = useState(false);
+  const [friendToRemove, setFriendToRemove] = useState<{ id: string; username: string } | null>(null);
+  const [removingFriend, setRemovingFriend] = useState(false);
+
+
   // Real-time online status using presence hook
   const onlineUserIds = usePresence();
 
@@ -116,14 +254,12 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
     if (!user) return;
 
     try {
-      const [friendsData, challengesData, requestsData, sentRequestsData] = await Promise.all([
+      const [friendsData, requestsData, sentRequestsData] = await Promise.all([
         getFriendsWithOnlineStatus(user.id),
-        getPendingAsyncChallenges(user.id),
         getPendingFriendRequests(user.id),
         getSentFriendRequests(user.id),
       ]);
       setFriends(friendsData);
-      setPendingChallenges(challengesData);
       setFriendRequests(requestsData);
       setSentRequests(sentRequestsData);
       // Update pendingRequestUserIds from sent requests
@@ -257,30 +393,33 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
     }
   };
 
-  const handleRemoveFriend = async (friendId: string) => {
+  const handleRemoveFriend = (friendId: string, username: string) => {
     if (!user) return;
+    setFriendToRemove({ id: friendId, username });
+    setShowRemoveConfirmModal(true);
+  };
 
-    Alert.alert(
-      'Remove Friend',
-      'Are you sure you want to remove this friend?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await removeFriend(user.id, friendId);
-              if (success) {
-                loadData();
-              }
-            } catch (error) {
-              console.error('Error removing friend:', error);
-            }
-          },
-        },
-      ]
-    );
+  const confirmRemoveFriend = async () => {
+    if (!user || !friendToRemove) return;
+
+    setRemovingFriend(true);
+    try {
+      const success = await removeFriend(user.id, friendToRemove.id);
+      if (success) {
+        setShowRemoveConfirmModal(false);
+        setFriendToRemove(null);
+        loadData();
+      }
+    } catch (error) {
+      console.error('Error removing friend:', error);
+    } finally {
+      setRemovingFriend(false);
+    }
+  };
+
+  const cancelRemoveFriend = () => {
+    setShowRemoveConfirmModal(false);
+    setFriendToRemove(null);
   };
 
   const handleChallengePress = (friend: FriendWithOnlineStatus) => {
@@ -295,25 +434,27 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
     setShowQuestionCountModal(true);
   };
 
-  const handleQuestionCountSelect = async (questionCount: number) => {
-    if (!user || !selectedFriend || !selectedSport) return;
+  const handleQuestionCountSelect = (questionCount: number) => {
+    setSelectedQuestionCount(questionCount);
+  };
+
+  const handleStartDuel = async () => {
+    if (!user || !selectedFriend || !selectedSport || !selectedQuestionCount) return;
 
     setCreatingChallenge(true);
     try {
-      // Reset question session for this sport
-      resetDuelSession(selectedSport);
-
-      // Get a question for the duel
+      // Pre-generate ALL question IDs for the duel upfront using smart selection
       const questions = getTriviaQuestions(selectedSport);
-      const questionId = getSmartQuestionId(selectedSport, questions);
+      const questionIds = selectQuestionsForDuel(selectedSport, questions, selectedQuestionCount);
+      const allQuestionIds = questionIds.join(',');
 
       // Create the async duel with selected question count
       const duel = await createAsyncDuel(
         user.id,
         selectedFriend.friendUserId,
         selectedSport,
-        questionId,
-        questionCount
+        allQuestionIds,
+        selectedQuestionCount
       );
 
       if (duel) {
@@ -321,6 +462,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
         setShowQuestionCountModal(false);
         setSelectedFriend(null);
         setSelectedSport(null);
+        setSelectedQuestionCount(5); // Reset to default
 
         // Check if we should show notification prompt
         const showPrompt = await shouldShowNotificationPrompt();
@@ -346,11 +488,8 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
   const handleCancelQuestionCount = () => {
     setShowQuestionCountModal(false);
     setSelectedSport(null);
+    setSelectedQuestionCount(5); // Reset to default
     setShowSportModal(true); // Go back to sport selection
-  };
-
-  const handlePlayChallenge = (challenge: DuelWithOpponent) => {
-    onNavigateToAsyncDuel(challenge, false);
   };
 
   const handleEnableNotifications = async () => {
@@ -400,57 +539,11 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
           <Text style={styles.title}>Friends</Text>
         </View>
 
-        {/* Pending Challenges Section */}
-        {pendingChallenges.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pending Challenges</Text>
-            {pendingChallenges.map((challenge) => {
-              const timeRemaining = getTimeRemaining(challenge.expires_at);
-              const sportColor = getSportColor(challenge.sport as Sport);
-
-              return (
-                <AnimatedCard key={challenge.id} style={styles.challengeCard}>
-                  <View style={styles.challengeHeader}>
-                    <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
-                      <Image
-                        source={sportIcons[challenge.sport as Sport]}
-                        style={styles.sportBadgeIcon}
-                        resizeMode="contain"
-                      />
-                    </View>
-                    <View style={styles.challengeInfo}>
-                      <Text style={styles.challengerName}>
-                        {challenge.opponent_username || 'Unknown'}
-                      </Text>
-                      <Text style={styles.challengeSport}>
-                        {getSportName(challenge.sport as Sport)} Trivia
-                      </Text>
-                    </View>
-                    <View style={styles.timeRemaining}>
-                      <Text style={styles.timeRemainingText}>
-                        {timeRemaining.expired
-                          ? 'Expired'
-                          : `${timeRemaining.hours}h ${timeRemaining.minutes}m left`}
-                      </Text>
-                    </View>
-                  </View>
-                  <AnimatedButton
-                    style={[styles.playButton, { backgroundColor: sportColor }]}
-                    onPress={() => handlePlayChallenge(challenge)}
-                  >
-                    <Text style={styles.playButtonText}>PLAY NOW</Text>
-                  </AnimatedButton>
-                </AnimatedCard>
-              );
-            })}
-          </View>
-        )}
-
         {/* Search Section - Add Friends */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Add Friends</Text>
           <View style={styles.searchContainer}>
-            <Text style={styles.searchIconText}>🔍</Text>
+            <Image source={searchIcon} style={styles.searchIcon} resizeMode="contain" />
             <TextInput
               style={styles.searchInput}
               placeholder="Search by username..."
@@ -548,14 +641,14 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
             <Text style={styles.sectionTitle}>Sent Requests ({sentRequests.length})</Text>
             {sentRequests.map((request) => (
               <AnimatedCard key={request.id} style={styles.sentRequestCard}>
-                <View style={styles.requestInfo}>
+                <View style={[styles.requestInfo, { gap: 10 }]}>
                   <View style={styles.avatar}>
                     <Text style={styles.avatarText}>
                       {request.receiverUsername.charAt(0).toUpperCase()}
                     </Text>
                   </View>
-                  <View style={styles.sentRequestInfo}>
-                    <Text style={styles.requestUsername}>{request.receiverUsername}</Text>
+                  <View style={[styles.sentRequestInfo, { marginLeft: 0 }]}>
+                    <Text style={[styles.requestUsername, { marginLeft: 0 }]}>{request.receiverUsername}</Text>
                     <Text style={styles.pendingLabel}>Pending</Text>
                   </View>
                 </View>
@@ -577,9 +670,14 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
 
         {/* Friends List */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Your Friends {friends.length > 0 && `(${friends.length})`}
-          </Text>
+          <View style={styles.friendsSectionHeader}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+              Your Friends {friends.length > 0 && `(${friends.length})`}
+            </Text>
+            {friends.length > 0 && (
+              <Text style={styles.swipeHint}>Swipe left to remove</Text>
+            )}
+          </View>
 
           {friends.length === 0 ? (
             <View style={styles.emptyFriends}>
@@ -591,45 +689,13 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
             friends.map((friend) => {
               const isOnline = onlineUserIds.has(friend.friendUserId);
               return (
-                <AnimatedCard key={friend.id} style={styles.friendCard}>
-                  <View style={styles.friendInfo}>
-                    <View style={styles.avatarContainer}>
-                      <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                          {truncateUsername(friend.username).charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.onlineIndicator,
-                          { backgroundColor: isOnline ? '#22C55E' : '#9CA3AF' },
-                        ]}
-                      />
-                    </View>
-                    <View style={styles.friendDetails}>
-                      <View style={styles.friendNameRow}>
-                        <Text style={styles.friendName}>{truncateUsername(friend.username)}</Text>
-                        {friend.country && (
-                          <Text style={styles.countryFlag}>
-                            {countryCodeToFlag(friend.country)}
-                          </Text>
-                        )}
-                      </View>
-                      <Text style={[
-                        styles.friendStatus,
-                        isOnline && styles.friendStatusOnline
-                      ]}>
-                        {isOnline ? 'Online' : 'Offline'}
-                      </Text>
-                    </View>
-                  </View>
-                  <AnimatedButton
-                    style={styles.challengeButton}
-                    onPress={() => handleChallengePress(friend)}
-                  >
-                    <Text style={styles.challengeButtonText}>CHALLENGE</Text>
-                  </AnimatedButton>
-                </AnimatedCard>
+                <SwipeableFriendCard
+                  key={friend.id}
+                  friend={friend}
+                  isOnline={isOnline}
+                  onChallenge={() => handleChallengePress(friend)}
+                  onRemove={() => handleRemoveFriend(friend.friendUserId, friend.username)}
+                />
               );
             })
           )}
@@ -703,7 +769,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
               <View style={styles.onlineSubtitleContainer}>
                 <View style={styles.onlineDotSmall} />
                 <Text style={styles.modalSubtitleOnline}>
-                  {truncateUsername(selectedFriend.username)} is online —{'\n'}they might play right away!
+                  {truncateUsername(selectedFriend.username)} is online
                 </Text>
               </View>
             ) : (
@@ -714,46 +780,73 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
 
             <View style={styles.questionCountOptions}>
               <TouchableOpacity
-                style={styles.questionCountOption}
+                style={[
+                  styles.questionCountOption,
+                  selectedQuestionCount === 1 && styles.questionCountOptionHighlighted
+                ]}
                 onPress={() => handleQuestionCountSelect(1)}
                 disabled={creatingChallenge}
                 activeOpacity={0.7}
               >
-                <Text style={styles.questionCountNumber}>1</Text>
+                <Text style={[
+                  styles.questionCountNumber,
+                  selectedQuestionCount === 1 && styles.questionCountNumberHighlighted
+                ]}>1</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.questionCountOption, styles.questionCountOptionHighlighted]}
+                style={[
+                  styles.questionCountOption,
+                  selectedQuestionCount === 5 && styles.questionCountOptionHighlighted
+                ]}
                 onPress={() => handleQuestionCountSelect(5)}
                 disabled={creatingChallenge}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.questionCountNumber, styles.questionCountNumberHighlighted]}>5</Text>
+                <Text style={[
+                  styles.questionCountNumber,
+                  selectedQuestionCount === 5 && styles.questionCountNumberHighlighted
+                ]}>5</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.questionCountOption}
+                style={[
+                  styles.questionCountOption,
+                  selectedQuestionCount === 9 && styles.questionCountOptionHighlighted
+                ]}
                 onPress={() => handleQuestionCountSelect(9)}
                 disabled={creatingChallenge}
                 activeOpacity={0.7}
               >
-                <Text style={styles.questionCountNumber}>9</Text>
+                <Text style={[
+                  styles.questionCountNumber,
+                  selectedQuestionCount === 9 && styles.questionCountNumberHighlighted
+                ]}>9</Text>
               </TouchableOpacity>
             </View>
 
-            {creatingChallenge && (
-              <View style={styles.creatingContainer}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.creatingText}>Creating challenge...</Text>
-              </View>
-            )}
+            {/* START Button */}
+            <AnimatedButton
+              style={[
+                styles.startDuelButton,
+                creatingChallenge && styles.startDuelButtonDisabled
+              ]}
+              onPress={handleStartDuel}
+              disabled={creatingChallenge || !selectedQuestionCount}
+            >
+              {creatingChallenge ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.startDuelButtonText}>START</Text>
+              )}
+            </AnimatedButton>
 
             <AnimatedButton
-              style={styles.cancelButton}
+              style={styles.backButton}
               onPress={handleCancelQuestionCount}
               disabled={creatingChallenge}
             >
-              <Text style={styles.cancelButtonText}>Back</Text>
+              <Text style={styles.backButtonText}>Back</Text>
             </AnimatedButton>
           </View>
         </View>
@@ -791,6 +884,43 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
         onEnable={handleEnableNotifications}
         onDismiss={handleDismissNotifications}
       />
+
+      {/* Remove Friend Confirmation Modal */}
+      <Modal
+        visible={showRemoveConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelRemoveFriend}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.removeConfirmModalContent}>
+            <Text style={styles.removeConfirmTitle}>Remove Friend</Text>
+            <Text style={styles.removeConfirmSubtitle}>
+              Are you sure you want to remove {friendToRemove?.username || 'this friend'}?
+            </Text>
+            <View style={styles.removeConfirmButtons}>
+              <AnimatedButton
+                style={styles.removeConfirmCancelButton}
+                onPress={cancelRemoveFriend}
+                disabled={removingFriend}
+              >
+                <Text style={styles.removeConfirmCancelText}>CANCEL</Text>
+              </AnimatedButton>
+              <AnimatedButton
+                style={styles.removeConfirmRemoveButton}
+                onPress={confirmRemoveFriend}
+                disabled={removingFriend}
+              >
+                {removingFriend ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.removeConfirmRemoveText}>REMOVE</Text>
+                )}
+              </AnimatedButton>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -951,8 +1081,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     ...shadows.card,
   },
-  searchIconText: {
-    fontSize: 18,
+  searchIcon: {
+    width: 20,
+    height: 20,
     marginRight: 12,
   },
   searchInput: {
@@ -1010,6 +1141,64 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_400Regular',
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  friendsSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  swipeHint: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.textSecondary,
+  },
+  swipeContainer: {
+    marginBottom: 12,
+    position: 'relative',
+  },
+  deleteButtonContainer: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: SWIPE_THRESHOLD + 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 44,
+    paddingRight: 8,
+  },
+  deleteButton: {
+    backgroundColor: '#E53935',
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  deleteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontFamily: 'DMSans_900Black',
+    letterSpacing: 0.5,
+  },
+  friendCardSwipeable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    padding: 12,
+    ...shadows.card,
   },
   friendCard: {
     flexDirection: 'row',
@@ -1137,19 +1326,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
+    gap: 8,
   },
   onlineDotSmall: {
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: '#22C55E',
-    marginRight: 8,
   },
   modalSubtitleOnline: {
     fontSize: 14,
     fontFamily: 'DMSans_600SemiBold',
     color: '#15803D',
-    textAlign: 'center',
   },
   sportGrid: {
     flexDirection: 'row',
@@ -1238,24 +1426,59 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   cancelButton: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F2C94C',
     paddingVertical: 12,
     borderRadius: borderRadius.button,
     borderWidth: borders.button,
     borderColor: colors.border,
     alignItems: 'center',
     marginTop: 16,
+    ...shadows.button,
   },
   cancelButtonText: {
-    color: colors.text,
+    color: '#1A1A1A',
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+  },
+  // Start Duel button
+  startDuelButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: borderRadius.button,
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    alignItems: 'center',
+    marginTop: 8,
+    ...shadows.button,
+  },
+  startDuelButtonDisabled: {
+    opacity: 0.7,
+  },
+  startDuelButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+    letterSpacing: 1,
+  },
+  // Back button (yellow, secondary)
+  backButton: {
+    backgroundColor: '#F2C94C',
+    paddingVertical: 12,
+    borderRadius: borderRadius.button,
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    alignItems: 'center',
+    marginTop: 12,
+    ...shadows.button,
+  },
+  backButtonText: {
+    color: '#1A1A1A',
     fontSize: 14,
     fontFamily: 'DMSans_700Bold',
   },
   // Friend Request styles
   requestCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     backgroundColor: '#FFF9E6',
     borderWidth: borders.card,
     borderColor: colors.border,
@@ -1267,30 +1490,27 @@ const styles = StyleSheet.create({
   requestInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    marginBottom: 12,
   },
   requestUsername: {
     fontSize: 16,
     fontFamily: 'DMSans_700Bold',
     color: colors.text,
     marginLeft: 12,
-    flex: 1,
-    flexShrink: 1,
   },
   requestButtons: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flexShrink: 0,
   },
   acceptButton: {
+    flex: 1,
     backgroundColor: '#1ABC9C',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.border,
-    minWidth: 70,
     alignItems: 'center',
     ...shadows.button,
   },
@@ -1301,13 +1521,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   declineButton: {
+    flex: 1,
     backgroundColor: '#F2C94C',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.border,
-    minWidth: 70,
     alignItems: 'center',
     ...shadows.button,
   },
@@ -1339,8 +1559,8 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   sentRequestInfo: {
-    marginLeft: 12,
     flex: 1,
+    marginLeft: -4,
   },
   pendingLabel: {
     fontSize: 12,
@@ -1406,6 +1626,69 @@ const styles = StyleSheet.create({
   requestSentOkText: {
     color: '#FFFFFF',
     fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    letterSpacing: 0.5,
+  },
+  // Remove Friend Confirmation Modal
+  removeConfirmModalContent: {
+    backgroundColor: colors.surface,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    padding: 24,
+    width: '100%',
+    maxWidth: 320,
+    alignItems: 'center',
+    ...shadows.card,
+  },
+  removeConfirmTitle: {
+    fontSize: 22,
+    fontFamily: 'DMSans_900Black',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  removeConfirmSubtitle: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  removeConfirmButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  removeConfirmCancelButton: {
+    flex: 1,
+    backgroundColor: '#F2C94C',
+    paddingVertical: 14,
+    borderRadius: borderRadius.button,
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    alignItems: 'center',
+    ...shadows.button,
+  },
+  removeConfirmCancelText: {
+    color: '#1A1A1A',
+    fontSize: 13,
+    fontFamily: 'DMSans_900Black',
+    letterSpacing: 0.5,
+  },
+  removeConfirmRemoveButton: {
+    flex: 1,
+    backgroundColor: '#E53935',
+    paddingVertical: 14,
+    borderRadius: borderRadius.button,
+    borderWidth: borders.button,
+    borderColor: colors.border,
+    alignItems: 'center',
+    ...shadows.button,
+  },
+  removeConfirmRemoveText: {
+    color: '#FFFFFF',
+    fontSize: 13,
     fontFamily: 'DMSans_900Black',
     letterSpacing: 0.5,
   },

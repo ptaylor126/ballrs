@@ -345,6 +345,55 @@ export async function cancelDuel(duelId: string): Promise<boolean> {
   return true;
 }
 
+// Forfeit a duel (player quits mid-game, opponent wins by default)
+// Returns the completed duel with winner set, or null on error
+export async function forfeitDuel(
+  duelId: string,
+  forfeitingUserId: string
+): Promise<Duel | null> {
+  // First get the duel to determine the opponent
+  const { data: duel, error: fetchError } = await supabase
+    .from('duels')
+    .select('*')
+    .eq('id', duelId)
+    .single();
+
+  if (fetchError || !duel) {
+    console.error('Error fetching duel for forfeit:', fetchError);
+    return null;
+  }
+
+  // Determine the winner (the player who didn't forfeit)
+  let winnerId: string | null = null;
+  if (duel.player1_id === forfeitingUserId && duel.player2_id) {
+    winnerId = duel.player2_id;
+  } else if (duel.player2_id === forfeitingUserId) {
+    winnerId = duel.player1_id;
+  }
+
+  // Update the duel to completed with forfeit
+  const { data: completedDuel, error: updateError } = await supabase
+    .from('duels')
+    .update({
+      status: 'completed',
+      winner_id: winnerId,
+      // Set the forfeiting player's answer to indicate forfeit
+      ...(duel.player1_id === forfeitingUserId
+        ? { player1_answer: '__FORFEIT__' }
+        : { player2_answer: '__FORFEIT__' }),
+    })
+    .eq('id', duelId)
+    .select()
+    .single();
+
+  if (updateError) {
+    console.error('Error forfeiting duel:', updateError);
+    return null;
+  }
+
+  return completedDuel;
+}
+
 // Subscribe to duel updates
 export function subscribeToDuel(
   duelId: string,
@@ -429,13 +478,14 @@ export interface DuelWithOpponent extends Duel {
 
 // Get active duels for a user (waiting or active)
 export async function getActiveDuels(userId: string): Promise<DuelWithOpponent[]> {
-  // Only show duels that are waiting for opponent to join
-  // Once both players have joined and played, it goes to history
+  // Show duels that are:
+  // - waiting/invite: waiting for opponent to join
+  // - waiting_for_p2: user has played, waiting for friend to play (async duels)
   const { data, error } = await supabase
     .from('duels')
     .select('*')
     .eq('player1_id', userId)
-    .in('status', ['waiting', 'invite'])
+    .in('status', ['waiting', 'invite', 'waiting_for_p2'])
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -473,14 +523,13 @@ export async function getIncomingChallenges(userId: string): Promise<DuelWithOpp
   // Get invite duels where:
   // 1. User is not the creator
   // 2. Either open to anyone (player2_id is null) OR specifically for this user
-  // 3. Exclude async duels that have player1_completed_at (those show in FriendsScreen)
+  // Includes both regular invite duels and async friend duels (where challenger has completed)
   const { data, error } = await supabase
     .from('duels')
     .select('*')
     .eq('status', 'invite')
     .neq('player1_id', userId)
     .or(`player2_id.is.null,player2_id.eq.${userId}`)
-    .is('player1_completed_at', null) // Exclude async duels where challenger completed
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -513,11 +562,15 @@ export async function getIncomingChallenges(userId: string): Promise<DuelWithOpp
 
 // Get duel history for a user (completed duels)
 export async function getDuelHistory(userId: string, limit: number = 20): Promise<DuelWithOpponent[]> {
+  // Only show duels from the last 48 hours
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
   const { data, error } = await supabase
     .from('duels')
     .select('*')
     .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
     .eq('status', 'completed')
+    .gte('created_at', fortyEightHoursAgo)
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -552,7 +605,11 @@ export async function getDuelHistory(userId: string, limit: number = 20): Promis
 }
 
 // Decline a challenge by updating status to 'declined'
-export async function declineChallenge(duelId: string): Promise<boolean> {
+export async function declineChallenge(
+  duelId: string,
+  challengerId?: string,
+  declinerUsername?: string
+): Promise<boolean> {
   // Update status to 'declined' instead of deleting
   // This prevents re-fetching issues and works with RLS
   const { data, error } = await supabase
@@ -571,6 +628,13 @@ export async function declineChallenge(duelId: string): Promise<boolean> {
   if (!data || data.length === 0) {
     console.error('No duel found to decline or already processed');
     return false;
+  }
+
+  // Send notification to challenger if we have their info
+  if (challengerId && declinerUsername) {
+    const { sendChallengeDeclinedNotification } = await import('./notificationService');
+    sendChallengeDeclinedNotification(challengerId, declinerUsername)
+      .catch(err => console.log('Failed to send decline notification:', err));
   }
 
   return true;
@@ -789,9 +853,12 @@ export async function createAsyncDuel(
   challengerId: string,
   friendId: string,
   sport: 'nba' | 'pl' | 'nfl' | 'mlb',
-  questionId: string,
-  questionCount: number = 1
+  questionIds: string,  // Comma-separated question IDs for all rounds
+  questionCount: number = 1,
+  isRematch: boolean = false
 ): Promise<Duel | null> {
+  console.log('[createAsyncDuel] Creating duel with questions:', questionIds);
+
   // Try with expires_at first (if migration has been applied)
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + 48);
@@ -802,7 +869,7 @@ export async function createAsyncDuel(
       player1_id: challengerId,
       player2_id: friendId,
       sport,
-      mystery_player_id: questionId,
+      mystery_player_id: questionIds,
       status: 'invite', // Use 'invite' status which should exist
       question_count: questionCount,
       current_round: 1,
@@ -836,7 +903,8 @@ export async function createAsyncDuel(
         friendId,
         challengerUsername,
         sport,
-        data.id
+        data.id,
+        isRematch
       ).catch(err => console.log('Failed to send challenge notification:', err));
     } catch (notifError) {
       console.log('Error preparing challenge notification:', notifError);
@@ -851,11 +919,25 @@ export async function submitChallengerResult(
   duelId: string,
   result: PlayerResult
 ): Promise<Duel | null> {
+  console.log('submitChallengerResult called:', { duelId, result });
+
+  // Calculate player1's score from the result
+  let player1Score = 0;
+  try {
+    // For multi-question duels, result.answer contains JSON array of round results
+    const roundResults = JSON.parse(result.answer) as PlayerResult[];
+    player1Score = roundResults.filter(r => r.correct).length;
+  } catch {
+    // Single question duel
+    player1Score = result.correct ? 1 : 0;
+  }
+
   const { data, error } = await supabase
     .from('duels')
     .update({
       player1_result: result,
       player1_completed_at: new Date().toISOString(),
+      player1_score: player1Score,
     })
     .eq('id', duelId)
     .select()
@@ -866,6 +948,7 @@ export async function submitChallengerResult(
     return null;
   }
 
+  console.log('Challenger result saved:', { player1_result: data?.player1_result });
   return data;
 }
 
@@ -886,33 +969,58 @@ export async function submitOpponentResult(
     return null;
   }
 
-  const p1Result = duel.player1_result as PlayerResult;
+  const p1Result = duel.player1_result as PlayerResult | null;
   const p2Result = result;
 
   // Determine winner
   let winnerId: string | null = null;
+  let player1Score = 0;
+  let player2Score = 0;
 
-  if (p1Result.correct && !p2Result.correct) {
-    winnerId = duel.player1_id;
-  } else if (!p1Result.correct && p2Result.correct) {
+  // Handle case where player1 didn't submit (shouldn't happen but be safe)
+  if (!p1Result) {
+    console.warn('Player1 result is null, treating as forfeit');
     winnerId = duel.player2_id;
-  } else if (p1Result.correct && p2Result.correct) {
-    // Both correct - faster wins
-    if (p1Result.time < p2Result.time) {
+    player2Score = p2Result.correct ? 1 : 0;
+  } else {
+    // Normal case - both players submitted
+    if (p1Result.correct && !p2Result.correct) {
       winnerId = duel.player1_id;
-    } else if (p2Result.time < p1Result.time) {
+    } else if (!p1Result.correct && p2Result.correct) {
       winnerId = duel.player2_id;
+    } else if (p1Result.correct && p2Result.correct) {
+      // Both correct - faster wins
+      if (p1Result.time < p2Result.time) {
+        winnerId = duel.player1_id;
+      } else if (p2Result.time < p1Result.time) {
+        winnerId = duel.player2_id;
+      }
+      // If times are equal, winnerId stays null (tie)
     }
-    // If times are equal, winnerId stays null (tie)
-  }
-  // If both wrong, winnerId stays null (tie)
+    // If both wrong, winnerId stays null (tie)
 
-  // Update duel with result and complete it
+    // Calculate scores from player results
+    try {
+      // For multi-question duels, result.answer contains JSON array of round results
+      const p1RoundResults = JSON.parse(p1Result.answer) as PlayerResult[];
+      const p2RoundResults = JSON.parse(p2Result.answer) as PlayerResult[];
+      player1Score = p1RoundResults.filter(r => r.correct).length;
+      player2Score = p2RoundResults.filter(r => r.correct).length;
+    } catch {
+      // Single question duel
+      player1Score = p1Result.correct ? 1 : 0;
+      player2Score = p2Result.correct ? 1 : 0;
+    }
+  }
+
+  // Update duel with result, scores, and complete it
   const { data: completedDuel, error: updateError } = await supabase
     .from('duels')
     .update({
       player2_result: result,
       player2_completed_at: new Date().toISOString(),
+      player1_score: player1Score,
+      player2_score: player2Score,
       winner_id: winnerId,
       status: 'completed',
     })
@@ -936,11 +1044,8 @@ export async function submitOpponentResult(
 
     const opponentUsername = opponentProfile?.username || 'Your opponent';
 
-    // Determine result from challenger's perspective and calculate scores
+    // Determine result from challenger's perspective
     let challengerResult: 'win' | 'loss' | 'tie';
-    let challengerScore: number;
-    let opponentScore: number;
-
     if (winnerId === duel.player1_id) {
       challengerResult = 'win';
     } else if (winnerId === duel.player2_id) {
@@ -949,32 +1054,14 @@ export async function submitOpponentResult(
       challengerResult = 'tie';
     }
 
-    // For multi-question duels, calculate scores from player results
-    if (duel.question_count > 1) {
-      // For async duels, player results contain JSON-stringified array of round results
-      try {
-        const p1RoundResults = JSON.parse(p1Result.answer) as PlayerResult[];
-        const p2RoundResults = JSON.parse(p2Result.answer) as PlayerResult[];
-        challengerScore = p1RoundResults.filter(r => r.correct).length;
-        opponentScore = p2RoundResults.filter(r => r.correct).length;
-      } catch (parseError) {
-        // Fallback to stored scores if parsing fails
-        challengerScore = duel.player1_score || 0;
-        opponentScore = duel.player2_score || 0;
-      }
-    } else {
-      // For single-question duels, score is 1 or 0 based on correct answer
-      challengerScore = p1Result.correct ? 1 : 0;
-      opponentScore = p2Result.correct ? 1 : 0;
-    }
-
     // Send notification asynchronously (don't block on it)
+    // Use the already-calculated scores
     sendDuelResultNotification(
       duel.player1_id,
       challengerResult,
       opponentUsername,
-      challengerScore,
-      opponentScore,
+      player1Score,
+      player2Score,
       duel.sport,
       duelId
     ).catch(err => console.log('Failed to send duel result notification:', err));

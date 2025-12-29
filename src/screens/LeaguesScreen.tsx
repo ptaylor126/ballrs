@@ -36,7 +36,6 @@ const sportIcons: Record<string, any> = {
   mlb: require('../../assets/images/icon-baseball.png'),
 };
 
-type SportFilter = 'all' | 'nba' | 'pl' | 'nfl' | 'mlb';
 import { useAuth } from '../contexts/AuthContext';
 import { colors, shadows, getSportColor, borders, borderRadius, typography, spacing } from '../lib/theme';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
@@ -60,17 +59,11 @@ interface Props {
 type TabType = 'leagues' | 'global';
 
 interface LeaderboardEntry {
-  id: string;
+  user_id: string;
   username: string;
-  total_solved: number;
-  nba_total_solved: number;
-  pl_total_solved: number;
-  nfl_total_solved: number;
-  mlb_total_solved: number;
-  nba_best_streak: number;
-  pl_best_streak: number;
-  nfl_best_streak: number;
-  mlb_best_streak: number;
+  country: string | null;
+  points: number;
+  avatar: string | null;
   rank: number;
 }
 
@@ -115,7 +108,6 @@ export default function LeaguesScreen({
 }: Props) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('leagues');
-  const [sportFilter, setSportFilter] = useState<SportFilter>('all');
   const [leagues, setLeagues] = useState<LeagueWithMemberCount[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -140,26 +132,25 @@ export default function LeaguesScreen({
   }, [user]);
 
   const loadLeaderboard = useCallback(async () => {
-    // Fetch leaderboard data using RPC function (bypasses RLS)
+    // Fetch leaderboard data using RPC function with points
     const { data, error } = await supabase
-      .rpc('get_global_leaderboard', { limit_count: 50 });
+      .rpc('get_global_leaderboard', {
+        p_time_period: 'all_time',
+        p_sport_filter: null,
+        p_limit: 50
+      });
 
     if (error) {
       console.error('Error fetching leaderboard:', error);
       return;
     }
 
-    // Add rank to each entry based on sorted order
-    const rankedData = (data || []).map((entry: LeaderboardEntry, index: number) => ({
-      ...entry,
-      rank: index + 1,
-    }));
-
-    setLeaderboard(rankedData);
+    // Data already comes with rank from the RPC
+    setLeaderboard(data || []);
 
     // Fetch total user count using RPC function
     const { data: countData, error: countError } = await supabase
-      .rpc('get_total_users');
+      .rpc('get_leaderboard_player_count', { p_time_period: 'all_time' });
 
     if (!countError && countData !== null) {
       setTotalUsers(countData);
@@ -253,51 +244,13 @@ export default function LeaguesScreen({
     return { color: colors.textSecondary };
   };
 
-  const getSolvedCountForEntry = (entry: LeaderboardEntry, filter: SportFilter) => {
-    switch (filter) {
-      case 'nba': return entry.nba_total_solved || 0;
-      case 'pl': return entry.pl_total_solved || 0;
-      case 'nfl': return entry.nfl_total_solved || 0;
-      case 'mlb': return entry.mlb_total_solved || 0;
-      default: return entry.total_solved || 0;
-    }
+  const getPointsForEntry = (entry: LeaderboardEntry) => {
+    // Return the actual points earned from puzzle completion
+    return entry.points || 0;
   };
 
-  const getSolvedCount = (entry: LeaderboardEntry) => {
-    return getSolvedCountForEntry(entry, sportFilter);
-  };
-
-  const getBestStreakForEntry = (entry: LeaderboardEntry, filter: SportFilter) => {
-    switch (filter) {
-      case 'nba': return entry.nba_best_streak || 0;
-      case 'pl': return entry.pl_best_streak || 0;
-      case 'nfl': return entry.nfl_best_streak || 0;
-      case 'mlb': return entry.mlb_best_streak || 0;
-      default: return Math.max(
-        entry.nba_best_streak || 0,
-        entry.pl_best_streak || 0,
-        entry.nfl_best_streak || 0,
-        entry.mlb_best_streak || 0
-      );
-    }
-  };
-
-  const getBestStreak = (entry: LeaderboardEntry) => {
-    return getBestStreakForEntry(entry, sportFilter);
-  };
-
-  // Sort and rank leaderboard based on current sport filter
-  const sortedLeaderboard = [...leaderboard]
-    .sort((a, b) => {
-      const aCount = getSolvedCountForEntry(a, sportFilter);
-      const bCount = getSolvedCountForEntry(b, sportFilter);
-      if (bCount !== aCount) return bCount - aCount;
-      // Tie-breaker: best streak
-      const aStreak = getBestStreakForEntry(a, sportFilter);
-      const bStreak = getBestStreakForEntry(b, sportFilter);
-      return bStreak - aStreak;
-    })
-    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  // Leaderboard is already sorted by points from the RPC
+  const sortedLeaderboard = leaderboard;
 
   const getRankMedal = (rank: number) => {
     if (rank === 1) return { icon: goldIcon };
@@ -389,7 +342,7 @@ export default function LeaguesScreen({
   };
 
   const renderLeaderboardItem = ({ item, index }: { item: LeaderboardEntry; index: number }) => {
-    const isCurrentUser = user?.id === item.id;
+    const isCurrentUser = user?.id === item.user_id;
     const medal = getRankMedal(item.rank);
     const isAltRow = index % 2 === 1;
 
@@ -409,7 +362,7 @@ export default function LeaguesScreen({
         <View style={styles.playerColumn}>
           <View style={styles.playerAvatar}>
             <Text style={styles.playerAvatarText}>
-              {item.username.charAt(0).toUpperCase()}
+              {item.avatar || item.username.charAt(0).toUpperCase()}
             </Text>
           </View>
           <View style={styles.playerNameContainer}>
@@ -420,38 +373,11 @@ export default function LeaguesScreen({
           </View>
         </View>
         <View style={styles.statColumn}>
-          <Text style={styles.statValue}>{getSolvedCount(item)}</Text>
-        </View>
-        <View style={styles.statColumn}>
-          <Text style={styles.statValue}>{getBestStreak(item)}</Text>
+          <Text style={styles.statValue}>{getPointsForEntry(item)}</Text>
         </View>
       </View>
     );
   };
-
-  const renderSportFilterTabs = () => (
-    <View style={styles.sportFilterContainer}>
-      {(['all', 'nba', 'pl', 'nfl', 'mlb'] as SportFilter[]).map((filter) => (
-        <TouchableOpacity
-          key={filter}
-          style={[
-            styles.sportFilterPill,
-            sportFilter === filter && styles.sportFilterPillActive,
-          ]}
-          onPress={() => setSportFilter(filter)}
-        >
-          <Text
-            style={[
-              styles.sportFilterPillText,
-              sportFilter === filter && styles.sportFilterPillTextActive,
-            ]}
-          >
-            {filter === 'all' ? 'ALL' : filter === 'pl' ? 'EPL' : filter.toUpperCase()}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
 
   const renderLeaderboardHeader = () => (
     <>
@@ -472,9 +398,6 @@ export default function LeaguesScreen({
         </View>
         <View style={styles.statColumn}>
           <Text style={styles.tableHeaderText}>PTS</Text>
-        </View>
-        <View style={styles.statColumn}>
-          <Text style={styles.tableHeaderText}>STREAK</Text>
         </View>
       </View>
     </>
@@ -540,9 +463,6 @@ export default function LeaguesScreen({
         />
       }
     >
-      {/* Sport Filter Pills */}
-      {renderSportFilterTabs()}
-
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -553,7 +473,7 @@ export default function LeaguesScreen({
           {sortedLeaderboard.length === 0 ? (
             <View style={styles.tableEmptyContainer}>
               <Text style={styles.tableEmptyText}>
-                No players yet for {sportFilter === 'all' ? 'all sports' : sportFilter === 'pl' ? 'EPL' : sportFilter.toUpperCase()}
+                No players yet
               </Text>
               <Text style={styles.tableEmptySubtext}>
                 Start playing to climb the leaderboard!
@@ -561,7 +481,7 @@ export default function LeaguesScreen({
             </View>
           ) : (
             sortedLeaderboard.map((item, index) => (
-              <View key={item.id}>
+              <View key={item.user_id}>
                 {renderLeaderboardItem({ item, index })}
               </View>
             ))
@@ -948,39 +868,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'DMSans_500Medium',
     color: '#888888',
-  },
-  // Sport filter pills
-  sportFilterContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
-    marginTop: 8,
-    marginBottom: 20,
-    gap: 10,
-  },
-  sportFilterPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#000000',
-  },
-  sportFilterPillActive: {
-    backgroundColor: '#F2C94C',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
-  },
-  sportFilterPillText: {
-    fontSize: 12,
-    fontFamily: 'DMSans_900Black',
-    color: '#1A1A1A',
-    letterSpacing: 0.5,
-  },
-  sportFilterPillTextActive: {
-    color: '#1A1A1A',
   },
   // Table card
   tableCard: {
