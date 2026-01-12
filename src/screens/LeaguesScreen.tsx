@@ -39,6 +39,7 @@ const sportIcons: Record<string, any> = {
 import { useAuth } from '../contexts/AuthContext';
 import { colors, shadows, getSportColor, borders, borderRadius, typography, spacing } from '../lib/theme';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
+import { soundService } from '../lib/soundService';
 import {
   getUserLeagues,
   leaveLeague,
@@ -48,7 +49,7 @@ import {
   getLeagueStatus,
 } from '../lib/leaguesService';
 import { supabase } from '../lib/supabase';
-import { getFallbackLeaderboard, getFallbackPlayerCount, LeaderboardEntry } from '../lib/pointsService';
+import { LeaderboardEntry, TimePeriod, getGlobalLeaderboard, getLeaderboardPlayerCount } from '../lib/pointsService';
 
 interface Props {
   onBack?: () => void;
@@ -58,6 +59,29 @@ interface Props {
 }
 
 type TabType = 'leagues' | 'global';
+type SportFilter = 'all' | 'nba' | 'pl' | 'nfl' | 'mlb';
+
+const TIME_PERIODS: { key: TimePeriod; label: string }[] = [
+  { key: 'weekly', label: 'WEEKLY' },
+  { key: 'monthly', label: 'MONTHLY' },
+  { key: 'all_time', label: 'ALL-TIME' },
+];
+
+const SPORT_FILTERS: { key: SportFilter; label: string }[] = [
+  { key: 'all', label: 'ALL' },
+  { key: 'nba', label: 'NBA' },
+  { key: 'pl', label: 'EPL' },
+  { key: 'nfl', label: 'NFL' },
+  { key: 'mlb', label: 'MLB' },
+];
+
+const SPORT_LABELS: Record<SportFilter, string> = {
+  all: 'all sports',
+  nba: 'NBA',
+  pl: 'EPL',
+  nfl: 'NFL',
+  mlb: 'MLB',
+};
 
 const getSportLabel = (sport: string) => {
   switch (sport) {
@@ -105,6 +129,8 @@ export default function LeaguesScreen({
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly');
+  const [sportFilter, setSportFilter] = useState<SportFilter>('all');
 
   // Animated tab indicator
   const tabIndicatorAnim = useRef(new Animated.Value(0)).current;
@@ -124,13 +150,15 @@ export default function LeaguesScreen({
   }, [user]);
 
   const loadLeaderboard = useCallback(async () => {
-    // Query user_stats directly for leaderboard (RPC function has a bug)
-    const data = await getFallbackLeaderboard(50);
-    const count = await getFallbackPlayerCount();
-
+    console.log('[LeaguesScreen] Loading leaderboard with filters:', { timePeriod, sportFilter });
+    const [data, count] = await Promise.all([
+      getGlobalLeaderboard(timePeriod, sportFilter === 'all' ? undefined : sportFilter),
+      getLeaderboardPlayerCount(timePeriod),
+    ]);
+    console.log('[LeaguesScreen] Leaderboard loaded:', { entries: data.length, totalUsers: count });
     setLeaderboard(data);
     setTotalUsers(count);
-  }, []);
+  }, [timePeriod, sportFilter]);
 
   const loadData = useCallback(async () => {
     if (activeTab === 'leagues') {
@@ -148,6 +176,18 @@ export default function LeaguesScreen({
     };
     load();
   }, [loadData]);
+
+  // Reload leaderboard when filters change
+  useEffect(() => {
+    if (activeTab === 'global') {
+      const reload = async () => {
+        setLoading(true);
+        await loadLeaderboard();
+        setLoading(false);
+      };
+      reload();
+    }
+  }, [timePeriod, sportFilter, activeTab, loadLeaderboard]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -354,13 +394,26 @@ export default function LeaguesScreen({
     );
   };
 
+  const getHeaderText = () => {
+    switch (timePeriod) {
+      case 'weekly':
+        return `${totalUsers} ${totalUsers === 1 ? 'player' : 'players'} this week`;
+      case 'monthly':
+        return `${totalUsers} ${totalUsers === 1 ? 'player' : 'players'} this month`;
+      case 'all_time':
+        return `${totalUsers} ${totalUsers === 1 ? 'player' : 'players'} worldwide`;
+      default:
+        return `${totalUsers} ${totalUsers === 1 ? 'player' : 'players'}`;
+    }
+  };
+
   const renderLeaderboardHeader = () => (
     <>
       {/* Player count row */}
       <View style={styles.tableTopRow}>
         <Image source={globeIcon} style={styles.globeIcon} resizeMode="contain" />
         <Text style={styles.tableTopRowText}>
-          {totalUsers} {totalUsers === 1 ? 'player' : 'players'} worldwide
+          {getHeaderText()}
         </Text>
       </View>
       {/* Column headers */}
@@ -383,13 +436,19 @@ export default function LeaguesScreen({
       <View style={styles.actions}>
         <AnimatedButton
           style={[styles.actionButton, styles.createButton]}
-          onPress={onCreateLeague}
+          onPress={() => {
+            soundService.playButtonClick();
+            onCreateLeague();
+          }}
         >
           <Text style={styles.actionButtonText}>Create League</Text>
         </AnimatedButton>
         <AnimatedButton
           style={[styles.actionButton, styles.joinLeagueButton]}
-          onPress={onJoinLeague}
+          onPress={() => {
+            soundService.playButtonClick();
+            onJoinLeague();
+          }}
         >
           <Text style={styles.joinLeagueButtonText}>Join League</Text>
         </AnimatedButton>
@@ -438,6 +497,29 @@ export default function LeaguesScreen({
         />
       }
     >
+      {/* Sport Filter Pills */}
+      <View style={styles.sportFiltersContainer}>
+        {SPORT_FILTERS.map((filter) => (
+          <TouchableOpacity
+            key={filter.key}
+            style={[
+              styles.sportPill,
+              sportFilter === filter.key && styles.sportPillActive,
+            ]}
+            onPress={() => setSportFilter(filter.key)}
+          >
+            <Text
+              style={[
+                styles.sportPillText,
+                sportFilter === filter.key && styles.sportPillTextActive,
+              ]}
+            >
+              {filter.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -448,10 +530,14 @@ export default function LeaguesScreen({
           {sortedLeaderboard.length === 0 ? (
             <View style={styles.tableEmptyContainer}>
               <Text style={styles.tableEmptyText}>
-                No players yet
+                No players yet for {SPORT_LABELS[sportFilter]}
               </Text>
               <Text style={styles.tableEmptySubtext}>
-                Start playing to climb the leaderboard!
+                {timePeriod === 'weekly'
+                  ? 'Be the first to earn points this week!'
+                  : timePeriod === 'monthly'
+                  ? 'Be the first to earn points this month!'
+                  : 'Start playing to climb the leaderboard!'}
               </Text>
             </View>
           ) : (
@@ -968,5 +1054,38 @@ const styles = StyleSheet.create({
   medalIcon: {
     width: 28,
     height: 28,
+  },
+  // Sport filter pills
+  sportFiltersContainer: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.lg,
+    marginTop: 12,
+    marginBottom: 20,
+    gap: 10,
+  },
+  sportPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  sportPillActive: {
+    backgroundColor: '#F2C94C',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  sportPillText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    letterSpacing: 0.5,
+  },
+  sportPillTextActive: {
+    color: '#1A1A1A',
   },
 });

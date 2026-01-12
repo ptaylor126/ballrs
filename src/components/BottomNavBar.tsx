@@ -3,11 +3,13 @@ import {
   View,
   StyleSheet,
   Image,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { colors } from '../lib/theme';
 import { AnimatedNavIcon } from './AnimatedComponents';
+import { soundService } from '../lib/soundService';
 
 const ACCENT_COLOR = '#1ABC9C';
 const BADGE_COLOR = '#F2C94C'; // Yellow for notification badges
@@ -41,6 +43,8 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
 
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
+      {/* Android shadow */}
+      {Platform.OS === 'android' && <View style={styles.androidShadow} />}
       <View style={styles.navContent}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.name;
@@ -51,7 +55,10 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
             <AnimatedNavIcon
               key={tab.name}
               style={styles.tab}
-              onPress={() => onTabPress(tab.name)}
+              onPress={() => {
+                soundService.playNavClick();
+                onTabPress(tab.name);
+              }}
             >
               <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
                 <Image
@@ -87,6 +94,16 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
     paddingHorizontal: 24,
+    position: 'relative',
+  },
+  androidShadow: {
+    position: 'absolute',
+    top: 2,
+    left: 26,
+    right: 22,
+    height: 72,
+    backgroundColor: '#000000',
+    borderRadius: 32,
   },
   navContent: {
     flexDirection: 'row',

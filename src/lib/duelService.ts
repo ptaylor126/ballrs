@@ -84,12 +84,13 @@ export async function getDuelById(duelId: string): Promise<Duel | null> {
 }
 
 // Find a waiting duel for a sport
-export async function findWaitingDuel(sport: 'nba' | 'pl' | 'nfl' | 'mlb', excludeUserId: string): Promise<Duel | null> {
+export async function findWaitingDuel(sport: 'nba' | 'pl' | 'nfl' | 'mlb', excludeUserId: string, questionCount: number = 5): Promise<Duel | null> {
   const { data, error } = await supabase
     .from('duels')
     .select('*')
     .eq('sport', sport)
     .eq('status', 'waiting')
+    .eq('question_count', questionCount)
     .neq('player1_id', excludeUserId)
     .order('created_at', { ascending: true })
     .limit(1)
@@ -106,11 +107,12 @@ export async function findWaitingDuel(sport: 'nba' | 'pl' | 'nfl' | 'mlb', exclu
   return data;
 }
 
-// Create a new duel (Quick Duel - always 1 question)
+// Create a new duel (Quick Duel)
 export async function createDuel(
   userId: string,
   sport: 'nba' | 'pl' | 'nfl' | 'mlb',
-  mysteryPlayerId: string
+  mysteryPlayerId: string,
+  questionCount: number = 5
 ): Promise<Duel | null> {
   const { data, error } = await supabase
     .from('duels')
@@ -119,7 +121,7 @@ export async function createDuel(
       sport,
       mystery_player_id: mysteryPlayerId,
       status: 'waiting',
-      question_count: 1,
+      question_count: questionCount,
       current_round: 1,
       player1_score: 0,
       player2_score: 0,
@@ -787,8 +789,13 @@ export async function advanceToNextRound(
   const newPlayer1TotalTime = currentDuel.player1_total_time + p1AnswerTime;
   const newPlayer2TotalTime = currentDuel.player2_total_time + p2AnswerTime;
 
-  // Append new question ID to the list (comma-separated)
-  const questionIds = currentDuel.mystery_player_id + ',' + newQuestionId;
+  // Check if questions are pre-stored (question already exists in the list)
+  const existingQuestionIds = currentDuel.mystery_player_id.split(',');
+  const isPreStored = existingQuestionIds.includes(newQuestionId);
+  // Only append question ID if it's not already in the list (for dynamically generated questions)
+  const questionIds = isPreStored
+    ? currentDuel.mystery_player_id
+    : currentDuel.mystery_player_id + ',' + newQuestionId;
 
   const { data, error } = await supabase
     .from('duels')
@@ -817,7 +824,8 @@ export async function advanceToNextRound(
   return data;
 }
 
-// Determine final winner for multi-question duel based on score, then total time as tiebreaker
+// Determine final winner for multi-question duel based on score only
+// Equal scores = tie (no time tiebreaker)
 export function determineFinalWinner(
   duel: Duel
 ): { winnerId: string | null; reason: string } {
@@ -834,18 +842,8 @@ export function determineFinalWinner(
     return { winnerId: duel.player2_id, reason: 'p2_higher_score' };
   }
 
-  // Same score - use total time as tiebreaker
-  const p1TotalTime = duel.player1_total_time;
-  const p2TotalTime = duel.player2_total_time;
-
-  if (p1TotalTime < p2TotalTime) {
-    return { winnerId: duel.player1_id, reason: 'p1_faster_total' };
-  } else if (p2TotalTime < p1TotalTime) {
-    return { winnerId: duel.player2_id, reason: 'p2_faster_total' };
-  }
-
-  // Exact same total time (very rare)
-  return { winnerId: null, reason: 'tie_same_total' };
+  // Same score = tie
+  return { winnerId: null, reason: 'tie_same_score' };
 }
 
 // Get question IDs for a multi-question duel (returns array of IDs)
@@ -1015,20 +1013,14 @@ export async function submitOpponentResult(
       player2Score = p2Result.correct ? 1 : 0;
     }
 
-    // Determine winner based on scores
+    // Determine winner based on scores only
+    // Equal scores = tie (no time tiebreaker)
     if (player1Score > player2Score) {
       winnerId = duel.player1_id;
     } else if (player2Score > player1Score) {
       winnerId = duel.player2_id;
-    } else {
-      // Scores are tied - use time as tiebreaker
-      if (p1Result.time < p2Result.time) {
-        winnerId = duel.player1_id;
-      } else if (p2Result.time < p1Result.time) {
-        winnerId = duel.player2_id;
-      }
-      // If times are also equal, winnerId stays null (true tie)
     }
+    // If scores are equal, winnerId stays null (tie)
   }
 
   // Update duel with result, scores, and complete it

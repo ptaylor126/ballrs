@@ -2,12 +2,12 @@
   "expo": {
     "name": "ballrs",
     "slug": "ballrs",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon-app-2.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
+      "image": "./assets/images/icon-app-2.png",
       "resizeMode": "contain",
       "backgroundColor": "#F5F2EB"
     },
@@ -15,19 +15,28 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.ballrs",
       "icon": "./assets/images/icon-app-2.png",
-      "buildNumber": "7"
+      "buildNumber": "9"
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon-app-2.png",
         "backgroundColor": "#F5F2EB"
       },
-      "package": "com.anonymous.ballrs"
+      "package": "com.anonymous.ballrs",
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/images/icon-app-2.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon-app-2.png",
+          "color": "#1ABC9C"
+        }
+      ]
     ],
     "extra": {
       "eas": {

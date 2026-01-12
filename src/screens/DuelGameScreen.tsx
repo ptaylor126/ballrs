@@ -13,6 +13,7 @@ import {
   ScrollView,
   Modal,
   BackHandler,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,6 +33,11 @@ const handshakeIcon = require('../../assets/images/icon-handshake.png');
 const trophyIcon = require('../../assets/images/icon-trophy.png');
 const thumbsDownIcon = require('../../assets/images/icon-thumbs-down.png');
 const crownIcon = require('../../assets/images/icon-crown.png');
+
+// Ad banners
+const adBannerImage = require('../../assets/images/ad-banner-parlays.png');
+const countdownAdImage = require('../../assets/images/ad-banner-email-big.png');
+const questionAdImage = require('../../assets/images/ad-banner-email.png');
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
@@ -256,6 +262,11 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   useEffect(() => {
     if (gamePhase !== 'countdown') return;
 
+    // Start tick-tock looping when countdown begins (only on first round)
+    if (countdownNumber === 3 && currentRound === 1) {
+      soundService.startTickTock();
+    }
+
     // Animate the countdown number
     const animateNumber = () => {
       countdownScaleAnim.setValue(0);
@@ -293,8 +304,22 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       }
     }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [gamePhase, countdownNumber, isAsyncMode]);
+
+  // Play whistle and stop tick-tock when game starts (question loads)
+  // Only play whistle on first round
+  useEffect(() => {
+    if (gamePhase === 'playing') {
+      soundService.stopTickTock();
+      // Only play whistle on the first question
+      if (currentRound === 1) {
+        soundService.playWhistle();
+      }
+    }
+  }, [gamePhase, currentRound]);
 
   // Handle app going to background/foreground
   useEffect(() => {
@@ -378,6 +403,48 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       setGamePhase('countdown');
     }
   }, [isAsyncMode, duel.status, isPlayer1, duel.player1_score, duel.player2_score]);
+
+  // Load round summaries from stored player results when viewing completed duel
+  useEffect(() => {
+    if (duel.status !== 'completed' || roundSummaries.length > 0) return;
+
+    const myResult = isPlayer1 ? duel.player1_result : duel.player2_result;
+    if (!myResult?.answer) return;
+
+    try {
+      // Get all question IDs
+      const questionIds = duel.mystery_player_id.split(',');
+      const allQuestions = getTriviaQuestions(duel.sport);
+
+      // Parse the answers array
+      let answers: PlayerResult[] = [];
+      try {
+        const parsed = JSON.parse(myResult.answer);
+        answers = Array.isArray(parsed) ? parsed : [myResult];
+      } catch {
+        answers = [myResult];
+      }
+
+      // Build round summaries
+      const summaries: RoundSummary[] = questionIds.map((qId, index) => {
+        const q = allQuestions.find(question => question.id === qId);
+        const answerData = answers[index] || { answer: '', correct: false, time: 0 };
+
+        return {
+          roundNumber: index + 1,
+          question: q?.question || 'Question not found',
+          correctAnswer: q?.correctAnswer || '',
+          userAnswer: answerData.answer || 'No answer',
+          isCorrect: answerData.correct,
+          time: answerData.time || 0,
+        };
+      });
+
+      setRoundSummaries(summaries);
+    } catch (err) {
+      console.error('Error loading round summaries:', err);
+    }
+  }, [duel.status, duel.mystery_player_id, duel.sport, duel.player1_result, duel.player2_result, isPlayer1, roundSummaries.length]);
 
   // Start the game when duel becomes active (for sync mode only)
   useEffect(() => {
@@ -631,7 +698,13 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           // SYNC MODE: Advance through database (only player 1 does this)
           if (isPlayer1 && !isAdvancingRound) {
             setIsAdvancingRound(true);
-            const newQuestionId = getNewQuestionId();
+            // Check if questions are pre-stored (comma-separated in mystery_player_id)
+            const storedQuestionIds = duel.mystery_player_id.split(',');
+            const nextRound = duel.current_round + 1;
+            // Use pre-stored question if available, otherwise generate new
+            const newQuestionId = storedQuestionIds.length >= nextRound
+              ? storedQuestionIds[nextRound - 1]
+              : getNewQuestionId();
             const p1Correct = duel.player1_answer === question.correctAnswer;
             const p2Correct = duel.player2_answer === question.correctAnswer;
             await advanceToNextRound(
@@ -859,9 +932,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
     // Play correct/wrong sound
     if (answer === question.correctAnswer) {
-      soundService.playCorrect();
+      soundService.playTriviaCorrect();
     } else {
-      soundService.playWrong();
+      soundService.playTriviaWrong();
     }
 
     // Calculate answer time (ms from round start)
@@ -991,7 +1064,8 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       let tie: boolean;
 
       if (isMultiQuestion) {
-        // For multi-question duels, use scores to determine winner
+        // For multi-question duels, use scores only to determine winner
+        // Equal scores = tie (no time tiebreaker)
         if (myScore > opponentScore) {
           won = true;
           tie = false;
@@ -999,19 +1073,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           won = false;
           tie = false;
         } else {
-          // Scores tied - use total time as tiebreaker
-          const myTotalTime = isPlayer1 ? duel.player1_total_time : duel.player2_total_time;
-          const oppTotalTime = isPlayer1 ? duel.player2_total_time : duel.player1_total_time;
-          if (myTotalTime < oppTotalTime) {
-            won = true;
-            tie = false;
-          } else if (oppTotalTime < myTotalTime) {
-            won = false;
-            tie = false;
-          } else {
-            won = false;
-            tie = true;
-          }
+          // Same score = tie
+          won = false;
+          tie = true;
         }
       } else {
         // Single question duel
@@ -1055,10 +1119,10 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
       // Award leaderboard points: 3 for win, 1 for loss (ties count as loss for points)
       if (!tie) {
-        awardDuelPoints(user.id, won);
+        awardDuelPoints(user.id, won, duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb');
       } else {
         // Ties get 1 point (same as loss - rewards participation)
-        awardDuelPoints(user.id, false);
+        awardDuelPoints(user.id, false, duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb');
       }
 
       // Check for achievements
@@ -1146,28 +1210,16 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     let subtitle: string;
 
     if (isMultiQuestion) {
-      // For multi-question duels, use scores to determine winner
+      // For multi-question duels, use scores only to determine winner
+      // Equal scores = tie (no time tiebreaker)
       const finalMyScore = myScore;
       const finalOppScore = opponentScore;
 
       won = finalMyScore > finalOppScore;
       tie = finalMyScore === finalOppScore;
 
-      // If scores are equal, use total time as tiebreaker
       if (tie) {
-        const myTotalTime = isPlayer1 ? duel.player1_total_time : duel.player2_total_time;
-        const oppTotalTime = isPlayer1 ? duel.player2_total_time : duel.player1_total_time;
-        if (myTotalTime < oppTotalTime) {
-          won = true;
-          tie = false;
-          subtitle = `Tied ${finalMyScore}-${finalOppScore}, but you were faster overall!`;
-        } else if (oppTotalTime < myTotalTime) {
-          won = false;
-          tie = false;
-          subtitle = `Tied ${finalMyScore}-${finalOppScore}, but opponent was faster overall`;
-        } else {
-          subtitle = `Tied ${finalMyScore}-${finalOppScore} with same total time!`;
-        }
+        subtitle = `Tied ${finalMyScore}-${finalOppScore}!`;
       } else if (won) {
         subtitle = `You won ${finalMyScore}-${finalOppScore}!`;
       } else {
@@ -1365,36 +1417,52 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       {/* Countdown State */}
       {gamePhase === 'countdown' && (
         <View style={styles.countdownContainer}>
-          {/* Sport Badge */}
-          <View style={[styles.waitingSportBadge, { backgroundColor: sportColor }]}>
-            <Image
-              source={sportIcons[duel.sport as Sport]}
-              style={styles.waitingSportIcon}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* Title */}
-          <Text style={styles.countdownTitle}>Get Ready!</Text>
-
-          {/* Countdown Number */}
-          <Animated.View
-            style={[
-              styles.countdownNumberContainer,
-              {
-                transform: [{ scale: countdownScaleAnim }],
-              },
-            ]}
+          {/* Large Ad Banner - 1/3 of screen at top */}
+          <TouchableOpacity
+            style={styles.countdownAdBanner}
+            onPress={() => Linking.openURL('https://parlaysfordays.com')}
+            activeOpacity={0.9}
           >
-            <Text style={[styles.countdownNumber, { color: sportColor }]}>
-              {countdownNumber}
-            </Text>
-          </Animated.View>
+            <Image
+              source={countdownAdImage}
+              style={styles.countdownAdImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
 
-          {/* Subtitle */}
-          <Text style={styles.countdownSubtext}>
-            Answer quickly and correctly to win!
-          </Text>
+          {/* Countdown Content - centered in remaining 2/3 */}
+          <View style={styles.countdownContent}>
+            {/* Sport Badge */}
+            <View style={[styles.waitingSportBadge, { backgroundColor: sportColor }]}>
+              <Image
+                source={sportIcons[duel.sport as Sport]}
+                style={styles.waitingSportIcon}
+                resizeMode="contain"
+              />
+            </View>
+
+            {/* Title */}
+            <Text style={styles.countdownTitle}>Get Ready!</Text>
+
+            {/* Countdown Number */}
+            <Animated.View
+              style={[
+                styles.countdownNumberContainer,
+                {
+                  transform: [{ scale: countdownScaleAnim }],
+                },
+              ]}
+            >
+              <Text style={[styles.countdownNumber, { color: sportColor }]}>
+                {countdownNumber}
+              </Text>
+            </Animated.View>
+
+            {/* Subtitle */}
+            <Text style={styles.countdownSubtext}>
+              Answer quickly and correctly to win!
+            </Text>
+          </View>
         </View>
       )}
 
@@ -1438,7 +1506,10 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
                     styles.optionButton,
                     getButtonStyle(option, index),
                   ]}
-                  onPress={() => handleSelectAnswer(option, index)}
+                  onPress={() => {
+                    soundService.playButtonClick();
+                    handleSelectAnswer(option, index);
+                  }}
                   disabled={hasAnswered || gamePhase === 'results'}
                   activeOpacity={0.7}
                 >
@@ -1455,6 +1526,19 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
               </Animated.View>
             ))}
           </View>
+
+          {/* Ad Banner at bottom of questions */}
+          <TouchableOpacity
+            style={styles.questionAdBanner}
+            onPress={() => Linking.openURL('https://parlaysfordays.com')}
+            activeOpacity={0.9}
+          >
+            <Image
+              source={questionAdImage}
+              style={styles.questionAdImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
         </ScrollView>
       )}
 
@@ -1536,6 +1620,22 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       >
         <View style={styles.modalOverlayFullScreen}>
           <View style={styles.duelResultsContent}>
+            {/* Presented By Ad Banner */}
+            <View style={styles.presentedByContainerTop}>
+              <Text style={styles.presentedByText}>Results presented by</Text>
+              <TouchableOpacity
+                style={styles.presentedByAdBanner}
+                onPress={() => Linking.openURL('https://parlaysfordays.com')}
+                activeOpacity={0.9}
+              >
+                <Image
+                  source={require('../../assets/images/ad-banner-parlays.png')}
+                  style={styles.presentedByAdImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </View>
+
             {/* Sport Badge */}
             <View style={[styles.duelResultsSportBadge, { backgroundColor: sportColor }]}>
               <Image source={sportIcons[duel.sport as Sport]} style={styles.duelResultsSportIcon} resizeMode="contain" />
@@ -1638,9 +1738,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             {/* View Answers Link */}
             <TouchableOpacity
               style={styles.duelResultsViewAnswers}
-              onPress={() => setShowFullAnswers(true)}
+              onPress={() => {
+                console.log('[ViewAnswers] roundSummaries:', roundSummaries.length, roundSummaries);
+                setShowFullAnswers(true);
+              }}
             >
-              <Text style={styles.duelResultsViewAnswersText}>View Answers</Text>
+              <Text style={styles.duelResultsViewAnswersText}>View Answers ({roundSummaries.length})</Text>
             </TouchableOpacity>
 
             {/* Buttons */}
@@ -1822,7 +1925,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         animationType="slide"
         onRequestClose={() => setShowFullAnswers(false)}
       >
-        <View style={styles.modalOverlayFullScreen}>
+        <View style={styles.fullAnswersOverlay}>
           <View style={styles.fullAnswersContent}>
             <View style={styles.fullAnswersHeader}>
               <Text style={styles.fullAnswersTitle}>Your Answers</Text>
@@ -2124,6 +2227,9 @@ const styles = StyleSheet.create({
   // Countdown styles
   countdownContainer: {
     flex: 1,
+  },
+  countdownContent: {
+    flex: 2,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -2159,6 +2265,36 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_500Medium',
     color: colors.textMuted,
     textAlign: 'center',
+  },
+  countdownAdBanner: {
+    flex: 1,
+    marginTop: 32,
+    marginHorizontal: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  countdownAdImage: {
+    width: '100%',
+    height: '100%',
+  },
+  questionAdBanner: {
+    marginTop: 24,
+    width: '100%',
+    maxWidth: 360,
+    alignSelf: 'center',
+    height: 60,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  questionAdImage: {
+    width: '100%',
+    height: 50,
   },
   cancelButton: {
     backgroundColor: '#F2C94C',
@@ -3143,10 +3279,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#000000',
-    padding: 24,
+    padding: 20,
     alignItems: 'center',
-    width: '90%',
-    maxWidth: 340,
+    width: '92%',
+    maxWidth: 380,
     shadowColor: '#000000',
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
@@ -3373,6 +3509,33 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
     letterSpacing: 0.5,
+  },
+  // Presented By Ad Banner styles
+  presentedByContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
+  },
+  presentedByContainerTop: {
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
+  },
+  presentedByText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    marginBottom: 8,
+  },
+  presentedByAdBanner: {
+    width: '100%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  presentedByAdImage: {
+    width: '100%',
+    height: 50,
   },
   asyncResultDivider: {
     width: '100%',

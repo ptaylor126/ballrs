@@ -412,7 +412,6 @@ function WelcomeScreen({ topInset }: { topInset: number }) {
   }, []);
 
   // Adjust positions to account for SafeAreaView offset
-  // These values match AnimatedSplashScreen which positions from actual screen top
   const logoTop = 180 - topInset;
   const ballsTop = 290 - topInset;
   const textTop = 400 - topInset;

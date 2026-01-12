@@ -21,11 +21,14 @@ export function calculatePuzzlePoints(cluesUsed: number): number {
 export const DUEL_WIN_POINTS = 3;
 export const DUEL_LOSS_POINTS = 1;
 
-// Award points to a user (updates weekly, monthly, and all-time in user_stats)
-export async function awardPoints(userId: string, points: number): Promise<boolean> {
-  console.log(`[Points] Awarding ${points} points to user ${userId}`);
+export type Sport = 'nba' | 'pl' | 'nfl' | 'mlb';
 
-  // First get current points
+// Award points to a user (updates weekly, monthly, and all-time in user_stats)
+// If sport is provided, also updates sport-specific columns (if they exist)
+export async function awardPoints(userId: string, points: number, sport?: Sport): Promise<boolean> {
+  console.log(`[Points] Awarding ${points} points to user ${userId}${sport ? ` for ${sport}` : ''}`);
+
+  // First get current total points (always works)
   const { data: currentStats, error: fetchError } = await supabase
     .from('user_stats')
     .select('points_all_time, points_weekly, points_monthly')
@@ -33,7 +36,6 @@ export async function awardPoints(userId: string, points: number): Promise<boole
     .single();
 
   if (fetchError) {
-    // If no row exists, the stats might not be initialized
     if (fetchError.code === 'PGRST116') {
       console.log('[Points] No user_stats row found, cannot award points');
     } else {
@@ -42,20 +44,24 @@ export async function awardPoints(userId: string, points: number): Promise<boole
     return false;
   }
 
+  // Calculate new totals
   const newPointsAllTime = (currentStats?.points_all_time || 0) + points;
   const newPointsWeekly = (currentStats?.points_weekly || 0) + points;
   const newPointsMonthly = (currentStats?.points_monthly || 0) + points;
 
-  console.log(`[Points] Updating: all_time=${newPointsAllTime}, weekly=${newPointsWeekly}, monthly=${newPointsMonthly}`);
+  // Build update object with total points
+  const updateData: Record<string, number> = {
+    points_all_time: newPointsAllTime,
+    points_weekly: newPointsWeekly,
+    points_monthly: newPointsMonthly,
+  };
 
-  // Update with new points
+  console.log(`[Points] Updating totals:`, updateData);
+
+  // Update total points first (this always works)
   const { error: updateError } = await supabase
     .from('user_stats')
-    .update({
-      points_all_time: newPointsAllTime,
-      points_weekly: newPointsWeekly,
-      points_monthly: newPointsMonthly,
-    })
+    .update(updateData)
     .eq('id', userId);
 
   if (updateError) {
@@ -63,54 +69,177 @@ export async function awardPoints(userId: string, points: number): Promise<boole
     return false;
   }
 
-  console.log('[Points] Successfully awarded points');
+  console.log('[Points] Successfully awarded total points');
+
+  // Try to update sport-specific points if sport is provided
+  // This is done separately so it doesn't break if columns don't exist yet
+  if (sport) {
+    try {
+      // First check if sport columns exist by trying to select them
+      const sportAllTimeKey = `points_all_time_${sport}`;
+      const sportWeeklyKey = `points_weekly_${sport}`;
+      const sportMonthlyKey = `points_monthly_${sport}`;
+
+      const { data: sportStats, error: sportFetchError } = await supabase
+        .from('user_stats')
+        .select(`${sportAllTimeKey}, ${sportWeeklyKey}, ${sportMonthlyKey}`)
+        .eq('id', userId)
+        .single();
+
+      if (sportFetchError) {
+        // Column doesn't exist yet - that's OK, just skip sport-specific tracking
+        console.log(`[Points] Sport columns not available yet for ${sport}, skipping sport-specific update`);
+        return true;
+      }
+
+      // Update sport-specific points
+      const sportUpdateData: Record<string, number> = {
+        [sportAllTimeKey]: ((sportStats as any)?.[sportAllTimeKey] || 0) + points,
+        [sportWeeklyKey]: ((sportStats as any)?.[sportWeeklyKey] || 0) + points,
+        [sportMonthlyKey]: ((sportStats as any)?.[sportMonthlyKey] || 0) + points,
+      };
+
+      console.log(`[Points] Updating ${sport} points:`, sportUpdateData);
+
+      const { error: sportUpdateError } = await supabase
+        .from('user_stats')
+        .update(sportUpdateData)
+        .eq('id', userId);
+
+      if (sportUpdateError) {
+        console.warn(`[Points] Could not update sport-specific points for ${sport}:`, sportUpdateError);
+        // Don't return false - total points were already awarded
+      } else {
+        console.log(`[Points] Successfully awarded ${sport} points`);
+      }
+    } catch (err) {
+      console.warn(`[Points] Error updating sport-specific points:`, err);
+      // Don't return false - total points were already awarded
+    }
+  }
+
   return true;
 }
 
 // Award points for daily puzzle completion
-export async function awardPuzzlePoints(userId: string, cluesUsed: number): Promise<boolean> {
+export async function awardPuzzlePoints(userId: string, cluesUsed: number, sport?: Sport): Promise<boolean> {
   const points = calculatePuzzlePoints(cluesUsed);
-  return awardPoints(userId, points);
+  return awardPoints(userId, points, sport);
 }
 
 // Award points for duel completion
-export async function awardDuelPoints(userId: string, won: boolean): Promise<boolean> {
+export async function awardDuelPoints(userId: string, won: boolean, sport?: Sport): Promise<boolean> {
   const points = won ? DUEL_WIN_POINTS : DUEL_LOSS_POINTS;
-  return awardPoints(userId, points);
+  return awardPoints(userId, points, sport);
 }
 
-// Get global leaderboard
+// Get global leaderboard with filter support
 export async function getGlobalLeaderboard(
   timePeriod: TimePeriod = 'weekly',
   sportFilter?: string,
   limit: number = 50
 ): Promise<LeaderboardEntry[]> {
-  const { data, error } = await supabase.rpc('get_global_leaderboard', {
-    p_time_period: timePeriod,
-    p_sport_filter: sportFilter || null,
-    p_limit: limit,
-  });
+  console.log('[getGlobalLeaderboard] Fetching with:', { timePeriod, sportFilter, limit });
 
-  if (error) {
-    console.error('Error fetching leaderboard:', error);
-    return [];
+  // Determine which points column to use based on time period and sport filter
+  let pointsColumn: string;
+
+  if (sportFilter && ['nba', 'pl', 'nfl', 'mlb'].includes(sportFilter)) {
+    // Sport-specific points column
+    pointsColumn = timePeriod === 'weekly' ? `points_weekly_${sportFilter}`
+      : timePeriod === 'monthly' ? `points_monthly_${sportFilter}`
+      : `points_all_time_${sportFilter}`;
+  } else {
+    // Total points (all sports)
+    pointsColumn = timePeriod === 'weekly' ? 'points_weekly'
+      : timePeriod === 'monthly' ? 'points_monthly'
+      : 'points_all_time';
   }
 
-  return data || [];
+  console.log('[getGlobalLeaderboard] Using column:', pointsColumn);
+
+  try {
+    // Get user_stats with points for the selected time period/sport
+    const { data: statsData, error: statsError } = await supabase
+      .from('user_stats')
+      .select(`id, ${pointsColumn}`)
+      .gt(pointsColumn, 0)
+      .order(pointsColumn, { ascending: false })
+      .limit(limit);
+
+    if (statsError) {
+      console.error('[getGlobalLeaderboard] Stats query error:', statsError);
+      // If column doesn't exist yet, fall back to total points
+      if (statsError.message?.includes('column') || statsError.code === '42703') {
+        console.log('[getGlobalLeaderboard] Sport column not found, falling back to total');
+        return getGlobalLeaderboard(timePeriod, undefined, limit);
+      }
+      return [];
+    }
+
+    if (!statsData || statsData.length === 0) {
+      console.log('[getGlobalLeaderboard] No users with points found');
+      return [];
+    }
+
+    // Get profiles for these users
+    const userIds = statsData.map((u: any) => u.id);
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, country')
+      .in('id', userIds);
+
+    if (profilesError) {
+      console.error('[getGlobalLeaderboard] Profiles query error:', profilesError);
+      return [];
+    }
+
+    // Create a map of profiles by id
+    const profilesMap = new Map(
+      (profilesData || []).map((p: any) => [p.id, p])
+    );
+
+    // Combine and create leaderboard entries, filtering out deleted users (no profile)
+    const entries: LeaderboardEntry[] = statsData
+      .filter((user: any) => profilesMap.has(user.id)) // Only include users with profiles
+      .map((user: any, index: number) => {
+        const profile = profilesMap.get(user.id);
+        return {
+          rank: index + 1,
+          user_id: user.id,
+          username: profile?.username || 'Unknown',
+          country: profile?.country || null,
+          points: user[pointsColumn] || 0,
+          avatar: null,
+        };
+      });
+
+    console.log('[getGlobalLeaderboard] Returning', entries.length, 'entries');
+    return entries;
+  } catch (error) {
+    console.error('[getGlobalLeaderboard] Unexpected error:', error);
+    return [];
+  }
 }
 
 // Get total player count for a time period
 export async function getLeaderboardPlayerCount(timePeriod: TimePeriod = 'weekly'): Promise<number> {
-  const { data, error } = await supabase.rpc('get_leaderboard_player_count', {
-    p_time_period: timePeriod,
-  });
+  // Determine which points column to use based on time period
+  const pointsColumn = timePeriod === 'weekly' ? 'points_weekly'
+    : timePeriod === 'monthly' ? 'points_monthly'
+    : 'points_all_time';
+
+  const { count, error } = await supabase
+    .from('user_stats')
+    .select('*', { count: 'exact', head: true })
+    .gt(pointsColumn, 0);
 
   if (error) {
-    console.error('Error fetching player count:', error);
+    console.error('[getLeaderboardPlayerCount] Error:', error);
     return 0;
   }
 
-  return data || 0;
+  return count || 0;
 }
 
 // Get user's current points

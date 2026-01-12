@@ -316,17 +316,17 @@
   },
   {
     "id": "pl_q24",
-    "question": "Who won the Premier League Golden Boot in 2023-24?",
+    "question": "Who won the Premier League Golden Boot in 2023-24 with 27 goals?",
     "options": [
       "Erling Haaland",
       "Mohamed Salah",
       "Cole Palmer",
       "Alexander Isak"
     ],
-    "correctAnswer": "Cole Palmer",
+    "correctAnswer": "Erling Haaland",
     "difficulty": "medium",
     "category": "awards",
-    "team": "Chelsea"
+    "team": "Man City"
   },
   {
     "id": "pl_q25",
@@ -1133,12 +1133,12 @@
   },
   {
     "id": "pl_q83",
-    "question": "Who was the first African player to win the Premier League?",
+    "question": "Who was the first Nigerian player to win the Premier League?",
     "options": [
-      "Didier Drogba",
-      "Michael Essien",
+      "Kelechi Iheanacho",
+      "Celestine Babayaro",
       "Nwankwo Kanu",
-      "Lucas Radebe"
+      "Alex Iwobi"
     ],
     "correctAnswer": "Nwankwo Kanu",
     "difficulty": "hard",
@@ -1396,12 +1396,12 @@
   },
   {
     "id": "pl_q102",
-    "question": "Which club won their first major trophy in 2020 (FA Cup)?",
+    "question": "Which club won the 2020 FA Cup, defeating Chelsea 2-1 in the final?",
     "options": [
       "Leicester City",
       "Arsenal",
-      "West Ham",
-      "Everton"
+      "Manchester United",
+      "Tottenham"
     ],
     "correctAnswer": "Arsenal",
     "difficulty": "medium",
@@ -1424,12 +1424,12 @@
   },
   {
     "id": "pl_q104",
-    "question": "Which player scored 5 goals in one Premier League match against Newcastle in 1999?",
+    "question": "Which player scored 5 goals for Newcastle in a single Premier League match against Sheffield Wednesday in 1999?",
     "options": [
       "Andy Cole",
       "Michael Owen",
       "Alan Shearer",
-      "Dwight Yorke"
+      "Les Ferdinand"
     ],
     "correctAnswer": "Alan Shearer",
     "difficulty": "hard",
@@ -1500,7 +1500,7 @@
       "Tottenham",
       "They didn't play on the final day they won"
     ],
-    "correctAnswer": "Everton",
+    "correctAnswer": "They didn't play on the final day they won",
     "difficulty": "hard",
     "category": "moments",
     "team": "Leicester"
@@ -1632,7 +1632,7 @@
   },
   {
     "id": "pl_q119",
-    "question": "Which club won the League Cup a record 9 times?",
+    "question": "Which club has won the League Cup the most times?",
     "options": [
       "Manchester United",
       "Manchester City",
@@ -1786,7 +1786,7 @@
   },
   {
     "id": "pl_q130",
-    "question": "Which player famously pushed a referee in 2004?",
+    "question": "Which player famously pushed referee Paul Alcock in 1998?",
     "options": [
       "Roy Keane",
       "Patrick Vieira",
@@ -1796,7 +1796,7 @@
     "correctAnswer": "Paolo Di Canio",
     "difficulty": "hard",
     "category": "moments",
-    "team": "West Ham"
+    "team": "Sheffield Wednesday"
   },
   {
     "id": "pl_q131",
@@ -1866,7 +1866,7 @@
   },
   {
     "id": "pl_q136",
-    "question": "Which player scored a late winner at the Etihad for QPR in 2012?",
+    "question": "Which QPR player scored to briefly put them 2-1 up against Man City on the famous 'Aguerooo' final day in 2012?",
     "options": [
       "Bobby Zamora",
       "Djibril Cisse",
@@ -2199,12 +2199,12 @@
   },
   {
     "id": "pl_q160",
-    "question": "Which player has been named PFA Player of the Year the most times?",
+    "question": "Which Arsenal player won PFA Player of the Year in back-to-back seasons (2003 and 2004)?",
     "options": [
-      "Cristiano Ronaldo",
+      "Patrick Vieira",
       "Thierry Henry",
-      "Wayne Rooney",
-      "Kevin De Bruyne"
+      "Dennis Bergkamp",
+      "Robert Pires"
     ],
     "correctAnswer": "Thierry Henry",
     "difficulty": "medium",
@@ -2253,12 +2253,12 @@
   },
   {
     "id": "pl_q164",
-    "question": "Which player won the Premier League with three different clubs?",
+    "question": "Which player won the Premier League with both Blackburn Rovers and Manchester United?",
     "options": [
       "Nicolas Anelka",
       "Ashley Cole",
       "Henning Berg",
-      "Robert Huth"
+      "David Batty"
     ],
     "correctAnswer": "Henning Berg",
     "difficulty": "hard",
@@ -3044,12 +3044,12 @@
   },
   {
     "id": "pl_q226",
-    "question": "Which team won three consecutive Premier League titles from 2019-2022?",
+    "question": "Which team won four consecutive Premier League titles from 2021-2024?",
     "options": [
       "Liverpool",
       "Manchester City",
       "Chelsea",
-      "Leicester City"
+      "Arsenal"
     ],
     "correctAnswer": "Manchester City",
     "difficulty": "easy",
@@ -3306,12 +3306,12 @@
   },
   {
     "id": "pl_q246",
-    "question": "Who was the 2024-25 Young Player of the Season?",
+    "question": "Who was the 2023-24 Young Player of the Season?",
     "options": [
       "Kobbie Mainoo",
       "Cole Palmer",
-      "Morgan Rogers",
-      "Ryan Gravenberch"
+      "Bukayo Saka",
+      "Anthony Gordon"
     ],
     "correctAnswer": "Cole Palmer",
     "difficulty": "medium",

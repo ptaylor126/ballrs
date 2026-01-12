@@ -8,15 +8,20 @@ import { supabase } from './supabase';
 const NOTIFICATION_PROMPT_KEY = 'notificationPromptDismissedAt';
 
 // Configure how notifications appear when app is in foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Wrapped in try-catch to prevent crashes on Android if native module isn't ready
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+} catch (error) {
+  console.warn('Failed to set notification handler:', error);
+}
 
 // Register for push notifications and get token
 export async function registerForPushNotifications(): Promise<string | null> {
@@ -44,7 +49,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
   // Get Expo push token
   try {
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    // Safely access projectId with multiple fallbacks
+    let projectId: string | undefined;
+    try {
+      projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    } catch (e) {
+      console.log('Could not access Constants for projectId:', e);
+    }
 
     // If no projectId, push notifications won't work (need EAS setup)
     if (!projectId) {

@@ -23,6 +23,7 @@ import { colors, getSportColor, Sport, truncateUsername } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
 import { usePresence } from '../hooks/usePresence';
+import { soundService } from '../lib/soundService';
 
 const ACCENT_COLOR = '#1ABC9C';
 const DISABLED_BG = '#F9EECC';
@@ -902,13 +903,19 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
         <View style={styles.actionButtons}>
           <AnimatedButton
             style={styles.actionButton}
-            onPress={handleQuickDuelPress}
+            onPress={() => {
+              soundService.playButtonClick();
+              handleQuickDuelPress();
+            }}
           >
             <Text style={styles.actionButtonText}>Quick Duel</Text>
           </AnimatedButton>
           <AnimatedButton
             style={styles.actionButton}
-            onPress={handleChallengeFriendPress}
+            onPress={() => {
+              soundService.playButtonClick();
+              handleChallengeFriendPress();
+            }}
           >
             <Text style={styles.actionButtonText}>Challenge Friend</Text>
           </AnimatedButton>
@@ -1076,7 +1083,10 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                 <TouchableOpacity
                   key={sport}
                   style={[styles.sportGridOption, { backgroundColor: sportColors[sport] }]}
-                  onPress={() => handleSportSelect(sport)}
+                  onPress={() => {
+                    soundService.playButtonClick();
+                    handleSportSelect(sport);
+                  }}
                   activeOpacity={0.7}
                 >
                   <Image source={sportIcons[sport]} style={styles.sportGridIcon} resizeMode="contain" />
@@ -1116,7 +1126,10 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                     styles.questionCountOption,
                     selectedQuestionCount === count && styles.questionCountOptionSelected,
                   ]}
-                  onPress={() => handleQuestionCountSelect(count)}
+                  onPress={() => {
+                    soundService.playButtonClick();
+                    handleQuestionCountSelect(count);
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text
@@ -1143,7 +1156,10 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                   <TouchableOpacity
                     key={friend.id}
                     style={styles.friendOptionCard}
-                    onPress={() => handleFriendSelect(friend)}
+                    onPress={() => {
+                      soundService.playButtonClick();
+                      handleFriendSelect(friend);
+                    }}
                     activeOpacity={0.7}
                   >
                     <View style={styles.friendOptionAvatar}>
@@ -1167,7 +1183,10 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
 
             <AnimatedButton
               style={styles.confirmChallengeButton}
-              onPress={handleConfirmChallenge}
+              onPress={() => {
+                soundService.playButtonClick();
+                handleConfirmChallenge();
+              }}
             >
               <Text style={styles.confirmChallengeButtonText}>GET INVITE CODE</Text>
             </AnimatedButton>
@@ -1220,14 +1239,20 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             <View style={styles.confirmFriendButtons}>
               <TouchableOpacity
                 style={styles.confirmFriendNoButton}
-                onPress={handleCancelFriendConfirm}
+                onPress={() => {
+                  soundService.playButtonClick();
+                  handleCancelFriendConfirm();
+                }}
                 disabled={sendingFriendChallenge}
               >
                 <Text style={styles.confirmFriendNoText}>NO</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmFriendYesButton}
-                onPress={handleConfirmFriendChallenge}
+                onPress={() => {
+                  soundService.playButtonClick();
+                  handleConfirmFriendChallenge();
+                }}
                 disabled={sendingFriendChallenge}
               >
                 {sendingFriendChallenge ? (

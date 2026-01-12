@@ -1,8 +1,8 @@
 [
   {
     "id": "nfl_q1",
-    "question": "Which team has won the most Super Bowls?",
-    "options": ["Dallas Cowboys", "New England Patriots", "Pittsburgh Steelers", "San Francisco 49ers"],
+    "question": "Which team is tied for the most Super Bowl wins with 6 championships?",
+    "options": ["Dallas Cowboys", "New England Patriots", "Green Bay Packers", "San Francisco 49ers"],
     "correctAnswer": "New England Patriots",
     "difficulty": "easy",
     "category": "team",
@@ -258,9 +258,9 @@
   },
   {
     "id": "nfl_q31",
-    "question": "Who is the highest-paid player in NFL history (as of 2025)?",
-    "options": ["Patrick Mahomes", "Joe Burrow", "Jalen Hurts", "Justin Herbert"],
-    "correctAnswer": "Joe Burrow",
+    "question": "Which quarterback signed a contract worth $60 million per year in 2024?",
+    "options": ["Patrick Mahomes", "Joe Burrow", "Dak Prescott", "Justin Herbert"],
+    "correctAnswer": "Dak Prescott",
     "difficulty": "medium",
     "category": "current",
     "team": "Bengals"
@@ -287,7 +287,7 @@
     "id": "nfl_q34",
     "question": "Who was the Super Bowl LIX MVP?",
     "options": ["Jalen Hurts", "Saquon Barkley", "A.J. Brown", "DeVonta Smith"],
-    "correctAnswer": "Saquon Barkley",
+    "correctAnswer": "Jalen Hurts",
     "difficulty": "medium",
     "category": "awards",
     "team": "Eagles"
@@ -412,7 +412,7 @@
     "id": "nfl_q48",
     "question": "Which player has the most Pro Bowl selections?",
     "options": ["Tom Brady", "Peyton Manning", "Jerry Rice", "Merlin Olsen"],
-    "correctAnswer": "Merlin Olsen",
+    "correctAnswer": "Tom Brady",
     "difficulty": "hard",
     "category": "awards"
   },
@@ -454,7 +454,7 @@
   },
   {
     "id": "nfl_q53",
-    "question": "Which team won four Super Bowls in six years in the 1980s?",
+    "question": "Which team won four Super Bowls in the 1980s?",
     "options": ["Dallas Cowboys", "Miami Dolphins", "San Francisco 49ers", "Washington Commanders"],
     "correctAnswer": "San Francisco 49ers",
     "difficulty": "medium",
@@ -704,7 +704,7 @@
   },
   {
     "id": "nfl_q81",
-    "question": "Which team plays at TIAA Bank Field?",
+    "question": "Which team plays at EverBank Stadium?",
     "options": ["Tampa Bay Buccaneers", "Jacksonville Jaguars", "Miami Dolphins", "Carolina Panthers"],
     "correctAnswer": "Jacksonville Jaguars",
     "difficulty": "medium",
@@ -853,8 +853,8 @@
   },
   {
     "id": "nfl_q98",
-    "question": "Which wide receiver is nicknamed 'The Toe'?",
-    "options": ["Jerry Rice", "Lou Groza", "George Blanda", "Adam Vinatieri"],
+    "question": "Which legendary kicker is nicknamed 'The Toe'?",
+    "options": ["Morten Andersen", "Lou Groza", "George Blanda", "Adam Vinatieri"],
     "correctAnswer": "Lou Groza",
     "difficulty": "hard",
     "category": "history"
@@ -1401,7 +1401,7 @@
     "id": "nfl_q159",
     "question": "Who is the Colts' all-time leading receiver?",
     "options": ["Marvin Harrison", "Reggie Wayne", "T.Y. Hilton", "Raymond Berry"],
-    "correctAnswer": "Reggie Wayne",
+    "correctAnswer": "Marvin Harrison",
     "difficulty": "hard",
     "category": "team",
     "team": "Colts"
@@ -1462,7 +1462,7 @@
   },
   {
     "id": "nfl_q166",
-    "question": "Which Chargers running back is a Hall of Famer with 18,000+ rushing yards?",
+    "question": "Which Chargers Hall of Fame running back has the most career rushing touchdowns (145)?",
     "options": ["LaDainian Tomlinson", "Natrone Means", "Darren Sproles", "Melvin Gordon"],
     "correctAnswer": "LaDainian Tomlinson",
     "difficulty": "easy",
@@ -1696,8 +1696,8 @@
   {
     "id": "nfl_q192",
     "question": "Who is the NFL's all-time leading scorer?",
-    "options": ["Adam Vinatieri", "Morten Andersen", "Gary Anderson", "Jason Tucker"],
-    "correctAnswer": "Morten Andersen",
+    "options": ["Adam Vinatieri", "Morten Andersen", "Gary Anderson", "Jason Hanson"],
+    "correctAnswer": "Adam Vinatieri",
     "difficulty": "hard",
     "category": "records"
   },

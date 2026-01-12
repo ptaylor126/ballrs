@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   Animated,
   Platform,
+  Image,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { getXPForLevel } from '../lib/xpService';
-import { playSound } from '../lib/soundService';
+import { soundService } from '../lib/soundService';
 
 // Get level title based on level number
 function getLevelTitle(level: number): string {
@@ -88,8 +90,7 @@ export default function XPEarnedModal({
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      // Play sound
-      playSound('correct');
+      // Play sound will be triggered when bar starts filling
 
       // Entrance animation - scale and fade in together
       Animated.parallel([
@@ -125,6 +126,9 @@ export default function XPEarnedModal({
 
       // Delay before XP counter animation starts
       setTimeout(() => {
+        // Play XP sound when bar starts filling
+        soundService.playXP();
+
         // Animate XP counter
         Animated.timing(xpCountAnim, {
           toValue: 1,
@@ -142,6 +146,9 @@ export default function XPEarnedModal({
         // Pulse the level badge when bar fills
         if (leveledUp) {
           setTimeout(() => {
+            // Play level up sound
+            soundService.playLevelUp();
+
             Animated.sequence([
               Animated.timing(levelPulseAnim, {
                 toValue: 1.15,
@@ -250,10 +257,29 @@ export default function XPEarnedModal({
             </View>
           </View>
 
+          {/* Presented By Ad Banner */}
+          <View style={styles.presentedByContainer}>
+            <Text style={styles.presentedByText}>Results presented by</Text>
+            <TouchableOpacity
+              style={styles.presentedByAdBanner}
+              onPress={() => Linking.openURL('https://parlaysfordays.com')}
+              activeOpacity={0.9}
+            >
+              <Image
+                source={require('../../assets/images/ad-banner-parlays.png')}
+                style={styles.presentedByAdImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+
           {/* Continue Button */}
           <TouchableOpacity
             style={styles.button}
-            onPress={onClose}
+            onPress={() => {
+              soundService.playButtonClick();
+              onClose();
+            }}
           >
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
@@ -359,7 +385,7 @@ const styles = StyleSheet.create({
   },
   progressSection: {
     width: '100%',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   progressBar: {
     height: 16,
@@ -396,6 +422,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'DMSans_500Medium',
     color: '#888888',
+  },
+  // Presented By Ad Banner styles
+  presentedByContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+    width: '100%',
+  },
+  presentedByText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    marginBottom: 8,
+  },
+  presentedByAdBanner: {
+    width: 280,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  presentedByAdImage: {
+    width: 280,
+    height: 44,
   },
   button: {
     backgroundColor: TEAL_COLOR,

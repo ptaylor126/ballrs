@@ -51,9 +51,9 @@
   },
   {
     "id": "nba_q7",
-    "question": "Who was the first player to be drafted straight from high school?",
-    "options": ["Kobe Bryant", "Kevin Garnett", "LeBron James", "Moses Malone"],
-    "correctAnswer": "Moses Malone",
+    "question": "Who was the first player drafted straight from high school in the modern NBA era (1995)?",
+    "options": ["Kobe Bryant", "Kevin Garnett", "LeBron James", "Jermaine O'Neal"],
+    "correctAnswer": "Kevin Garnett",
     "difficulty": "hard",
     "category": "history"
   },
@@ -312,7 +312,7 @@
   },
   {
     "id": "nba_q37",
-    "question": "Which player has won the most Defensive Player of the Year awards?",
+    "question": "Which player has won four Defensive Player of the Year awards with the Jazz and Timberwolves?",
     "options": ["Dikembe Mutombo", "Ben Wallace", "Rudy Gobert", "Hakeem Olajuwon"],
     "correctAnswer": "Rudy Gobert",
     "difficulty": "hard",
@@ -338,7 +338,7 @@
   },
   {
     "id": "nba_q40",
-    "question": "Which player won back-to-back-to-back MVP awards from 2021-2024?",
+    "question": "Which player won three MVP awards in four seasons from 2021-2024?",
     "options": ["Giannis Antetokounmpo", "LeBron James", "Nikola Jokic", "Joel Embiid"],
     "correctAnswer": "Nikola Jokic",
     "difficulty": "medium",
@@ -574,8 +574,8 @@
   {
     "id": "nba_q67",
     "question": "Which player holds the record for most free throws made in a career?",
-    "options": ["Michael Jordan", "Karl Malone", "Kobe Bryant", "LeBron James"],
-    "correctAnswer": "LeBron James",
+    "options": ["Michael Jordan", "Karl Malone", "Kobe Bryant", "Dirk Nowitzki"],
+    "correctAnswer": "Karl Malone",
     "difficulty": "medium",
     "category": "records"
   },
@@ -607,7 +607,7 @@
   },
   {
     "id": "nba_q71",
-    "question": "Which player won Sixth Man of the Year three consecutive times (2022-2024)?",
+    "question": "Which Timberwolves player won the 2024 Sixth Man of the Year award?",
     "options": ["Tyler Herro", "Jordan Clarkson", "Malcolm Brogdon", "Naz Reid"],
     "correctAnswer": "Naz Reid",
     "difficulty": "hard",
@@ -636,7 +636,7 @@
     "id": "nba_q74",
     "question": "Which player has the most career double-doubles?",
     "options": ["Wilt Chamberlain", "Tim Duncan", "Karl Malone", "Kevin Garnett"],
-    "correctAnswer": "Tim Duncan",
+    "correctAnswer": "Wilt Chamberlain",
     "difficulty": "hard",
     "category": "records",
     "team": "Spurs"
@@ -1002,7 +1002,7 @@
   },
   {
     "id": "nba_q116",
-    "question": "Which player scored 70 points in a game in 2024?",
+    "question": "Which player scored 71 points in a game in January 2023?",
     "options": ["Luka Doncic", "Donovan Mitchell", "Karl-Anthony Towns", "Devin Booker"],
     "correctAnswer": "Donovan Mitchell",
     "difficulty": "hard",
@@ -1081,7 +1081,7 @@
   },
   {
     "id": "nba_q125",
-    "question": "Who scored 9 points in 9 seconds against the Spurs in 2004?",
+    "question": "Who famously scored 8 points in 9 seconds against the Knicks in the 1995 playoffs?",
     "options": ["Paul Pierce", "Reggie Miller", "Ray Allen", "Gilbert Arenas"],
     "correctAnswer": "Reggie Miller",
     "difficulty": "hard",
@@ -1457,7 +1457,7 @@
   },
   {
     "id": "nba_q168",
-    "question": "Which player scored 71 points against the Spurs in 2024?",
+    "question": "Which player scored 70 points against the Celtics in 2017?",
     "options": ["Luka Doncic", "Devin Booker", "Anthony Edwards", "Donovan Mitchell"],
     "correctAnswer": "Devin Booker",
     "difficulty": "hard",
@@ -1683,9 +1683,9 @@
   },
   {
     "id": "nba_q194",
-    "question": "What was the score of the highest-scoring regulation game?",
-    "options": ["310", "318", "320", "337"],
-    "correctAnswer": "320",
+    "question": "What was the combined score of the highest-scoring NBA game (Pistons 186, Nuggets 184 in 1983)?",
+    "options": ["350", "360", "370", "380"],
+    "correctAnswer": "370",
     "difficulty": "hard",
     "category": "records"
   },

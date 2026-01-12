@@ -26,6 +26,7 @@ import * as Haptics from 'expo-haptics';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { colors, shadows, getSportColor, Sport, borders, borderRadius } from '../lib/theme';
 import { AnimatedButton } from '../components/AnimatedComponents';
+import { soundService } from '../lib/soundService';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXP, calculateLevel, XPAwardResult } from '../lib/xpService';
 import { awardPuzzlePoints } from '../lib/pointsService';
@@ -40,6 +41,12 @@ import nbaPlayersData from '../../data/nba-players-clues.json';
 import plPlayersData from '../../data/pl-players-clues.json';
 import nflPlayersData from '../../data/nfl-players-clues.json';
 import mlbPlayersData from '../../data/mlb-players-clues.json';
+import {
+  recordPuzzleCompletion,
+  formatCompletionTime,
+  formatPercentile,
+  PuzzleCompletionStats,
+} from '../lib/dailyPuzzleCompletionService';
 
 // All players for autocomplete
 import nbaAllPlayers from '../../data/nba-all-players.json';
@@ -82,7 +89,7 @@ interface Props {
 
 const getStorageKey = (sport: string) => `ballrs_clue_puzzle_state_${sport}`;
 const getStreakKey = (sport: string) => `ballrs_clue_puzzle_streak_${sport}`;
-const MAX_GUESSES = 6;
+const MAX_GUESSES = 3;
 const TIMER_DURATION = 10; // seconds per clue
 
 interface GameState {
@@ -260,6 +267,11 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
 
   // Link email prompt state
   const [showLinkEmailPrompt, setShowLinkEmailPrompt] = useState(false);
+
+  // Speed tracking state
+  const puzzleStartTimeRef = useRef<number | null>(null);
+  const [completionStats, setCompletionStats] = useState<PuzzleCompletionStats | null>(null);
+  const [localCompletionTime, setLocalCompletionTime] = useState<number | null>(null);
 
   // Check if we should show the link email prompt after leveling up
   const checkAndShowLinkEmailPrompt = async () => {
@@ -477,6 +489,13 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     loadGameState();
   }, []);
 
+  // Start the speed tracking timer once puzzle loads (if not already solved)
+  useEffect(() => {
+    if (!loading && mysteryPlayer && !solved && !gaveUp && !puzzleStartTimeRef.current) {
+      puzzleStartTimeRef.current = Date.now();
+    }
+  }, [loading, mysteryPlayer, solved, gaveUp]);
+
   async function loadGameState() {
     try {
       const player = getDailyPlayer(players, sport);
@@ -600,8 +619,9 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     const isCorrect = mysteryPlayer.name.toLowerCase() === selectedPlayer.name.toLowerCase();
 
     if (isCorrect) {
-      // Success haptic for correct guess
+      // Success haptic and sound for correct guess
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      soundService.playDailyCorrect();
       const points = potentialPoints;
       setSolved(true);
       setPointsEarned(points);
@@ -621,6 +641,15 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
       // Delay confetti to let UI render first
       setTimeout(() => setShowConfetti(true), 300);
 
+      // Capture completion time immediately (for display even without login)
+      const cluesUsed = currentClueIndex + 1;
+      let completionTime: number | null = null;
+      if (puzzleStartTimeRef.current) {
+        const completionTimeSeconds = (Date.now() - puzzleStartTimeRef.current) / 1000;
+        completionTime = Math.round(completionTimeSeconds * 10) / 10;
+        setLocalCompletionTime(completionTime);
+      }
+
       // TODO: INTERSTITIAL AD TRIGGER POINT
       // Show interstitial ad after puzzle completion (before showing results)
       // Example with AdMob:
@@ -634,12 +663,22 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
         const xpAmount = points * 10; // 10 XP per point earned
         setXpEarned(xpAmount);
 
-        // Award leaderboard points (6 points for 1 clue, down to 1 point for 6 clues)
-        const cluesUsed = currentClueIndex + 1;
+        // Record completion time to database and get percentile
+        if (completionTime !== null) {
+          recordPuzzleCompletion(user.id, sport, completionTime, cluesUsed)
+            .then((stats) => {
+              if (stats) {
+                setCompletionStats(stats);
+              }
+            })
+            .catch((err) => {
+              console.error('Error recording puzzle completion:', err);
+            });
+        }
 
         // Wrap in try-catch to prevent crashes
         try {
-          awardPuzzlePoints(user.id, cluesUsed).catch((err) => {
+          awardPuzzlePoints(user.id, cluesUsed, sport).catch((err) => {
             console.error('Error awarding puzzle points:', err);
           });
         } catch (err) {
@@ -670,8 +709,10 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
           awardXP(user.id, xpAmount).then((result) => {
             if (result) {
               setXpResult(result);
-              // Show XP modal immediately
-              setShowXPModal(true);
+              // Delay XP modal by 2.6 seconds after confetti to let user see jersey reveal first
+              setTimeout(() => {
+                setShowXPModal(true);
+              }, 2900);
             }
           }).catch((err) => {
             console.error('Error awarding XP:', err);
@@ -906,11 +947,9 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
       >
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.headerTopRow}>
-              <TouchableOpacity style={styles.backButton} onPress={onBack}>
-                <Text style={styles.backButtonText}>‚Üê Back</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+              <Text style={styles.backButtonText}>‚Üê Back</Text>
+            </TouchableOpacity>
             <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
               <Image source={sportIcons[sport]} style={styles.sportBadgeIcon} resizeMode="contain" />
               <Text style={styles.sportBadgeText}>{sport === 'pl' ? 'EPL' : sport.toUpperCase()}</Text>
@@ -958,6 +997,24 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
               <Text style={styles.resultTeamName}>
                 {getFullTeamName(sport, mysteryPlayer.team)}
               </Text>
+
+              {/* Speed Stats */}
+              {(completionStats || localCompletionTime !== null) && (
+                <View style={styles.speedStatsContainer}>
+                  <Text style={styles.speedTimeText}>
+                    Solved in {formatCompletionTime(completionStats?.completionTimeSeconds ?? localCompletionTime ?? 0)}
+                  </Text>
+                  {completionStats && (
+                    <Text style={styles.speedPercentileText}>
+                      {completionStats.isFirstSolver
+                        ? 'First to solve today!'
+                        : completionStats.percentile
+                          ? formatPercentile(completionStats.percentile)
+                          : ''}
+                    </Text>
+                  )}
+                </View>
+              )}
 
               {/* Divider */}
               <View style={styles.resultDivider} />
@@ -1119,7 +1176,10 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
                     <TouchableOpacity
                       key={`${player.id}-${index}`}
                       style={styles.suggestionItem}
-                      onPress={() => handleSelectPlayer(player)}
+                      onPress={() => {
+                        soundService.playButtonClick();
+                        handleSelectPlayer(player);
+                      }}
                     >
                       <Text style={styles.suggestionName}>{player.name}</Text>
                       <Text style={styles.suggestionTeam}>{player.team}</Text>
@@ -1127,6 +1187,10 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
                   ))}
                 </View>
               )}
+              {/* Remaining Guesses Indicator */}
+              <Text style={styles.guessesRemaining}>
+                {MAX_GUESSES - wrongGuesses} guess{MAX_GUESSES - wrongGuesses !== 1 ? 'es' : ''} remaining
+              </Text>
             </View>
           )}
 
@@ -1135,7 +1199,10 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
             <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
               <TouchableOpacity
                 style={styles.nextClueButton}
-                onPress={handleNextClue}
+                onPress={() => {
+                  soundService.playButtonClick();
+                  handleNextClue();
+                }}
               >
                 <Text style={styles.nextClueButtonText}>
                   Need Another Clue? (-1 point)
@@ -1148,7 +1215,10 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
           {!solved && !showAnswer && isLastClue && (
             <TouchableOpacity
               style={styles.giveUpButton}
-              onPress={handleGiveUp}
+              onPress={() => {
+                soundService.playButtonClick();
+                handleGiveUp();
+              }}
             >
               <Text style={styles.giveUpButtonText}>Give Up</Text>
             </TouchableOpacity>
@@ -1254,7 +1324,7 @@ const styles = StyleSheet.create({
   },
   headerTopRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
     marginBottom: 16,
@@ -1400,6 +1470,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
+  speedStatsContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  speedTimeText: {
+    fontSize: 18,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+    textAlign: 'center',
+  },
+  speedPercentileText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#1ABC9C',
+    textAlign: 'center',
+    marginTop: 4,
+  },
   resultDivider: {
     width: '100%',
     height: 1,
@@ -1507,6 +1594,13 @@ const styles = StyleSheet.create({
   inputWrapper: {
     marginTop: 8,
     marginBottom: 16,
+  },
+  guessesRemaining: {
+    fontSize: 13,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: 12,
   },
   inputRow: {
     flexDirection: 'row',
@@ -1685,7 +1779,7 @@ const styles = StyleSheet.create({
   },
   wrongToast: {
     position: 'absolute',
-    bottom: 40,
+    top: 180,
     left: 20,
     right: 20,
     backgroundColor: colors.error,
@@ -1697,6 +1791,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...shadows.card,
     elevation: 10,
+    zIndex: 1000,
   },
   wrongToastText: {
     color: '#FFFFFF',

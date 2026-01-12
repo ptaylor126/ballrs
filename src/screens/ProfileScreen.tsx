@@ -11,6 +11,7 @@ import {
   Modal,
   Animated,
   Easing,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,6 +29,7 @@ import { getProfile, updateCountry } from '../lib/profilesService';
 import { countryCodeToFlag, COUNTRIES, Country } from '../lib/countryUtils';
 import { soundService } from '../lib/soundService';
 import FeedbackModal from '../components/FeedbackModal';
+import { deleteUserAccount } from '../lib/accountService';
 
 // Icons
 const fireIcon = require('../../assets/images/icon-fire.png');
@@ -75,6 +77,14 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showFeedbackToast, setShowFeedbackToast] = useState(false);
   const feedbackToastAnim = useRef(new Animated.Value(0)).current;
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [showDeletedToast, setShowDeletedToast] = useState(false);
+  const deletedToastAnim = useRef(new Animated.Value(0)).current;
 
   // Initialize sound setting
   useEffect(() => {
@@ -169,6 +179,47 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
     onLogout();
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user || deleteConfirmText.toUpperCase() !== 'DELETE') return;
+
+    setDeleting(true);
+    try {
+      const success = await deleteUserAccount(user.id);
+      if (success) {
+        setShowDeleteConfirmModal(false);
+        setShowDeleteModal(false);
+        // Show toast and sign out
+        setShowDeletedToast(true);
+        deletedToastAnim.setValue(0);
+        Animated.sequence([
+          Animated.timing(deletedToastAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.delay(1500),
+          Animated.timing(deletedToastAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start(async () => {
+          setShowDeletedToast(false);
+          await signOut();
+          onLogout();
+        });
+      } else {
+        Alert.alert('Error', 'Failed to delete account. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      Alert.alert('Error', 'Failed to delete account. Please try again.');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmText('');
+    }
+  };
+
   const handleCountrySelect = async (selectedCountry: Country) => {
     if (!user) return;
 
@@ -255,7 +306,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
 
             <AnimatedButton
               style={styles.customizeButton}
-              onPress={onNavigateToCustomize}
+              onPress={() => {
+                soundService.playButtonClick();
+                onNavigateToCustomize();
+              }}
             >
               <Text style={styles.customizeButtonText}>Customize</Text>
             </AnimatedButton>
@@ -294,7 +348,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
             {/* Achievements Button */}
             <AnimatedCard
               style={[styles.achievementsButton, shadows.card]}
-              onPress={onNavigateToAchievements}
+              onPress={() => {
+                soundService.playButtonClick();
+                onNavigateToAchievements();
+              }}
             >
               <View style={styles.achievementsIconCircle}>
                 <Image source={trophyIcon} style={styles.achievementsTrophyIcon} />
@@ -490,6 +547,15 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                 </View>
                 <Image source={speechIcon} style={styles.feedbackIcon} />
               </TouchableOpacity>
+
+              {/* Delete Account */}
+              <View style={styles.settingDivider} />
+              <TouchableOpacity
+                style={styles.deleteAccountButton}
+                onPress={() => setShowDeleteModal(true)}
+              >
+                <Text style={styles.deleteAccountText}>Delete Account</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Member Info */}
@@ -502,7 +568,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
             {/* Log Out Button */}
             <AnimatedButton
               style={[styles.logoutButton, loggingOut && styles.buttonDisabled]}
-              onPress={handleLogout}
+              onPress={() => {
+                soundService.playButtonClick();
+                handleLogout();
+              }}
               disabled={loggingOut}
             >
               {loggingOut ? (
@@ -592,6 +661,116 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
           ]}
         >
           <Text style={styles.feedbackToastText}>Thanks for your feedback!</Text>
+        </Animated.View>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <Text style={styles.deleteModalTitle}>Delete Account?</Text>
+            <Text style={styles.deleteModalBody}>
+              This will permanently delete your account and all your data, including your stats, achievements, friends, and league memberships. This cannot be undone.
+            </Text>
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.deleteModalCancelButton}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <Text style={styles.deleteModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteModalDeleteButton}
+                onPress={() => {
+                  setShowDeleteModal(false);
+                  setShowDeleteConfirmModal(true);
+                }}
+              >
+                <Text style={styles.deleteModalDeleteText}>Delete My Account</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Account Second Confirmation Modal */}
+      <Modal
+        visible={showDeleteConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setShowDeleteConfirmModal(false);
+          setDeleteConfirmText('');
+        }}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <Text style={styles.deleteModalTitle}>Confirm Deletion</Text>
+            <Text style={styles.deleteModalBody}>
+              Type DELETE below to confirm you want to permanently delete your account.
+            </Text>
+            <TextInput
+              style={styles.deleteConfirmInput}
+              placeholder="Type DELETE to confirm"
+              placeholderTextColor="#999999"
+              value={deleteConfirmText}
+              onChangeText={setDeleteConfirmText}
+              autoCapitalize="characters"
+              selectionColor="#E53935"
+            />
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.deleteModalCancelButton}
+                onPress={() => {
+                  setShowDeleteConfirmModal(false);
+                  setDeleteConfirmText('');
+                }}
+              >
+                <Text style={styles.deleteModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.deleteModalDeleteButton,
+                  deleteConfirmText.toUpperCase() !== 'DELETE' && styles.deleteModalButtonDisabled,
+                ]}
+                onPress={handleDeleteAccount}
+                disabled={deleteConfirmText.toUpperCase() !== 'DELETE' || deleting}
+              >
+                {deleting ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.deleteModalDeleteText}>Confirm Deletion</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Account Deleted Toast */}
+      {showDeletedToast && (
+        <Animated.View
+          style={[
+            styles.deletedToast,
+            {
+              opacity: deletedToastAnim,
+              transform: [
+                {
+                  translateY: deletedToastAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-50, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Text style={styles.deletedToastText}>Account deleted</Text>
         </Animated.View>
       )}
     </SafeAreaView>
@@ -1134,5 +1313,131 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: '#FFFFFF',
     fontFamily: 'DMSans_700Bold',
+  },
+  // Delete Account styles
+  deleteAccountButton: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  deleteAccountText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#E53935',
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  deleteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  deleteModalBody: {
+    fontSize: 14,
+    fontFamily: 'DMSans_400Regular',
+    color: '#666666',
+    lineHeight: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  deleteModalCancelButton: {
+    flex: 1,
+    backgroundColor: '#F2C94C',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    paddingVertical: 14,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  deleteModalCancelText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  deleteModalDeleteButton: {
+    flex: 1,
+    backgroundColor: '#E53935',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    paddingVertical: 14,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  deleteModalButtonDisabled: {
+    opacity: 0.5,
+  },
+  deleteModalDeleteText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+  },
+  deleteConfirmInput: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 14,
+    fontSize: 16,
+    fontFamily: 'DMSans_400Regular',
+    color: '#1A1A1A',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  deletedToast: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    backgroundColor: '#666666',
+    borderRadius: borderRadius.card,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  deletedToastText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
   },
 });

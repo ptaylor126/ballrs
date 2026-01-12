@@ -53,6 +53,7 @@ import {
 } from '../lib/notificationService';
 import { usePresence } from '../hooks/usePresence';
 import NotificationPromptModal from '../components/NotificationPromptModal';
+import { soundService } from '../lib/soundService';
 
 // Get trivia questions by sport
 const getTriviaQuestions = (sport: Sport): any[] => {
@@ -182,7 +183,10 @@ function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove }: Swipea
         </View>
         <AnimatedButton
           style={styles.challengeButton}
-          onPress={onChallenge}
+          onPress={() => {
+            soundService.playButtonClick();
+            onChallenge();
+          }}
         >
           <Text style={styles.challengeButtonText}>CHALLENGE</Text>
         </AnimatedButton>
@@ -575,7 +579,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                       styles.addButton,
                       pendingRequestUserIds.has(result.id) && styles.pendingButton,
                     ]}
-                    onPress={() => handleAddFriend(result.id, truncateUsername(result.username))}
+                    onPress={() => {
+                      soundService.playButtonClick();
+                      handleAddFriend(result.id, truncateUsername(result.username));
+                    }}
                     disabled={addingFriend === result.id || pendingRequestUserIds.has(result.id)}
                   >
                     {addingFriend === result.id ? (
@@ -609,7 +616,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                 <View style={styles.requestButtons}>
                   <AnimatedButton
                     style={styles.declineButton}
-                    onPress={() => handleDeclineRequest(request)}
+                    onPress={() => {
+                      soundService.playButtonClick();
+                      handleDeclineRequest(request);
+                    }}
                     disabled={processingRequest === request.id}
                   >
                     {processingRequest === request.id ? (
@@ -620,7 +630,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                   </AnimatedButton>
                   <AnimatedButton
                     style={styles.acceptButton}
-                    onPress={() => handleAcceptRequest(request)}
+                    onPress={() => {
+                      soundService.playButtonClick();
+                      handleAcceptRequest(request);
+                    }}
                     disabled={processingRequest === request.id}
                   >
                     {processingRequest === request.id ? (
@@ -641,20 +654,23 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
             <Text style={styles.sectionTitle}>Sent Requests ({sentRequests.length})</Text>
             {sentRequests.map((request) => (
               <AnimatedCard key={request.id} style={styles.sentRequestCard}>
-                <View style={[styles.requestInfo, { gap: 10 }]}>
+                <View style={[styles.requestInfo, { gap: 10, flex: 1, marginBottom: 0 }]}>
                   <View style={styles.avatar}>
                     <Text style={styles.avatarText}>
                       {request.receiverUsername.charAt(0).toUpperCase()}
                     </Text>
                   </View>
                   <View style={[styles.sentRequestInfo, { marginLeft: 0 }]}>
-                    <Text style={[styles.requestUsername, { marginLeft: 0 }]}>{request.receiverUsername}</Text>
+                    <Text style={[styles.requestUsername, { marginLeft: 0 }]} numberOfLines={1}>{request.receiverUsername}</Text>
                     <Text style={styles.pendingLabel}>Pending</Text>
                   </View>
                 </View>
                 <AnimatedButton
                   style={styles.cancelRequestButton}
-                  onPress={() => handleCancelRequest(request)}
+                  onPress={() => {
+                    soundService.playButtonClick();
+                    handleCancelRequest(request);
+                  }}
                   disabled={processingRequest === request.id}
                 >
                   {processingRequest === request.id ? (
@@ -726,7 +742,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                   <TouchableOpacity
                     key={sport}
                     style={[styles.sportOption, { backgroundColor: sportColor }]}
-                    onPress={() => handleSportSelect(sport)}
+                    onPress={() => {
+                      soundService.playButtonClick();
+                      handleSportSelect(sport);
+                    }}
                     activeOpacity={0.7}
                   >
                     <Image
@@ -784,7 +803,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                   styles.questionCountOption,
                   selectedQuestionCount === 1 && styles.questionCountOptionHighlighted
                 ]}
-                onPress={() => handleQuestionCountSelect(1)}
+                onPress={() => {
+                  soundService.playButtonClick();
+                  handleQuestionCountSelect(1);
+                }}
                 disabled={creatingChallenge}
                 activeOpacity={0.7}
               >
@@ -799,7 +821,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                   styles.questionCountOption,
                   selectedQuestionCount === 5 && styles.questionCountOptionHighlighted
                 ]}
-                onPress={() => handleQuestionCountSelect(5)}
+                onPress={() => {
+                  soundService.playButtonClick();
+                  handleQuestionCountSelect(5);
+                }}
                 disabled={creatingChallenge}
                 activeOpacity={0.7}
               >
@@ -814,7 +839,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                   styles.questionCountOption,
                   selectedQuestionCount === 9 && styles.questionCountOptionHighlighted
                 ]}
-                onPress={() => handleQuestionCountSelect(9)}
+                onPress={() => {
+                  soundService.playButtonClick();
+                  handleQuestionCountSelect(9);
+                }}
                 disabled={creatingChallenge}
                 activeOpacity={0.7}
               >
@@ -831,7 +859,10 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                 styles.startDuelButton,
                 creatingChallenge && styles.startDuelButtonDisabled
               ]}
-              onPress={handleStartDuel}
+              onPress={() => {
+                soundService.playButtonClick();
+                handleStartDuel();
+              }}
               disabled={creatingChallenge || !selectedQuestionCount}
             >
               {creatingChallenge ? (

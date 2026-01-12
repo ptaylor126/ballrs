@@ -31,6 +31,7 @@ import {
   UserStats,
 } from '../lib/statsService';
 import { awardLeaguePoints } from '../lib/leaguesService';
+import { soundService } from '../lib/soundService';
 import { calculatePuzzleXP, awardXP, XPAwardResult } from '../lib/xpService';
 import { awardPuzzlePoints } from '../lib/pointsService';
 import { checkPuzzleAchievements, Achievement } from '../lib/achievementsService';
@@ -385,6 +386,7 @@ export default function NFLPuzzleScreen({ onBack }: Props) {
     const guessCount = newGuessedPlayers.length;
 
     if (isCorrect) {
+      soundService.playDailyCorrect();
       setSolved(true);
       saveGameState(newGuessedPlayers, true);
       updateStats(true);
@@ -393,7 +395,7 @@ export default function NFLPuzzleScreen({ onBack }: Props) {
         awardLeaguePoints(user.id, 'nfl', guessCount, true);
 
         // Award leaderboard points (6 points for 1 guess, down to 1 point for 6 guesses)
-        awardPuzzlePoints(user.id, guessCount);
+        awardPuzzlePoints(user.id, guessCount, 'nfl');
 
         // Award XP for solving puzzle
         const streakDay = (cloudStats?.nfl_current_streak || stats.currentStreak) + 1;
@@ -403,7 +405,10 @@ export default function NFLPuzzleScreen({ onBack }: Props) {
           if (result) {
             setXPEarned(xpAmount);
             setXPResult(result);
-            setShowXPModal(true);
+            // Delay XP modal by 2.6 seconds after confetti to let user see jersey reveal first
+            setTimeout(() => {
+              setShowXPModal(true);
+            }, 2900);
           }
         }).catch((err) => {
           console.error('Error awarding XP:', err);
@@ -581,17 +586,12 @@ Streak: ${displayStats.currentStreak}`;
               <TouchableOpacity style={styles.backButton} onPress={onBack}>
                 <Text style={styles.backButtonText}>← Back</Text>
               </TouchableOpacity>
-              <View style={styles.headerRight}>
-                <TouchableOpacity style={styles.devResetButton} onPress={handleReset}>
-                  <Text style={styles.devResetButtonText}>Reset</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.statsButton}
-                  onPress={() => setShowStatsModal(true)}
-                >
-                  <Text style={styles.statsButtonText}>Stats</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.statsButton}
+                onPress={() => setShowStatsModal(true)}
+              >
+                <Text style={styles.statsButtonText}>Stats</Text>
+              </TouchableOpacity>
             </View>
             <Text style={styles.title}>Ballrs 🏈</Text>
             <Text style={styles.subtitle}>Guess the NFL player!</Text>
@@ -694,9 +694,6 @@ Streak: ${displayStats.currentStreak}`;
                 onPress={() => setShowShareModal(true)}
               >
                 <Text style={styles.shareButtonText}>Share Result</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-                <Text style={styles.resetButtonText}>Play Again (Dev)</Text>
               </TouchableOpacity>
             </View>
           )}

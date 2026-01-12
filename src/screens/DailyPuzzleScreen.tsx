@@ -28,6 +28,7 @@ import {
   UserStats,
 } from '../lib/statsService';
 import { awardLeaguePoints } from '../lib/leaguesService';
+import { soundService } from '../lib/soundService';
 import { calculatePuzzleXP, awardXP, XPAwardResult } from '../lib/xpService';
 import { awardPuzzlePoints } from '../lib/pointsService';
 import { checkPuzzleAchievements, Achievement } from '../lib/achievementsService';
@@ -331,6 +332,7 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
     setShowSuggestions(false);
 
     if (isCorrect) {
+      soundService.playDailyCorrect();
       setSolved(true);
       saveGameState(revealedClues, wrongGuesses, true, false);
       updateStats(true);
@@ -341,7 +343,7 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
         awardLeaguePoints(user.id, 'nba', guessCount, true);
 
         // Award leaderboard points (6 points for 1 clue, down to 1 point for 6 clues)
-        awardPuzzlePoints(user.id, guessCount);
+        awardPuzzlePoints(user.id, guessCount, 'nba');
 
         // Award XP for solving puzzle
         const streakDay = (cloudStats?.nba_current_streak || stats.currentStreak) + 1;
@@ -351,7 +353,10 @@ export default function DailyPuzzleScreen({ onBack }: Props) {
           if (result) {
             setXPEarned(xpAmount);
             setXPResult(result);
-            setShowXPModal(true);
+            // Delay XP modal by 2.6 seconds after confetti to let user see jersey reveal first
+            setTimeout(() => {
+              setShowXPModal(true);
+            }, 2900);
           }
         });
 

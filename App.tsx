@@ -15,9 +15,23 @@ import {
   Platform,
 } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import { setupGlobalErrorHandlers, logStartupError } from './src/lib/startupLogger';
+
+// Set up global error handlers as early as possible to catch startup crashes
+try {
+  setupGlobalErrorHandlers();
+} catch (error) {
+  console.warn('Failed to setup global error handlers:', error);
+}
 
 // Keep native splash screen visible until we're ready
-SplashScreen.preventAutoHideAsync();
+// Wrapped in try-catch to prevent Android crashes if native module isn't ready
+try {
+  SplashScreen.preventAutoHideAsync();
+} catch (error) {
+  console.warn('SplashScreen.preventAutoHideAsync() failed:', error);
+  logStartupError(error instanceof Error ? error : new Error(String(error)), 'startup');
+}
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -39,8 +53,8 @@ import { colors, shadows, getSportColor, getSportName, getSportEmoji, Sport, bor
 import { getUserXP, getXPProgressInLevel, getXPForLevel } from './src/lib/xpService';
 import { fetchUserStats, UserStats } from './src/lib/statsService';
 import { StatusBar } from 'expo-status-bar';
-import * as ScreenCapture from 'expo-screen-capture';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import CluePuzzleScreen from './src/screens/CluePuzzleScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -79,6 +93,7 @@ import nflTriviaData from './data/nfl-trivia.json';
 import mlbTriviaData from './data/mlb-trivia.json';
 import { TriviaQuestion } from './src/lib/duelService';
 import { getSmartQuestionId, resetDuelSession, selectQuestionsForDuel } from './src/lib/questionSelectionService';
+import { soundService } from './src/lib/soundService';
 
 const ONBOARDING_KEY = '@ballrs_onboarding_complete';
 
@@ -276,9 +291,12 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>BALLRS</Text>
-          <TouchableOpacity style={styles.headerAvatar} onPress={onProfilePress} activeOpacity={0.7}>
-            <Image source={require('./assets/images/icon-profile.png')} style={styles.headerAvatarIcon} resizeMode="contain" />
-          </TouchableOpacity>
+          <View style={styles.headerAvatarContainer}>
+            {Platform.OS === 'android' && <View style={styles.headerAvatarShadow} />}
+            <TouchableOpacity style={styles.headerAvatar} onPress={onProfilePress} activeOpacity={0.7}>
+              <Image source={require('./assets/images/icon-profile.png')} style={styles.headerAvatarIcon} resizeMode="contain" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Level & XP Bar */}
@@ -300,34 +318,40 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
         )}
         {user && (
           <View style={styles.levelSection}>
-            <TouchableOpacity
-              style={styles.combinedLevelBadge}
-              onPress={() => setShowLevelModal(true)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.levelSection_left}>
-                <Text style={styles.levelBadgeText}>LEVEL {level}</Text>
-              </View>
-              <View style={styles.levelDivider} />
-              <View style={styles.levelSection_middle}>
-                <Text style={styles.levelTitleText}>{getLevelTitle(level)}</Text>
-              </View>
-              <View style={styles.levelDivider} />
-              <View style={styles.levelSection_right}>
-                <Image source={fireIcon} style={styles.levelFireIcon} resizeMode="contain" />
-                <Text style={styles.levelStreakText}>{totalStreak}</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.levelBadgeContainer}>
+              {Platform.OS === 'android' && <View style={styles.levelBadgeShadow} />}
+              <TouchableOpacity
+                style={styles.combinedLevelBadge}
+                onPress={() => setShowLevelModal(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.levelSection_left}>
+                  <Text style={styles.levelBadgeText}>LEVEL {level}</Text>
+                </View>
+                <View style={styles.levelDivider} />
+                <View style={styles.levelSection_middle}>
+                  <Text style={styles.levelTitleText}>{getLevelTitle(level)}</Text>
+                </View>
+                <View style={styles.levelDivider} />
+                <View style={styles.levelSection_right}>
+                  <Image source={fireIcon} style={styles.levelFireIcon} resizeMode="contain" />
+                  <Text style={styles.levelStreakText}>{totalStreak}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.xpLabel}>{xpIntoLevel}/{xpNeededForNext} XP</Text>
-            <View style={styles.xpBarOuter}>
-              <Animated.View style={[styles.xpBarFillContainer, { width: xpBarWidth }]}>
-                <LinearGradient
-                  colors={[colors.xpGradientStart, colors.xpGradientEnd]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.xpBarFill}
-                />
-              </Animated.View>
+            <View style={styles.xpBarOuterContainer}>
+              {Platform.OS === 'android' && <View style={styles.xpBarShadow} />}
+              <View style={styles.xpBarOuter}>
+                <Animated.View style={[styles.xpBarFillContainer, { width: xpBarWidth }]}>
+                  <LinearGradient
+                    colors={[colors.xpGradientStart, colors.xpGradientEnd]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.xpBarFill}
+                  />
+                </Animated.View>
+              </View>
             </View>
           </View>
         )}
@@ -424,43 +448,9 @@ function AppContent() {
   const [isAsyncDuel, setIsAsyncDuel] = useState(false);
   const [isAsyncChallenger, setIsAsyncChallenger] = useState(false);
 
-  // Screenshot toast state
-  const [showScreenshotToast, setShowScreenshotToast] = useState(false);
-  const screenshotToastShownRef = useRef(false);
-  const screenshotToastAnim = useRef(new Animated.Value(0)).current;
-
-  // Screenshot detection listener (native only - not supported on web)
+  // Initialize sound service
   useEffect(() => {
-    if (Platform.OS === 'web') return;
-
-    const subscription = ScreenCapture.addScreenshotListener(() => {
-      // Only show once per session
-      if (screenshotToastShownRef.current) return;
-      screenshotToastShownRef.current = true;
-      setShowScreenshotToast(true);
-
-      // Animate toast in
-      Animated.timing(screenshotToastAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.ease),
-      }).start();
-
-      // Auto-dismiss after 2 seconds
-      setTimeout(() => {
-        Animated.timing(screenshotToastAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-          easing: Easing.in(Easing.ease),
-        }).start(() => {
-          setShowScreenshotToast(false);
-        });
-      }, 2000);
-    });
-
-    return () => subscription.remove();
+    soundService.initialize();
   }, []);
 
   // Check if onboarding has been completed
@@ -739,24 +729,34 @@ function AppContent() {
   const handleQuickDuel = async (sport: Sport) => {
     if (!user) return;
 
+    const QUICK_DUEL_QUESTIONS = 5;
+
     try {
       setDuelSport(sport);
       // Reset duel session for fresh question selection
       resetDuelSession(sport);
 
-      const waitingDuel = await findWaitingDuel(sport, user.id);
+      const waitingDuel = await findWaitingDuel(sport, user.id, QUICK_DUEL_QUESTIONS);
 
       if (waitingDuel) {
         const joinedDuel = await joinDuel(waitingDuel.id, user.id);
         if (joinedDuel) {
           setCurrentDuel(joinedDuel);
-          setCurrentScreen('duelGame');
+          // Use async mode for quick duels (same as friend challenges)
+          setIsAsyncDuel(true);
+          setIsAsyncChallenger(false); // Joining player is not the challenger
+          setCurrentScreen('asyncDuelGame');
         } else {
           Alert.alert('Error', 'Failed to join duel. Please try again.');
         }
       } else {
-        const questionId = getRandomTriviaQuestion(sport);
-        const newDuel = await createDuel(user.id, sport, questionId);
+        // Generate 5 unique question IDs for quick duel
+        const questionIds: string[] = [];
+        for (let i = 0; i < QUICK_DUEL_QUESTIONS; i++) {
+          questionIds.push(getRandomTriviaQuestion(sport));
+        }
+        const questionIdsString = questionIds.join(',');
+        const newDuel = await createDuel(user.id, sport, questionIdsString, QUICK_DUEL_QUESTIONS);
         if (newDuel) {
           setCurrentDuel(newDuel);
           setCurrentScreen('waitingForOpponent');
@@ -772,7 +772,10 @@ function AppContent() {
 
   const handleOpponentJoined = (duel: Duel) => {
     setCurrentDuel(duel);
-    setCurrentScreen('duelGame');
+    // Use async mode for quick duels (same as friend challenges)
+    setIsAsyncDuel(true);
+    setIsAsyncChallenger(true); // Creator is the challenger
+    setCurrentScreen('asyncDuelGame');
   };
 
   const handleDuelComplete = () => {
@@ -956,8 +959,14 @@ function AppContent() {
       <View style={{ flex: 1 }}>
         {currentScreen === 'home' && activeTab === 'home' && (
           <HomeScreen
-            onDailyPuzzle={(sport) => setCurrentScreen(`${sport}Daily` as Screen)}
-            onDuel={handleNavigateToDuels}
+            onDailyPuzzle={(sport) => {
+              soundService.playButtonClick();
+              setCurrentScreen(`${sport}Daily` as Screen);
+            }}
+            onDuel={(sport) => {
+              soundService.playButtonClick();
+              handleNavigateToDuels(sport);
+            }}
             onProfilePress={() => setCurrentScreen('profile')}
             refreshKey={homeRefreshKey}
           />
@@ -1150,56 +1159,65 @@ function AppContent() {
         <BottomNavBar
           activeTab={activeTab}
           onTabPress={handleTabPress}
-          duelsBadgeCount={incomingChallengesCount}
-          friendsBadgeCount={pendingFriendRequestsCount + pendingAsyncChallengesCount}
+          duelsBadgeCount={incomingChallengesCount + pendingAsyncChallengesCount}
+          friendsBadgeCount={pendingFriendRequestsCount}
         />
       )}
-      {/* Screenshot Toast */}
-      {showScreenshotToast && (
-        <Animated.View
-          style={[
-            styles.screenshotToast,
-            {
-              opacity: screenshotToastAnim,
-              transform: [
-                {
-                  translateY: screenshotToastAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-50, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
-          pointerEvents="none"
-        >
-          <Text style={styles.screenshotToastText}>Sharing? Tag us @ballrsgame 📸</Text>
-        </Animated.View>
-      )}
-    </View>
+      </View>
   );
 }
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
     DMSans_600SemiBold,
     DMSans_700Bold,
     DMSans_900Black,
   });
+  const [initError, setInitError] = useState<string | null>(null);
+
+  // Log font loading errors
+  useEffect(() => {
+    if (fontError) {
+      console.error('Font loading error:', fontError);
+      logStartupError(fontError, 'startup');
+      setInitError(`Font loading failed: ${fontError.message}`);
+    }
+  }, [fontError]);
 
   // Keep native splash visible while fonts are loading
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
+  // Show error screen if initialization failed
+  if (initError) {
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#F5F2EB' }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#1A1A1A' }}>
+            App Initialization Error
+          </Text>
+          <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
+            {initError}
+          </Text>
+          <Text style={{ fontSize: 12, color: '#999', textAlign: 'center' }}>
+            Platform: {Platform.OS}
+          </Text>
+        </View>
+      </SafeAreaProvider>
+    );
+  }
+
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -1256,7 +1274,34 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
   },
   // Header Profile Avatar
+  headerAvatarContainer: {
+    position: 'relative',
+    width: 44,
+    height: 44,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+      },
+      android: {},
+    }),
+  },
+  headerAvatarShadow: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#000000',
+    zIndex: 0,
+  },
   headerAvatar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -1265,11 +1310,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    zIndex: 1,
   },
   headerAvatarIcon: {
     width: 20,
@@ -1283,19 +1324,41 @@ const styles = StyleSheet.create({
     paddingBottom: 2, // Extra space for XP bar shadow
     marginBottom: 22,
   },
-  combinedLevelBadge: {
+  levelBadgeContainer: {
     alignSelf: 'flex-start',
-    marginBottom: 2,
+    position: 'relative',
+    marginBottom: 6,
+    paddingRight: 4,
+    paddingBottom: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 1, height: 1 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+      },
+      android: {},
+    }),
+  },
+  levelBadgeShadow: {
+    position: 'absolute',
+    top: 1,
+    left: 1,
+    right: -1,
+    bottom: -1,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+    zIndex: 0,
+  },
+  combinedLevelBadge: {
     flexDirection: 'row',
     alignItems: 'stretch',
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    zIndex: 1,
   },
   levelSection_left: {
     backgroundColor: '#F2C94C',
@@ -1350,17 +1413,36 @@ const styles = StyleSheet.create({
     marginTop: -10,
     marginBottom: 6,
   },
+  xpBarOuterContainer: {
+    position: 'relative',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+      },
+      android: {},
+    }),
+  },
+  xpBarShadow: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    height: 16,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
   xpBarOuter: {
+    position: 'relative',
+    zIndex: 1,
     height: 16,
     backgroundColor: '#E8E8E8',
     borderWidth: 2,
     borderColor: '#000000',
     borderRadius: 8,
-    shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    overflow: 'hidden',
   },
   xpBarFillContainer: {
     height: '100%',
@@ -1472,29 +1554,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  screenshotToast: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    right: 20,
-    backgroundColor: '#FFFDF5',
-    borderWidth: 2,
-    borderColor: '#1A1A1A',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    shadowColor: '#1A1A1A',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  screenshotToastText: {
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 14,
-    color: '#1A1A1A',
-    textAlign: 'center',
-  },
-});
+  });

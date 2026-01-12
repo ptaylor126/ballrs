@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Duel, subscribeToDuel, unsubscribeFromDuel, cancelDuel } from '../lib/duelService';
@@ -19,6 +20,9 @@ const sportIcons: Record<Sport, any> = {
   nfl: require('../../assets/images/icon-football.png'),
   mlb: require('../../assets/images/icon-baseball.png'),
 };
+
+// Ad banner
+const adBannerImage = require('../../assets/images/ad-banner-email-big.png');
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
@@ -61,6 +65,19 @@ export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOppo
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Ad Banner at top - same style as countdown screen */}
+      <TouchableOpacity
+        style={styles.adBanner}
+        onPress={() => Linking.openURL('https://parlaysfordays.com')}
+        activeOpacity={0.9}
+      >
+        <Image
+          source={adBannerImage}
+          style={styles.adImage}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
+
       <View style={styles.content}>
         {/* Sport Badge */}
         <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
@@ -83,8 +100,8 @@ export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOppo
 
         {/* Brief Rules */}
         <Text style={styles.rulesText}>
-          Answer the same trivia question{'\n'}
-          Correct answer + fastest time wins
+          5 trivia questions • Same questions{'\n'}
+          Most correct answers wins
         </Text>
 
         {/* Cancel Button */}
@@ -101,10 +118,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F2EB',
   },
-  content: {
+  adBanner: {
     flex: 1,
+    marginTop: 16,
+    marginHorizontal: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  adImage: {
+    width: '100%',
+    height: '100%',
+  },
+  content: {
+    flex: 2,
     padding: 24,
-    paddingTop: 48,
+    paddingTop: 24,
     alignItems: 'center',
   },
   sportBadge: {
@@ -134,7 +165,7 @@ const styles = StyleSheet.create({
   },
   spinnerContainer: {
     marginBottom: 24,
-    transform: [{ scale: 2 }],
+    transform: [{ scale: 1.6 }],
   },
   waitingText: {
     fontSize: 22,
@@ -155,7 +186,7 @@ const styles = StyleSheet.create({
     color: '#888888',
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 40,
+    marginBottom: 20,
   },
   cancelButton: {
     backgroundColor: '#F2C94C',

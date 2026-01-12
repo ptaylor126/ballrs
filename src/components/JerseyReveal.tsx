@@ -301,6 +301,14 @@ function ConfettiParticle({ delay, color, startX }: { delay: number; color: stri
   );
 }
 
+// Get dynamic font size based on name length
+const getNameFontSize = (name: string): number => {
+  if (name.length >= 12) return 9;
+  if (name.length >= 10) return 10;
+  if (name.length >= 8) return 11;
+  return 14;
+};
+
 // Jersey component with image template and color tinting
 function Jersey({
   sport,
@@ -318,6 +326,7 @@ function Jersey({
   const lastName = getLastName(playerName);
   const jerseyImage = jerseyImages[sport];
   const needsOutline = isLightColor(primaryColor);
+  const nameFontSize = getNameFontSize(lastName);
 
   return (
     <View style={styles.jerseyContainer}>
@@ -340,9 +349,8 @@ function Jersey({
       {/* Player name overlay */}
       <View style={styles.nameOverlay}>
         <Text
-          style={[styles.playerNameOnJersey, { color: textColor }]}
+          style={[styles.playerNameOnJersey, { color: textColor, fontSize: nameFontSize }]}
           numberOfLines={1}
-          adjustsFontSizeToFit
         >
           {lastName}
         </Text>
