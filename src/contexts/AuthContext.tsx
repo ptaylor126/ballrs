@@ -13,7 +13,7 @@ interface AuthContextType {
   profileLoading: boolean;
   refreshProfile: () => Promise<void>;
   signInAnonymously: () => Promise<{ error: Error | null }>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ data?: { session: Session | null }; error: Error | null }>;
   linkEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -73,22 +73,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    // Get initial session with error handling
+    supabase.auth.getSession()
+      .then(async ({ data: { session }, error }) => {
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          setProfileLoading(false);
+          return;
+        }
 
-      // Fetch username and register push notifications for existing session
-      if (session?.user) {
-        const fetchedUsername = await fetchUsername(session.user.id);
-        setUsername(fetchedUsername);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+
+        // Fetch username and register push notifications for existing session
+        if (session?.user) {
+          const fetchedUsername = await fetchUsername(session.user.id);
+          setUsername(fetchedUsername);
+          setProfileLoading(false);
+          setupPushNotifications(session.user.id);
+        } else {
+          setProfileLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error('Critical error getting session:', error);
+        setLoading(false);
         setProfileLoading(false);
-        setupPushNotifications(session.user.id);
-      } else {
-        setProfileLoading(false);
-      }
-    });
+      });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -121,11 +134,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sign in with email and password (for account recovery)
   const signInWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return { error: error as Error | null };
+    return { data, error: error as Error | null };
   };
 
   // Link email to anonymous account for recovery

@@ -109,6 +109,7 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
   const [signInPassword, setSignInPassword] = useState('');
   const [signInError, setSignInError] = useState('');
   const [signInLoading, setSignInLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -157,48 +158,40 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
     setSignInError('');
     setSignInLoading(true);
 
-    const { error } = await signInWithEmail(signInEmail.trim(), signInPassword);
+    try {
+      const { data, error } = await signInWithEmail(signInEmail.trim(), signInPassword);
 
-    if (error) {
-      setSignInError(error.message || 'Invalid email or password');
-      setSignInLoading(false);
-    } else {
-      try {
-        // Sign-in successful - check if the user has a profile
-        console.log('Sign-in successful, getting session...');
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Session obtained:', session?.user?.id);
-
-        if (session?.user) {
-          console.log('Checking profile for user:', session.user.id);
-          const profile = await getProfile(session.user.id);
-          console.log('Sign-in profile check:', { userId: session.user.id, hasProfile: !!profile });
-
-          if (profile) {
-            // User has existing profile - refresh the auth context and go to home
-            console.log('Profile found, refreshing and navigating to home...');
-            await refreshProfile();
-            setShowSignInModal(false);
-            setSignInLoading(false);
-            // Use onSignInComplete to go directly to home (skip country selection)
-            if (onSignInComplete) {
-              onSignInComplete();
-            } else {
-              onComplete();
-            }
-            return;
-          }
-        }
-
-        // No profile found - user will need to create one
-        console.log('No profile found for signed-in user');
-        setShowSignInModal(false);
+      if (error) {
+        setSignInError(error.message || 'Invalid email or password');
         setSignInLoading(false);
-      } catch (err) {
-        console.error('Error during sign-in profile check:', err);
-        setSignInError('Sign-in succeeded but failed to load profile. Please try again.');
-        setSignInLoading(false);
+        return;
       }
+
+      const session = data?.session;
+
+      if (session?.user) {
+        const profile = await getProfile(session.user.id);
+
+        if (profile) {
+          await refreshProfile();
+          setShowSignInModal(false);
+          setSignInLoading(false);
+          if (onSignInComplete) {
+            onSignInComplete();
+          } else {
+            onComplete();
+          }
+          return;
+        }
+      }
+
+      // No profile found - user will need to create one
+      setShowSignInModal(false);
+      setSignInLoading(false);
+    } catch (err: any) {
+      console.error('Sign-in error:', err);
+      setSignInError('Sign-in failed. Please try again.');
+      setSignInLoading(false);
     }
   };
 
@@ -207,6 +200,7 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
     setSignInEmail('');
     setSignInPassword('');
     setSignInError('');
+    setShowPassword(false);
   };
 
   const handleRandomUsername = async () => {
@@ -337,10 +331,8 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
         animationType="fade"
         onRequestClose={closeSignInModal}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Sign In</Text>
                 <Text style={styles.modalSubtitle}>
                   Welcome back! Sign in to recover your account.
@@ -367,15 +359,24 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
                   />
 
                   <Text style={styles.label}>PASSWORD</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="Enter your password"
-                    placeholderTextColor="#999999"
-                    value={signInPassword}
-                    onChangeText={setSignInPassword}
-                    secureTextEntry
-                    selectionColor="#1ABC9C"
-                  />
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder="Enter your password"
+                      placeholderTextColor="#999999"
+                      value={signInPassword}
+                      onChangeText={setSignInPassword}
+                      secureTextEntry={!showPassword}
+                      selectionColor="#1ABC9C"
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() => setShowPassword(!showPassword)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <View style={styles.modalButtons}>
@@ -386,25 +387,24 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                   </AnimatedButton>
 
-                  <AnimatedButton
+                  <TouchableOpacity
                     style={[
                       styles.signInButton,
                       signInLoading && styles.buttonDisabled,
                     ]}
                     onPress={handleSignIn}
                     disabled={signInLoading}
+                    activeOpacity={0.8}
                   >
                     {signInLoading ? (
                       <ActivityIndicator color="#FFFFFF" size="small" />
                     ) : (
                       <Text style={styles.signInButtonText}>Sign In</Text>
                     )}
-                  </AnimatedButton>
+                  </TouchableOpacity>
                 </View>
-              </View>
-            </TouchableWithoutFeedback>
           </View>
-        </TouchableWithoutFeedback>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -540,10 +540,10 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: colors.surface,
@@ -603,6 +603,30 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 2,
     borderColor: '#000000',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 14,
+    fontSize: 16,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.text,
+  },
+  eyeButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeIcon: {
+    fontSize: 18,
   },
   modalButtons: {
     flexDirection: 'row',
