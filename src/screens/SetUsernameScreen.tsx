@@ -71,6 +71,51 @@ interface Props {
   onReplayOnboarding?: () => void;
 }
 
+// Map Supabase auth errors to user-friendly messages
+function getAuthErrorMessage(error: Error | null): string {
+  if (!error) return 'An unknown error occurred. Please try again.';
+
+  const message = error.message?.toLowerCase() || '';
+
+  // Invalid credentials
+  if (message.includes('invalid login credentials') || message.includes('invalid_credentials')) {
+    return 'Incorrect email or password. Please check your details and try again.';
+  }
+
+  // User not found
+  if (message.includes('user not found') || message.includes('no user found')) {
+    return 'No account found with this email address. Please check your email or create a new account.';
+  }
+
+  // Email not confirmed
+  if (message.includes('email not confirmed') || message.includes('not confirmed')) {
+    return 'Please check your email and click the confirmation link before signing in.';
+  }
+
+  // Rate limiting
+  if (message.includes('too many requests') || message.includes('rate limit')) {
+    return 'Too many sign-in attempts. Please wait a few minutes and try again.';
+  }
+
+  // Network errors
+  if (message.includes('network') || message.includes('fetch') || message.includes('connection')) {
+    return 'Network error. Please check your internet connection and try again.';
+  }
+
+  // Email format issues
+  if (message.includes('invalid email') || message.includes('email')) {
+    return 'Please enter a valid email address.';
+  }
+
+  // Password issues
+  if (message.includes('password')) {
+    return 'Password error. Please check your password and try again.';
+  }
+
+  // Return original message if no match, with fallback
+  return error.message || 'Sign-in failed. Please try again.';
+}
+
 export default function SetUsernameScreen({ onComplete, onSignInComplete, onReplayOnboarding }: Props) {
   // Triple-tap on logo to reset onboarding (for testing)
   const tapCountRef = useRef(0);
@@ -150,8 +195,13 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
   };
 
   const handleSignIn = async () => {
-    if (!signInEmail.trim() || !signInPassword) {
-      setSignInError('Please enter email and password');
+    if (!signInEmail.trim()) {
+      setSignInError('Please enter your email address.');
+      return;
+    }
+
+    if (!signInPassword) {
+      setSignInError('Please enter your password.');
       return;
     }
 
@@ -162,35 +212,40 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
       const { data, error } = await signInWithEmail(signInEmail.trim(), signInPassword);
 
       if (error) {
-        setSignInError(error.message || 'Invalid email or password');
+        console.error('Sign-in error from Supabase:', error.message);
+        setSignInError(getAuthErrorMessage(error));
         setSignInLoading(false);
         return;
       }
 
       const session = data?.session;
 
-      if (session?.user) {
-        const profile = await getProfile(session.user.id);
+      if (!session?.user) {
+        setSignInError('Sign-in succeeded but no session was created. Please try again.');
+        setSignInLoading(false);
+        return;
+      }
 
-        if (profile) {
-          await refreshProfile();
-          setShowSignInModal(false);
-          setSignInLoading(false);
-          if (onSignInComplete) {
-            onSignInComplete();
-          } else {
-            onComplete();
-          }
-          return;
+      const profile = await getProfile(session.user.id);
+
+      if (profile) {
+        await refreshProfile();
+        setShowSignInModal(false);
+        setSignInLoading(false);
+        if (onSignInComplete) {
+          onSignInComplete();
+        } else {
+          onComplete();
         }
+        return;
       }
 
       // No profile found - user will need to create one
       setShowSignInModal(false);
       setSignInLoading(false);
     } catch (err: any) {
-      console.error('Sign-in error:', err);
-      setSignInError('Sign-in failed. Please try again.');
+      console.error('Sign-in error (caught):', err);
+      setSignInError(getAuthErrorMessage(err));
       setSignInLoading(false);
     }
   };

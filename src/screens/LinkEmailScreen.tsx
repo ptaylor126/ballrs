@@ -20,6 +20,41 @@ interface Props {
   onSuccess: () => void;
 }
 
+// Map Supabase auth errors to user-friendly messages
+function getLinkEmailErrorMessage(error: Error | null): string {
+  if (!error) return 'An unknown error occurred. Please try again.';
+
+  const message = error.message?.toLowerCase() || '';
+
+  // Email already in use
+  if (message.includes('already registered') || message.includes('already exists') || message.includes('duplicate')) {
+    return 'This email is already linked to another account. Please use a different email address.';
+  }
+
+  // Invalid email format
+  if (message.includes('invalid email') || message.includes('valid email')) {
+    return 'Please enter a valid email address.';
+  }
+
+  // Rate limiting
+  if (message.includes('too many requests') || message.includes('rate limit')) {
+    return 'Too many attempts. Please wait a few minutes and try again.';
+  }
+
+  // Network errors
+  if (message.includes('network') || message.includes('fetch') || message.includes('connection')) {
+    return 'Network error. Please check your internet connection and try again.';
+  }
+
+  // Password too weak
+  if (message.includes('password') && (message.includes('weak') || message.includes('short'))) {
+    return 'Password is too weak. Please use a stronger password.';
+  }
+
+  // Return original message if no match, with fallback
+  return error.message || 'Failed to link email. Please try again.';
+}
+
 export default function LinkEmailScreen({ onBack, onSuccess }: Props) {
   const { linkEmail } = useAuth();
   const [email, setEmail] = useState('');
@@ -66,7 +101,8 @@ export default function LinkEmailScreen({ onBack, onSuccess }: Props) {
     setLoading(false);
 
     if (error) {
-      setError(error.message || 'Failed to link email. Please try again.');
+      console.error('Link email error:', error.message);
+      setError(getLinkEmailErrorMessage(error));
     } else {
       Alert.alert(
         'Email Linked!',

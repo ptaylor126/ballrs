@@ -54,6 +54,7 @@ import {
 import { usePresence } from '../hooks/usePresence';
 import NotificationPromptModal from '../components/NotificationPromptModal';
 import { soundService } from '../lib/soundService';
+import { inviteFriends } from '../lib/inviteService';
 
 // Get trivia questions by sport
 const getTriviaQuestions = (sport: Sport): any[] => {
@@ -69,6 +70,7 @@ const getTriviaQuestions = (sport: Sport): any[] => {
 // Icons
 const friendsIcon = require('../../assets/images/icon-friends.png');
 const searchIcon = require('../../assets/images/icon-search.png');
+const inviteIcon = require('../../assets/images/icon-friends.png');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 100;
@@ -249,6 +251,9 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
   const [showRemoveConfirmModal, setShowRemoveConfirmModal] = useState(false);
   const [friendToRemove, setFriendToRemove] = useState<{ id: string; username: string } | null>(null);
   const [removingFriend, setRemovingFriend] = useState(false);
+
+  // Invite friends state
+  const [inviting, setInviting] = useState(false);
 
 
   // Real-time online status using presence hook
@@ -518,6 +523,15 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
     }
   };
 
+  const handleInviteFriends = async () => {
+    setInviting(true);
+    try {
+      await inviteFriends();
+    } finally {
+      setInviting(false);
+    }
+  };
+
   if (loading || !user) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -541,6 +555,31 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Friends</Text>
+        </View>
+
+        {/* Invite Friends Card */}
+        <View style={styles.section}>
+          <AnimatedCard
+            style={styles.inviteCard}
+            onPress={() => {
+              soundService.playButtonClick();
+              handleInviteFriends();
+            }}
+            disabled={inviting}
+          >
+            <View style={styles.inviteIconContainer}>
+              <Image source={inviteIcon} style={styles.inviteIcon} resizeMode="contain" />
+            </View>
+            <View style={styles.inviteContent}>
+              <Text style={styles.inviteTitle}>Invite Friends</Text>
+              <Text style={styles.inviteSubtitle}>
+                Challenge your friends to see who really knows ball
+              </Text>
+            </View>
+            <View style={styles.inviteArrow}>
+              <Text style={styles.inviteArrowText}>&gt;</Text>
+            </View>
+          </AnimatedCard>
         </View>
 
         {/* Search Section - Add Friends */}
@@ -1722,5 +1761,62 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'DMSans_900Black',
     letterSpacing: 0.5,
+  },
+  // Invite Friends Card
+  inviteCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F8F5',
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    padding: 16,
+    ...shadows.card,
+  },
+  inviteIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  inviteIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#FFFFFF',
+  },
+  inviteContent: {
+    flex: 1,
+    marginLeft: 14,
+    marginRight: 8,
+  },
+  inviteTitle: {
+    fontSize: 17,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  inviteSubtitle: {
+    fontSize: 13,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.textSecondary,
+  },
+  inviteArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  inviteArrowText: {
+    fontSize: 16,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
   },
 });

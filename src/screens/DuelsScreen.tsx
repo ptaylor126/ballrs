@@ -924,7 +924,7 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
         {/* Active Duels Section - includes both your duels and incoming challenges */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>ACTIVE DUELS</Text>
+            <Text style={styles.sectionTitleInline}>ACTIVE DUELS</Text>
             {(activeDuels.length > 0 || incomingChallenges.length > 0) && (
               <Text style={styles.swipeHint}>← Swipe to {incomingChallenges.length > 0 ? 'decline' : 'cancel'}</Text>
             )}
@@ -1001,7 +1001,7 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
         {/* Duel History Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>DUEL HISTORY</Text>
+            <Text style={styles.sectionTitleInline}>DUEL HISTORY</Text>
             <Text style={styles.historyNote}>Last 48 hours</Text>
           </View>
           {duelHistory.length === 0 ? (
@@ -1660,7 +1660,7 @@ const styles = StyleSheet.create({
   section: {
     paddingLeft: 24,
     paddingRight: 26, // Extra 2px for shadow offset
-    marginBottom: 24,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 12,
@@ -1669,6 +1669,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 12,
+  },
+  sectionTitleInline: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#888888',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   // Empty Cards
   emptyCard: {
@@ -2451,6 +2458,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
   },
   swipeHint: {
     fontSize: 11,

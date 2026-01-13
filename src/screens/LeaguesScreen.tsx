@@ -129,7 +129,7 @@ export default function LeaguesScreen({
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all_time');
   const [sportFilter, setSportFilter] = useState<SportFilter>('all');
 
   // Animated tab indicator
@@ -151,9 +151,10 @@ export default function LeaguesScreen({
 
   const loadLeaderboard = useCallback(async () => {
     console.log('[LeaguesScreen] Loading leaderboard with filters:', { timePeriod, sportFilter });
+    const sportFilterValue = sportFilter === 'all' ? undefined : sportFilter;
     const [data, count] = await Promise.all([
-      getGlobalLeaderboard(timePeriod, sportFilter === 'all' ? undefined : sportFilter),
-      getLeaderboardPlayerCount(timePeriod),
+      getGlobalLeaderboard(timePeriod, sportFilterValue),
+      getLeaderboardPlayerCount(timePeriod, sportFilterValue),
     ]);
     console.log('[LeaguesScreen] Leaderboard loaded:', { entries: data.length, totalUsers: count });
     setLeaderboard(data);
@@ -497,6 +498,29 @@ export default function LeaguesScreen({
         />
       }
     >
+      {/* Time Period Tabs */}
+      <View style={styles.timePeriodContainer}>
+        {TIME_PERIODS.filter(p => p.key === 'weekly' || p.key === 'all_time').map((period) => (
+          <TouchableOpacity
+            key={period.key}
+            style={[
+              styles.timePeriodTab,
+              timePeriod === period.key && styles.timePeriodTabActive,
+            ]}
+            onPress={() => setTimePeriod(period.key)}
+          >
+            <Text
+              style={[
+                styles.timePeriodTabText,
+                timePeriod === period.key && styles.timePeriodTabTextActive,
+              ]}
+            >
+              {period.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* Sport Filter Pills */}
       <View style={styles.sportFiltersContainer}>
         {SPORT_FILTERS.map((filter) => (
@@ -1054,6 +1078,40 @@ const styles = StyleSheet.create({
   medalIcon: {
     width: 28,
     height: 28,
+  },
+  // Time period tabs
+  timePeriodContainer: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.lg,
+    marginTop: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  timePeriodTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  timePeriodTabActive: {
+    backgroundColor: ACCENT_COLOR,
+  },
+  timePeriodTabText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_700Bold',
+    color: '#888888',
+    letterSpacing: 0.5,
+  },
+  timePeriodTabTextActive: {
+    color: '#FFFFFF',
   },
   // Sport filter pills
   sportFiltersContainer: {

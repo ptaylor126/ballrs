@@ -60,6 +60,7 @@ import CluePuzzleScreen from './src/screens/CluePuzzleScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SetUsernameScreen from './src/screens/SetUsernameScreen';
 import CountryPickerScreen from './src/screens/CountryPickerScreen';
+import SportsPickerScreen from './src/screens/SportsPickerScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import WaitingForOpponentScreen from './src/screens/WaitingForOpponentScreen';
 import DuelGameScreen from './src/screens/DuelGameScreen';
@@ -80,6 +81,7 @@ import LevelProgressionModal from './src/components/LevelProgressionModal';
 import DuelsScreen from './src/screens/DuelsScreen';
 import AnimatedSplashScreen from './src/screens/AnimatedSplashScreen';
 import { getProfile, updateLastActive } from './src/lib/profilesService';
+import { getUserPreferences, getDefaultSports } from './src/lib/userPreferencesService';
 import { joinPresence, leavePresence } from './src/lib/presenceService';
 import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getPendingAsyncChallengesCount, createInviteDuel, createAsyncDuel } from './src/lib/duelService';
 import { getPendingFriendRequestsCount, subscribeToFriendRequests, unsubscribeFromFriendRequests } from './src/lib/friendsService';
@@ -165,16 +167,17 @@ function AnimatedFireIcon({ totalStreak }: { totalStreak: number }) {
 // Check icon for completed sports
 const checkIcon = require('./assets/images/icon-check.png');
 
-type Screen = 'home' | 'nba' | 'pl' | 'nfl' | 'mlb' | 'nbaDaily' | 'plDaily' | 'nflDaily' | 'mlbDaily' | 'profile' | 'setUsername' | 'selectCountry' | 'leaderboard' | 'waitingForOpponent' | 'duelGame' | 'asyncDuelGame' | 'inviteFriend' | 'challengeSetup' | 'leagues' | 'leagueDetail' | 'achievements' | 'customizeProfile' | 'linkEmail';
+type Screen = 'home' | 'nba' | 'pl' | 'nfl' | 'mlb' | 'nbaDaily' | 'plDaily' | 'nflDaily' | 'mlbDaily' | 'profile' | 'setUsername' | 'selectSports' | 'selectCountry' | 'leaderboard' | 'waitingForOpponent' | 'duelGame' | 'asyncDuelGame' | 'inviteFriend' | 'challengeSetup' | 'leagues' | 'leagueDetail' | 'achievements' | 'customizeProfile' | 'linkEmail';
 
 interface HomeScreenProps {
   onDailyPuzzle: (sport: Sport) => void;
   onDuel: (sport: Sport) => void;
   onProfilePress: () => void;
   refreshKey?: number;
+  selectedSports?: Sport[] | null;
 }
 
-function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeScreenProps) {
+function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selectedSports }: HomeScreenProps) {
   const { user, loading: authLoading } = useAuth();
   const [xp, setXP] = useState(0);
   const [level, setLevel] = useState(1);
@@ -274,12 +277,20 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
     Animated.parallel(animations).start();
   }, []);
 
-  const sportCards: { sport: Sport; name: string }[] = [
+  // All available sports
+  const allSportCards: { sport: Sport; name: string }[] = [
     { sport: 'nba', name: 'NBA' },
     { sport: 'pl', name: 'EPL' },
     { sport: 'nfl', name: 'NFL' },
     { sport: 'mlb', name: 'MLB' },
   ];
+
+  // Filter to only show selected sports (default to all if not specified)
+  console.log('HomeScreen: selectedSports prop =', selectedSports);
+  const sportCards = selectedSports && selectedSports.length > 0
+    ? allSportCards.filter(card => selectedSports.includes(card.sport))
+    : allSportCards;
+  console.log('HomeScreen: showing sportCards =', sportCards.map(c => c.sport));
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -291,12 +302,9 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>BALLRS</Text>
-          <View style={styles.headerAvatarContainer}>
-            {Platform.OS === 'android' && <View style={styles.headerAvatarShadow} />}
-            <TouchableOpacity style={styles.headerAvatar} onPress={onProfilePress} activeOpacity={0.7}>
-              <Image source={require('./assets/images/icon-profile.png')} style={styles.headerAvatarIcon} resizeMode="contain" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.headerAvatar} onPress={onProfilePress} activeOpacity={0.7}>
+            <Image source={require('./assets/images/icon-profile.png')} style={styles.headerAvatarIcon} resizeMode="contain" />
+          </TouchableOpacity>
         </View>
 
         {/* Level & XP Bar */}
@@ -319,7 +327,6 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
         {user && (
           <View style={styles.levelSection}>
             <View style={styles.levelBadgeContainer}>
-              {Platform.OS === 'android' && <View style={styles.levelBadgeShadow} />}
               <TouchableOpacity
                 style={styles.combinedLevelBadge}
                 onPress={() => setShowLevelModal(true)}
@@ -341,7 +348,6 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
             </View>
             <Text style={styles.xpLabel}>{xpIntoLevel}/{xpNeededForNext} XP</Text>
             <View style={styles.xpBarOuterContainer}>
-              {Platform.OS === 'android' && <View style={styles.xpBarShadow} />}
               <View style={styles.xpBarOuter}>
                 <Animated.View style={[styles.xpBarFillContainer, { width: xpBarWidth }]}>
                   <LinearGradient
@@ -366,49 +372,50 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey }: HomeS
               <Animated.View
                 key={card.sport}
                 style={{
-                  width: '47%',
-                  opacity: cardAnims[index].opacity,
-                  transform: [{ translateY: cardAnims[index].translateY }],
+                  width: '100%',
+                  opacity: cardAnims[index]?.opacity ?? 1,
+                  transform: [{ translateY: cardAnims[index]?.translateY ?? 0 }],
                 }}
               >
-                <AnimatedCard style={[styles.sportCard, { width: '100%' }]}>
-                {/* Status Indicator - Top Right */}
-                <View style={styles.statusIndicator}>
-                  {isCompleted ? (
-                    <AnimatedCheckmark visible={isCompleted}>
-                      <Image source={checkIcon} style={[styles.checkIcon, { tintColor: sportColor }]} />
-                    </AnimatedCheckmark>
-                  ) : (
-                    <View style={[styles.statusDot, { backgroundColor: sportColor }]} />
-                  )}
-                </View>
+                <AnimatedCard style={styles.sportCard}>
+                  {/* Left side - Icon */}
+                  <View style={[styles.sportIconContainer, { backgroundColor: sportColor }]}>
+                    <Image source={sportIcons[card.sport]} style={styles.sportIcon} />
+                  </View>
 
-                {/* Sport Icon - Centered */}
-                <View style={styles.sportIconContainer}>
-                  <Image source={sportIcons[card.sport]} style={styles.sportIcon} />
-                </View>
+                  {/* Right side - Name and Buttons */}
+                  <View style={styles.sportCardContent}>
+                    {/* Top row - Name and Status */}
+                    <View style={styles.sportCardHeader}>
+                      <Text style={styles.sportName}>{card.name}</Text>
+                      <View style={styles.statusIndicator}>
+                        {isCompleted ? (
+                          <AnimatedCheckmark visible={isCompleted}>
+                            <Image source={checkIcon} style={[styles.checkIcon, { tintColor: sportColor }]} />
+                          </AnimatedCheckmark>
+                        ) : (
+                          <View style={[styles.statusDot, { backgroundColor: sportColor }]} />
+                        )}
+                      </View>
+                    </View>
 
-                {/* Sport Name - Centered */}
-                <View style={styles.sportNameContainer}>
-                  <Text style={styles.sportName}>{card.name}</Text>
-                </View>
+                    {/* Bottom row - Buttons side by side */}
+                    <View style={styles.buttonGroup}>
+                      <AnimatedButton
+                        style={[styles.dailyButton, { backgroundColor: sportColor }]}
+                        onPress={() => onDailyPuzzle(card.sport)}
+                      >
+                        <Text style={styles.dailyButtonText}>DAILY</Text>
+                      </AnimatedButton>
 
-                {/* Buttons */}
-                <View style={styles.buttonGroup}>
-                  <AnimatedButton
-                    style={[styles.dailyButton, { backgroundColor: sportColor }]}
-                    onPress={() => onDailyPuzzle(card.sport)}
-                  >
-                    <Text style={styles.dailyButtonText}>DAILY</Text>
-                  </AnimatedButton>
-
-                  <AnimatedButton
-                    style={styles.secondaryButton}
-                    onPress={() => onDuel(card.sport)}
-                  >
-                    <Text style={styles.secondaryButtonText}>TRIVIA DUEL</Text>
-                  </AnimatedButton>
-                </View>
+                      <AnimatedButton
+                        style={styles.secondaryButton}
+                        onPress={() => onDuel(card.sport)}
+                      >
+                        <Text style={styles.secondaryButtonText}>DUEL</Text>
+                      </AnimatedButton>
+                    </View>
+                  </View>
                 </AnimatedCard>
               </Animated.View>
             );
@@ -447,6 +454,7 @@ function AppContent() {
   const [autoStartDuelSport, setAutoStartDuelSport] = useState<Sport | null>(null);
   const [isAsyncDuel, setIsAsyncDuel] = useState(false);
   const [isAsyncChallenger, setIsAsyncChallenger] = useState(false);
+  const [selectedSports, setSelectedSports] = useState<Sport[] | null>(null);
 
   // Initialize sound service
   useEffect(() => {
@@ -569,8 +577,21 @@ function AppContent() {
         }
         // Update last_active for online status tracking
         updateLastActive(user.id);
+
+        // Load user's sport preferences (only if not already set from onboarding)
+        const preferences = await getUserPreferences(user.id);
+        console.log('checkProfile: loaded preferences', preferences);
+        if (preferences) {
+          console.log('checkProfile: setting sports from DB', preferences.selected_sports);
+          setSelectedSports(preferences.selected_sports);
+        } else {
+          // Default to all sports for existing users without preferences
+          console.log('checkProfile: no preferences found, defaulting to all sports');
+          setSelectedSports(getDefaultSports());
+        }
       } else {
         setHasProfile(null);
+        setSelectedSports(null);
       }
     };
     checkProfile();
@@ -680,6 +701,13 @@ function AppContent() {
 
   const handleUsernameSet = () => {
     setHasProfile(true);
+    setCurrentScreen('selectSports');
+  };
+
+  // Handler for when user completes sports selection
+  const handleSportsSelected = (sports: Sport[]) => {
+    console.log('handleSportsSelected: setting sports to', sports);
+    setSelectedSports(sports);
     setCurrentScreen('selectCountry');
   };
 
@@ -969,6 +997,7 @@ function AppContent() {
             }}
             onProfilePress={() => setCurrentScreen('profile')}
             refreshKey={homeRefreshKey}
+            selectedSports={selectedSports}
           />
         )}
         {activeTab === 'duels' && currentScreen === 'home' && (
@@ -1057,6 +1086,12 @@ function AppContent() {
             onComplete={handleUsernameSet}
             onSignInComplete={handleSignInComplete}
             onReplayOnboarding={handleReplayOnboarding}
+          />
+        )}
+        {currentScreen === 'selectSports' && (
+          <SportsPickerScreen
+            onComplete={handleSportsSelected}
+            isOnboarding={true}
           />
         )}
         {currentScreen === 'selectCountry' && (
@@ -1275,33 +1310,14 @@ const styles = StyleSheet.create({
   },
   // Header Profile Avatar
   headerAvatarContainer: {
-    position: 'relative',
-    width: 44,
-    height: 44,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-      },
-      android: {},
-    }),
-  },
-  headerAvatarShadow: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#000000',
-    zIndex: 0,
+  },
+  headerAvatarShadow: {
+    // Not used - keeping for backwards compatibility
+    display: 'none',
   },
   headerAvatar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -1310,7 +1326,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#000000',
-    zIndex: 1,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   headerAvatarIcon: {
     width: 20,
@@ -1326,29 +1346,11 @@ const styles = StyleSheet.create({
   },
   levelBadgeContainer: {
     alignSelf: 'flex-start',
-    position: 'relative',
     marginBottom: 6,
-    paddingRight: 4,
-    paddingBottom: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 1, height: 1 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-      },
-      android: {},
-    }),
   },
   levelBadgeShadow: {
-    position: 'absolute',
-    top: 1,
-    left: 1,
-    right: -1,
-    bottom: -1,
-    backgroundColor: '#000000',
-    borderRadius: 8,
-    zIndex: 0,
+    // Not used - keeping for backwards compatibility
+    display: 'none',
   },
   combinedLevelBadge: {
     flexDirection: 'row',
@@ -1358,7 +1360,11 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
-    zIndex: 1,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   levelSection_left: {
     backgroundColor: '#F2C94C',
@@ -1414,35 +1420,24 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   xpBarOuterContainer: {
-    position: 'relative',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-      },
-      android: {},
-    }),
+    // Container for XP bar
   },
   xpBarShadow: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
-    right: -2,
-    height: 16,
-    backgroundColor: '#000000',
-    borderRadius: 8,
+    // Not used - keeping for backwards compatibility
+    display: 'none',
   },
   xpBarOuter: {
-    position: 'relative',
-    zIndex: 1,
     height: 16,
     backgroundColor: '#E8E8E8',
     borderWidth: 2,
     borderColor: '#000000',
     borderRadius: 8,
     overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   xpBarFillContainer: {
     height: '100%',
@@ -1455,35 +1450,48 @@ const styles = StyleSheet.create({
   },
   // Sport Grid
   sportGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
     paddingHorizontal: 24,
-    gap: 16,
-    justifyContent: 'space-between',
+    gap: 12,
   },
   sportCard: {
-    width: '47%',
+    flexDirection: 'row',
     backgroundColor: colors.surface,
     borderWidth: borders.card,
     borderColor: colors.border,
     borderRadius: borderRadius.card,
-    padding: 20,
-    position: 'relative',
+    overflow: 'hidden',
     ...shadows.card,
   },
-  statusIndicator: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    zIndex: 1,
-  },
   sportIconContainer: {
+    width: 80,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    padding: 16,
   },
   sportIcon: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
+  },
+  sportCardContent: {
+    flex: 1,
+    padding: 16,
+    paddingLeft: 8,
+    justifyContent: 'center',
+  },
+  sportCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  sportName: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
+    color: colors.text,
+  },
+  statusIndicator: {
+    marginLeft: 8,
   },
   statusDot: {
     width: 12,
@@ -1494,25 +1502,15 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  sportNameContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sportName: {
-    fontSize: 24,
-    fontFamily: 'DMSans_900Black',
-    color: colors.text,
-    textAlign: 'center',
-  },
   buttonGroup: {
+    flexDirection: 'row',
     gap: 8,
   },
   dailyButton: {
-    width: '100%',
-    height: 36,
+    flex: 1,
+    height: 40,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: '#1A1A1A',
     alignItems: 'center',
@@ -1525,17 +1523,16 @@ const styles = StyleSheet.create({
   },
   dailyButtonText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'DMSans_900Black',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   secondaryButton: {
-    width: '100%',
-    height: 36,
+    flex: 1,
+    height: 40,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: '#1A1A1A',
     backgroundColor: '#FFFFFF',
@@ -1549,7 +1546,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#1A1A1A',
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'DMSans_900Black',
     textTransform: 'uppercase',
     letterSpacing: 0.5,

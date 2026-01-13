@@ -1,6 +1,12 @@
 import { supabase } from './supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
+// Helper to get the current authenticated user ID
+async function getCurrentUserId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || null;
+}
+
 // Check if error is "table not found" - leagues/league_members tables may not exist yet
 function isTableNotFound(error: any): boolean {
   return error?.code === 'PGRST205' ||
@@ -390,19 +396,35 @@ export async function leaveLeague(leagueId: string, userId: string): Promise<boo
 
 // Delete a league (only creator can do this)
 export async function deleteLeague(leagueId: string): Promise<boolean> {
-  const { error } = await supabase
+  // Security: Verify the current user is the league creator
+  const currentUserId = await getCurrentUserId();
+  if (!currentUserId) {
+    console.error('Unauthorized: No authenticated user');
+    return false;
+  }
+
+  // Only delete if the user is the creator
+  const { data: deleted, error } = await supabase
     .from('leagues')
     .delete()
-    .eq('id', leagueId);
+    .eq('id', leagueId)
+    .eq('created_by', currentUserId)
+    .select()
+    .single();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      // No row returned - either doesn't exist or user isn't creator
+      console.error('Unauthorized: User is not the league creator or league not found');
+      return false;
+    }
     if (!isTableNotFound(error)) {
       console.error('Error deleting league:', error);
     }
     return false;
   }
 
-  return true;
+  return !!deleted;
 }
 
 // Get league leaderboard

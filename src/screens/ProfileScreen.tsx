@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchUserStats, UserStats } from '../lib/statsService';
 import { getUserXP, getXPProgressInLevel, getXPForLevel } from '../lib/xpService';
-import { colors, shadows, getSportColor, borders, borderRadius, typography, spacing } from '../lib/theme';
+import { colors, shadows, getSportColor, getSportName, Sport, borders, borderRadius, typography, spacing } from '../lib/theme';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
 import {
   FrameStyle,
@@ -28,8 +28,10 @@ import {
 import { getProfile, updateCountry } from '../lib/profilesService';
 import { countryCodeToFlag, COUNTRIES, Country } from '../lib/countryUtils';
 import { soundService } from '../lib/soundService';
+import { getUserPreferences, updateSelectedSports, getDefaultSports, ALL_SPORTS } from '../lib/userPreferencesService';
 import FeedbackModal from '../components/FeedbackModal';
 import { deleteUserAccount } from '../lib/accountService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Icons
 const fireIcon = require('../../assets/images/icon-fire.png');
@@ -74,6 +76,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [selectedSports, setSelectedSports] = useState<Sport[]>(getDefaultSports());
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showFeedbackToast, setShowFeedbackToast] = useState(false);
   const feedbackToastAnim = useRef(new Animated.Value(0)).current;
@@ -97,6 +100,38 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
     const newValue = !soundEnabled;
     setSoundEnabled(newValue);
     await soundService.setEnabled(newValue);
+  };
+
+  const handleSportToggle = async (sport: Sport) => {
+    console.log('handleSportToggle called:', sport, 'current selection:', selectedSports);
+    if (!user) return;
+
+    const isCurrentlySelected = selectedSports.includes(sport);
+    console.log('isCurrentlySelected:', isCurrentlySelected, 'total selected:', selectedSports.length);
+
+    // Prevent turning off the last sport
+    if (isCurrentlySelected && selectedSports.length === 1) {
+      console.log('Prevented: cannot turn off last sport');
+      return;
+    }
+
+    const newSelection = isCurrentlySelected
+      ? selectedSports.filter(s => s !== sport)
+      : [...selectedSports, sport];
+
+    console.log('New selection:', newSelection);
+
+    // Update local state immediately for responsive UI
+    setSelectedSports(newSelection);
+
+    // Persist to database
+    const success = await updateSelectedSports(user.id, newSelection);
+    console.log('Database update success:', success);
+    if (!success) {
+      // Revert on failure
+      console.log('Reverting to previous selection');
+      setSelectedSports(selectedSports);
+    }
   };
 
   const handleFeedbackSuccess = () => {
@@ -156,15 +191,20 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
       setLevel(xpData.level);
     }
 
-    const [frame, icon, profile] = await Promise.all([
+    const [frame, icon, profile, preferences] = await Promise.all([
       getUserFrameStyle(user.id),
       getUserIcon(user.id),
       getProfile(user.id),
+      getUserPreferences(user.id),
     ]);
     setFrameStyle(frame);
     setProfileIcon(icon);
     // Username is now from AuthContext (cachedUsername), only fetch country here
     setCountry(profile?.country || null);
+    // Load sport preferences
+    if (preferences) {
+      setSelectedSports(preferences.selected_sports);
+    }
 
     setLoadingStats(false);
   }, [user]);
@@ -487,6 +527,49 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                     soundEnabled && styles.toggleKnobActive,
                   ]} />
                 </TouchableOpacity>
+              </View>
+
+              {/* My Sports Section */}
+              <View style={styles.settingDivider} />
+              <View style={styles.mySportsSection}>
+                <Text style={styles.mySportsSectionTitle}>My Sports</Text>
+                <Text style={styles.mySportsSectionSubtitle}>Choose which sports appear on your home screen</Text>
+                {ALL_SPORTS.map((sport, index) => {
+                  const isEnabled = selectedSports.includes(sport);
+                  const isLastEnabled = isEnabled && selectedSports.length === 1;
+                  console.log(`Rendering ${sport}: isEnabled=${isEnabled}, selectedSports=`, selectedSports);
+
+                  return (
+                    <View key={sport}>
+                      {index > 0 && <View style={styles.sportToggleDivider} />}
+                      <View style={styles.settingRow}>
+                        <View style={styles.sportLabelRow}>
+                          <View style={[styles.sportDot, { backgroundColor: getSportColor(sport) }]} />
+                          <Text style={styles.settingLabel}>
+                            {sport === 'pl' ? 'EPL' : sport.toUpperCase()}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          style={[
+                            styles.toggleButton,
+                            isEnabled && styles.toggleButtonActive,
+                            isLastEnabled && styles.toggleButtonDisabled,
+                          ]}
+                          onPress={() => handleSportToggle(sport)}
+                          disabled={isLastEnabled}
+                        >
+                          <View style={[
+                            styles.toggleKnob,
+                            isEnabled && styles.toggleKnobActive,
+                          ]} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+                {selectedSports.length === 1 && (
+                  <Text style={styles.mySportsHint}>You can't disable your only sport</Text>
+                )}
               </View>
 
               {onReplayOnboarding && (
@@ -1183,6 +1266,47 @@ const styles = StyleSheet.create({
   },
   toggleKnobActive: {
     alignSelf: 'flex-end',
+  },
+  toggleButtonDisabled: {
+    opacity: 0.5,
+  },
+  // My Sports Section
+  mySportsSection: {
+    marginTop: spacing.sm,
+  },
+  mySportsSectionTitle: {
+    fontSize: 16,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  mySportsSectionSubtitle: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  sportLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sportDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  sportToggleDivider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.sm,
+  },
+  mySportsHint: {
+    fontSize: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    marginTop: spacing.sm,
   },
   settingDivider: {
     height: 1,

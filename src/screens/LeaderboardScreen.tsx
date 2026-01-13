@@ -74,13 +74,14 @@ export default function LeaderboardScreen({ onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [playerCount, setPlayerCount] = useState(0);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all_time');
   const [sportFilter, setSportFilter] = useState<SportFilter>('all');
 
   const fetchLeaderboard = useCallback(async () => {
+    const sportFilterValue = sportFilter === 'all' ? undefined : sportFilter;
     const [data, count] = await Promise.all([
-      getGlobalLeaderboard(timePeriod, sportFilter === 'all' ? undefined : sportFilter),
-      getLeaderboardPlayerCount(timePeriod),
+      getGlobalLeaderboard(timePeriod, sportFilterValue),
+      getLeaderboardPlayerCount(timePeriod, sportFilterValue),
     ]);
     setLeaderboard(data);
     setPlayerCount(count);

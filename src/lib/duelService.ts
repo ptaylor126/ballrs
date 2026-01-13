@@ -2,6 +2,38 @@ import { supabase } from './supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { sendDuelChallengeNotification, sendDuelResultNotification } from './notificationService';
 
+// Helper to get the current authenticated user ID
+async function getCurrentUserId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || null;
+}
+
+// Helper to verify user is a participant in a duel
+async function verifyDuelParticipant(duelId: string): Promise<{ isParticipant: boolean; isPlayer1: boolean }> {
+  const currentUserId = await getCurrentUserId();
+  if (!currentUserId) {
+    return { isParticipant: false, isPlayer1: false };
+  }
+
+  const { data: duel, error } = await supabase
+    .from('duels')
+    .select('player1_id, player2_id')
+    .eq('id', duelId)
+    .single();
+
+  if (error || !duel) {
+    return { isParticipant: false, isPlayer1: false };
+  }
+
+  const isPlayer1 = duel.player1_id === currentUserId;
+  const isPlayer2 = duel.player2_id === currentUserId;
+
+  return {
+    isParticipant: isPlayer1 || isPlayer2,
+    isPlayer1,
+  };
+}
+
 // Duel status types
 export type DuelStatus = 'waiting' | 'active' | 'completed' | 'invite' | 'declined' | 'waiting_for_p2' | 'expired';
 
@@ -297,6 +329,19 @@ export async function updateDuelGuesses(
   isPlayer1: boolean,
   guessCount: number
 ): Promise<Duel | null> {
+  // Security: Verify user is a participant
+  const { isParticipant, isPlayer1: actualIsPlayer1 } = await verifyDuelParticipant(duelId);
+  if (!isParticipant) {
+    console.error('Unauthorized: User is not a participant in this duel');
+    return null;
+  }
+
+  // Verify the isPlayer1 flag matches actual position
+  if (isPlayer1 !== actualIsPlayer1) {
+    console.error('Unauthorized: Player position mismatch');
+    return null;
+  }
+
   const field = isPlayer1 ? 'player1_guesses' : 'player2_guesses';
 
   const { data, error } = await supabase
@@ -315,7 +360,15 @@ export async function updateDuelGuesses(
 }
 
 // Complete a duel with a winner (null for tie)
+// NOTE: For security, prefer using the complete-duel Edge Function instead
 export async function completeDuel(duelId: string, winnerId: string | null): Promise<Duel | null> {
+  // Security: Verify user is a participant
+  const { isParticipant } = await verifyDuelParticipant(duelId);
+  if (!isParticipant) {
+    console.error('Unauthorized: User is not a participant in this duel');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('duels')
     .update({
@@ -434,6 +487,19 @@ export async function submitTriviaAnswer(
   answer: string,
   answerTime: number
 ): Promise<Duel | null> {
+  // Security: Verify user is a participant
+  const { isParticipant, isPlayer1: actualIsPlayer1 } = await verifyDuelParticipant(duelId);
+  if (!isParticipant) {
+    console.error('Unauthorized: User is not a participant in this duel');
+    return null;
+  }
+
+  // Verify the isPlayer1 flag matches actual position
+  if (isPlayer1 !== actualIsPlayer1) {
+    console.error('Unauthorized: Player position mismatch');
+    return null;
+  }
+
   const answerField = isPlayer1 ? 'player1_answer' : 'player2_answer';
   const timeField = isPlayer1 ? 'player1_answer_time' : 'player2_answer_time';
 
@@ -457,6 +523,13 @@ export async function submitTriviaAnswer(
 
 // Set round start time when both players are ready
 export async function setRoundStartTime(duelId: string): Promise<Duel | null> {
+  // Security: Verify user is a participant
+  const { isParticipant } = await verifyDuelParticipant(duelId);
+  if (!isParticipant) {
+    console.error('Unauthorized: User is not a participant in this duel');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('duels')
     .update({
@@ -771,6 +844,13 @@ export async function advanceToNextRound(
   p1AnswerTime: number,
   p2AnswerTime: number
 ): Promise<Duel | null> {
+  // Security: Verify user is a participant
+  const { isParticipant } = await verifyDuelParticipant(duelId);
+  if (!isParticipant) {
+    console.error('Unauthorized: User is not a participant in this duel');
+    return null;
+  }
+
   // First get current duel state
   const { data: currentDuel, error: fetchError } = await supabase
     .from('duels')

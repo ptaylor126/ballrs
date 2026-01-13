@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
+  Image,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,6 +31,76 @@ const categoryLabels: Record<string, string> = {
   secret: 'Secret',
 };
 
+// Achievement icon mapping - maps achievement names to icon images
+// Note: icon files are spelled "acheivement" (typo in filenames)
+const achievementIcons: Record<string, any> = {
+  // Puzzle achievements
+  'First Victory': require('../../assets/images/achievements/acheivement-first-blood.png'),
+  'First Blood': require('../../assets/images/achievements/acheivement-first-blood.png'),
+  'Sharp Shooter': require('../../assets/images/achievements/acheivement-sharp-shooter.png'),
+  'Perfect Game': require('../../assets/images/achievements/acheivement-sharp-shooter.png'),
+  'On Fire': require('../../assets/images/achievements/acheivement-unstoppable.png'), // Using unstoppable as fallback
+  'Week Warrior': require('../../assets/images/achievements/acheivement-unstoppable.png'),
+  'Unstoppable': require('../../assets/images/achievements/acheivement-unstoppable.png'),
+  'Monthly Master': require('../../assets/images/achievements/acheivement-unstoppable.png'),
+  'Century': require('../../assets/images/achievements/acheivement-century.png'),
+  'Puzzle Master': require('../../assets/images/achievements/acheivement-century.png'),
+  'Puzzle Expert': require('../../assets/images/achievements/acheivement-century.png'),
+  'Puzzle Enthusiast': require('../../assets/images/achievements/acheivement-century.png'),
+  'Globe Trotter': require('../../assets/images/achievements/acheivement-globe-trotter.png'),
+
+  // Duel achievements
+  'Challenger': require('../../assets/images/achievements/acheivement-challenger.png'),
+  'Duel Debut': require('../../assets/images/achievements/acheivement-challenger.png'),
+  'Duelist': require('../../assets/images/achievements/acheivement-duelist.png'),
+  'Duel Champion': require('../../assets/images/achievements/acheivement-duelist.png'),
+  'Duel Legend': require('../../assets/images/achievements/acheivement-duelist.png'),
+  'Underdog': require('../../assets/images/achievements/acheivement-underdog.png'),
+
+  // Social achievements
+  'Squad Up': require('../../assets/images/achievements/acheivement-squad-up.png'),
+  'Social Starter': require('../../assets/images/achievements/acheivement-squad-up.png'),
+  'Popular Player': require('../../assets/images/achievements/acheivement-squad-up.png'),
+  'Team Player': require('../../assets/images/achievements/acheivement-squad-up.png'),
+  'Recruiter': require('../../assets/images/achievements/acheivement-recruiter.png'),
+
+  // Secret achievements
+  'Night Owl': require('../../assets/images/achievements/acheivement-night-owl.png'),
+  'Speed Demon': require('../../assets/images/achievements/acheivement-speed-demon.png'),
+  'Perfectionist': require('../../assets/images/achievements/acheivement-perfectionist.png'),
+
+  // Level achievements - use challenger as fallback
+  'Rising Star': require('../../assets/images/achievements/acheivement-challenger.png'),
+  'Elite Status': require('../../assets/images/achievements/acheivement-challenger.png'),
+};
+
+// Default icon for unmapped achievements
+const defaultIcon = require('../../assets/images/achievements/acheivement-challenger.png');
+
+// Padlock icon for locked achievements
+const padlockIcon = require('../../assets/images/icon-padlock.png');
+
+// Secret achievement names
+const secretAchievementNames = ['Night Owl', 'Speed Demon', 'Perfectionist'];
+
+// Progress labels for countable achievements
+const progressLabels: Record<string, { label: string; target: number }> = {
+  'Century': { label: 'puzzles', target: 100 },
+  'Puzzle Master': { label: 'puzzles', target: 100 },
+  'Puzzle Expert': { label: 'puzzles', target: 50 },
+  'Puzzle Enthusiast': { label: 'puzzles', target: 10 },
+  'On Fire': { label: 'days', target: 7 },
+  'Week Warrior': { label: 'days', target: 7 },
+  'Unstoppable': { label: 'days', target: 30 },
+  'Monthly Master': { label: 'days', target: 30 },
+  'Duelist': { label: 'duels', target: 10 },
+  'Duel Champion': { label: 'duels', target: 10 },
+  'Duel Legend': { label: 'duels', target: 50 },
+  'Globe Trotter': { label: 'sports', target: 3 },
+  'Perfectionist': { label: 'in a row', target: 5 },
+  'Popular Player': { label: 'friends', target: 10 },
+};
+
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
@@ -36,6 +108,10 @@ function formatDate(dateString: string): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function getAchievementIcon(achievementName: string): any {
+  return achievementIcons[achievementName] || defaultIcon;
 }
 
 export default function AchievementsScreen({ onBack }: Props) {
@@ -77,6 +153,10 @@ export default function AchievementsScreen({ onBack }: Props) {
   function getProgress(achievement: Achievement): AchievementProgress | null {
     if (!stats) return null;
     return getAchievementProgress(achievement.name, stats);
+  }
+
+  function isSecretAchievement(achievementName: string): boolean {
+    return secretAchievementNames.includes(achievementName);
   }
 
   const unlockedCount = unlockedMap.size;
@@ -130,7 +210,9 @@ export default function AchievementsScreen({ onBack }: Props) {
             <View style={styles.achievementsGrid}>
               {groupedAchievements[category].map((achievement) => {
                 const isUnlocked = unlockedMap.has(achievement.id);
-                const isSecret = achievement.is_secret && !isUnlocked;
+                const isSecret = (achievement.is_secret || isSecretAchievement(achievement.name)) && !isUnlocked;
+                const progress = !isUnlocked ? getProgress(achievement) : null;
+                const progressConfig = progressLabels[achievement.name];
 
                 return (
                   <View key={achievement.id} style={styles.achievementCardWrapper}>
@@ -142,34 +224,79 @@ export default function AchievementsScreen({ onBack }: Props) {
                       onPress={() => handleAchievementPress(achievement)}
                       activeOpacity={0.8}
                     >
+                      {/* Padlock for locked achievements */}
+                      {!isUnlocked && (
+                        <View style={styles.lockedBadge}>
+                          <Image source={padlockIcon} style={styles.padlockIcon} />
+                        </View>
+                      )}
+
+                      {/* Checkmark for unlocked achievements */}
+                      {isUnlocked && (
+                        <View style={styles.unlockedBadge}>
+                          <Text style={styles.unlockedCheck}>✓</Text>
+                        </View>
+                      )}
+
+                      {/* Icon */}
                       <View
                         style={[
                           styles.iconContainer,
                           !isUnlocked && styles.iconContainerLocked,
                         ]}
                       >
-                        <Text style={[styles.icon, !isUnlocked && styles.iconLocked]}>
-                          {isSecret ? '?' : achievement.icon}
-                        </Text>
+                        {isSecret ? (
+                          <Image source={padlockIcon} style={styles.secretIcon} />
+                        ) : (
+                          <Image
+                            source={getAchievementIcon(achievement.name)}
+                            style={[
+                              styles.achievementIcon,
+                              !isUnlocked && styles.iconGrayscale,
+                            ]}
+                          />
+                        )}
                       </View>
 
+                      {/* Title */}
                       <Text
-                        style={[styles.achievementName, !isUnlocked && styles.textLocked]}
+                        style={[
+                          styles.achievementName,
+                          !isUnlocked && styles.textLocked,
+                        ]}
                         numberOfLines={2}
                       >
                         {isSecret ? '???' : achievement.name}
                       </Text>
 
+                      {/* Description */}
                       <Text
-                        style={[styles.achievementDescription, !isUnlocked && styles.textLocked]}
+                        style={[
+                          styles.achievementDescription,
+                          isUnlocked && styles.achievementDescriptionUnlocked,
+                          !isUnlocked && styles.textLocked,
+                        ]}
                         numberOfLines={2}
                       >
-                        {isSecret ? '???' : achievement.description}
+                        {isSecret ? 'Secret achievement' : achievement.description}
                       </Text>
 
-                      {isUnlocked && (
-                        <View style={styles.unlockedBadge}>
-                          <Text style={styles.unlockedCheck}>✓</Text>
+                      {/* Progress bar for locked countable achievements */}
+                      {!isUnlocked && !isSecret && progress && progressConfig && (
+                        <View style={styles.progressContainer}>
+                          <View style={styles.progressBar}>
+                            <View
+                              style={[
+                                styles.progressFill,
+                                {
+                                  width: `${Math.min((progress.current / progress.target) * 100, 100)}%`,
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text style={styles.progressText}>
+                            {progress.current}/{progress.target} {progressConfig.label}
+                          </Text>
                         </View>
                       )}
                     </TouchableOpacity>
@@ -204,7 +331,8 @@ export default function AchievementsScreen({ onBack }: Props) {
                   const isUnlocked = unlockedMap.has(selectedAchievement.id);
                   const unlockDate = unlockedMap.get(selectedAchievement.id);
                   const progress = !isUnlocked ? getProgress(selectedAchievement) : null;
-                  const isSecret = selectedAchievement.is_secret && !isUnlocked;
+                  const isSecret = (selectedAchievement.is_secret || isSecretAchievement(selectedAchievement.name)) && !isUnlocked;
+                  const progressConfig = progressLabels[selectedAchievement.name];
 
                   return (
                     <>
@@ -214,12 +342,20 @@ export default function AchievementsScreen({ onBack }: Props) {
                           !isUnlocked && styles.modalIconContainerLocked,
                         ]}
                       >
-                        <Text style={[styles.modalIcon, !isUnlocked && styles.iconLocked]}>
-                          {isSecret ? '?' : selectedAchievement.icon}
-                        </Text>
+                        {isSecret ? (
+                          <Image source={padlockIcon} style={styles.modalSecretIcon} />
+                        ) : (
+                          <Image
+                            source={getAchievementIcon(selectedAchievement.name)}
+                            style={[
+                              styles.modalAchievementIcon,
+                              !isUnlocked && styles.iconGrayscale,
+                            ]}
+                          />
+                        )}
                       </View>
 
-                      <Text style={styles.modalTitle}>
+                      <Text style={[styles.modalTitle, !isUnlocked && styles.modalTitleLocked]}>
                         {isSecret ? '???' : selectedAchievement.name}
                       </Text>
 
@@ -229,7 +365,7 @@ export default function AchievementsScreen({ onBack }: Props) {
                         </Text>
                       </View>
 
-                      <Text style={styles.modalDescription}>
+                      <Text style={[styles.modalDescription, !isUnlocked && styles.modalDescriptionLocked]}>
                         {isSecret
                           ? 'Complete a secret challenge to unlock this achievement!'
                           : selectedAchievement.description}
@@ -249,7 +385,7 @@ export default function AchievementsScreen({ onBack }: Props) {
                         </View>
                       )}
 
-                      {!isUnlocked && progress && (
+                      {!isUnlocked && !isSecret && progress && (
                         <View style={styles.modalProgressContainer}>
                           <Text style={styles.progressLabel}>PROGRESS</Text>
                           <View style={styles.modalProgressBar}>
@@ -257,13 +393,14 @@ export default function AchievementsScreen({ onBack }: Props) {
                               style={[
                                 styles.modalProgressFill,
                                 {
-                                  width: `${(progress.current / progress.target) * 100}%`,
+                                  width: `${Math.min((progress.current / progress.target) * 100, 100)}%`,
                                 },
                               ]}
                             />
                           </View>
                           <Text style={styles.modalProgressText}>
                             {progress.current} / {progress.target}
+                            {progressConfig ? ` ${progressConfig.label}` : ''}
                           </Text>
                         </View>
                       )}
@@ -382,53 +519,85 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
+    minHeight: 160,
   },
   achievementCardLocked: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F5F5F5',
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#1ABC9C',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    marginTop: 4,
     alignSelf: 'center',
+    overflow: 'hidden',
   },
   iconContainerLocked: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: '#E0E0E0',
   },
-  icon: {
-    fontSize: 24,
+  achievementIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
   },
-  iconLocked: {
-    opacity: 0.5,
+  iconGrayscale: {
+    opacity: 0.4,
+    // Note: True grayscale requires native module on RN
+    // Using opacity as fallback
+    tintColor: Platform.OS === 'ios' ? undefined : '#888888',
+  },
+  secretIcon: {
+    width: 28,
+    height: 28,
+    resizeMode: 'contain',
+    tintColor: '#888888',
   },
   achievementName: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 4,
   },
   achievementDescription: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'DMSans_400Regular',
     color: '#888888',
     textAlign: 'center',
-    minHeight: 32,
+    minHeight: 28,
+  },
+  achievementDescriptionUnlocked: {
+    color: '#1ABC9C',
   },
   textLocked: {
     color: '#AAAAAA',
   },
+  lockedBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  padlockIcon: {
+    width: 14,
+    height: 14,
+    resizeMode: 'contain',
+    tintColor: '#AAAAAA',
+  },
   unlockedBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#3BA978',
     justifyContent: 'center',
     alignItems: 'center',
@@ -437,8 +606,32 @@ const styles = StyleSheet.create({
   },
   unlockedCheck: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'DMSans_900Black',
+  },
+  // Progress bar styles for cards
+  progressContainer: {
+    width: '100%',
+    marginTop: 6,
+    alignItems: 'center',
+  },
+  progressBar: {
+    width: '100%',
+    height: 6,
+    backgroundColor: '#E5E5E0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#1ABC9C',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 9,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888888',
+    marginTop: 3,
   },
   // Modal styles
   modalOverlay: {
@@ -464,9 +657,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   modalIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     backgroundColor: '#1ABC9C',
     justifyContent: 'center',
     alignItems: 'center',
@@ -478,12 +671,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
+    overflow: 'hidden',
   },
   modalIconContainerLocked: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: '#E0E0E0',
   },
-  modalIcon: {
-    fontSize: 40,
+  modalAchievementIcon: {
+    width: 56,
+    height: 56,
+    resizeMode: 'contain',
+  },
+  modalSecretIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    tintColor: '#888888',
   },
   modalTitle: {
     fontSize: 20,
@@ -491,6 +693,9 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 8,
+  },
+  modalTitleLocked: {
+    color: '#888888',
   },
   categoryBadge: {
     backgroundColor: '#F5F2EB',
@@ -510,10 +715,13 @@ const styles = StyleSheet.create({
   modalDescription: {
     fontSize: 14,
     fontFamily: 'DMSans_400Regular',
-    color: '#666666',
+    color: '#1ABC9C',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 20,
+  },
+  modalDescriptionLocked: {
+    color: '#888888',
   },
   xpRewardContainer: {
     backgroundColor: '#F5F2EB',

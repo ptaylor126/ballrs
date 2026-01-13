@@ -2,6 +2,12 @@ import { supabase } from './supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { sendFriendRequestNotification, sendFriendAcceptedNotification } from './notificationService';
 
+// Helper to verify the current user matches the provided userId
+async function verifyAuthUser(expectedUserId: string): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id === expectedUserId;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -147,6 +153,13 @@ export async function addFriend(userId: string, friendId: string): Promise<boole
 
 // Remove a friend
 export async function removeFriend(userId: string, friendId: string): Promise<boolean> {
+  // Security: Verify the userId matches the authenticated user
+  const isAuthorized = await verifyAuthUser(userId);
+  if (!isAuthorized) {
+    console.error('Unauthorized: User ID does not match authenticated user');
+    return false;
+  }
+
   const { error } = await supabase
     .from('friends')
     .delete()
@@ -480,6 +493,13 @@ export async function getPendingFriendRequestsCount(userId: string): Promise<num
 
 // Accept a friend request
 export async function acceptFriendRequest(requestId: string, receiverId: string): Promise<boolean> {
+  // Security: Verify the receiverId matches the authenticated user
+  const isAuthorized = await verifyAuthUser(receiverId);
+  if (!isAuthorized) {
+    console.error('Unauthorized: User ID does not match authenticated user');
+    return false;
+  }
+
   // Get the request to find the sender
   const { data: request, error: fetchError } = await supabase
     .from('friend_requests')
@@ -537,6 +557,13 @@ export async function acceptFriendRequest(requestId: string, receiverId: string)
 
 // Decline a friend request
 export async function declineFriendRequest(requestId: string, receiverId: string): Promise<boolean> {
+  // Security: Verify the receiverId matches the authenticated user
+  const isAuthorized = await verifyAuthUser(receiverId);
+  if (!isAuthorized) {
+    console.error('Unauthorized: User ID does not match authenticated user');
+    return false;
+  }
+
   const { error } = await supabase
     .from('friend_requests')
     .delete()

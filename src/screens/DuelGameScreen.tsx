@@ -66,9 +66,10 @@ import {
 } from '../lib/duelService';
 import { areFriends, addFriend } from '../lib/friendsService';
 import { supabase } from '../lib/supabase';
-import { calculateDuelXP, awardXP, getXPProgressInLevel } from '../lib/xpService';
-import { awardDuelPoints } from '../lib/pointsService';
-import { checkDuelAchievements, Achievement } from '../lib/achievementsService';
+import { calculateDuelXP, getXPProgressInLevel } from '../lib/xpService';
+import { completeDuelServerSide } from '../lib/serverRewardsService';
+import { Achievement } from '../lib/achievementsService';
+import { hasSeenInvitePrompt, markInvitePromptSeen, inviteFriends } from '../lib/inviteService';
 import LevelUpModal from '../components/LevelUpModal';
 import AchievementToast from '../components/AchievementToast';
 import { RealtimeChannel } from '@supabase/supabase-js';
@@ -185,6 +186,10 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   // Forfeit modal state
   const [showForfeitModal, setShowForfeitModal] = useState(false);
   const [isForfeiting, setIsForfeiting] = useState(false);
+
+  // First duel win invite modal state
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [isInviting, setIsInviting] = useState(false);
 
   // XP progress bar state
   const [xpProgressInfo, setXpProgressInfo] = useState<{
@@ -1037,6 +1042,17 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     onBack();
   };
 
+  // Handle invite friends from first win modal
+  const handleInviteFromModal = async () => {
+    setIsInviting(true);
+    try {
+      await inviteFriends();
+    } finally {
+      setIsInviting(false);
+      setShowInviteModal(false);
+    }
+  };
+
   // Handle Android hardware back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -1084,57 +1100,66 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         tie = winnerId === null;
       }
 
-      // Calculate XP: Winner 75, Loser 25, Tie 40
+      // Award XP and points via server-side Edge Function
       const xpResult: 'win' | 'loss' | 'tie' = tie ? 'tie' : won ? 'win' : 'loss';
       const xpAmount = calculateDuelXP(xpResult);
 
-      awardXP(user.id, xpAmount).then((result) => {
-        if (result) {
-          // Save XP progress info for the progress bar
-          const progressInfo = getXPProgressInLevel(result.newXP);
-          const previousProgress = getXPProgressInLevel(result.previousXP);
-          setXpProgressInfo({
-            previousXP: result.previousXP,
-            newXP: result.newXP,
-            current: progressInfo.current,
-            required: progressInfo.required,
-            percentage: progressInfo.percentage,
-          });
+      // Call server to award rewards (also checks achievements)
+      completeDuelServerSide(duel.id, { answer: '', time: 0, correct: won }, isPlayer1).then((serverResult) => {
+        if (serverResult.success) {
+          console.log('[DuelGame] Server awarded:', serverResult);
 
-          // Animate the progress bar from previous to new percentage
-          xpBarAnimatedWidth.setValue(previousProgress.percentage);
-          Animated.timing(xpBarAnimatedWidth, {
-            toValue: progressInfo.percentage,
-            duration: 1000,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: false,
-          }).start();
-
-          if (result.leveledUp) {
-            setNewLevel(result.newLevel);
-            setShowLevelUpModal(true);
+          // Handle achievements from server
+          if (serverResult.achievementsUnlocked && serverResult.achievementsUnlocked.length > 0) {
+            // Convert string names to Achievement objects for the toast
+            const achievementObjects: Achievement[] = serverResult.achievementsUnlocked.map((name: string) => ({
+              id: name,
+              name,
+              description: '',
+              xp_reward: 0,
+              icon: 'trophy',
+              category: 'duel',
+              is_secret: false,
+            }));
+            setPendingAchievements(achievementObjects);
+            setCurrentAchievement(achievementObjects[0]);
+            setShowAchievementToast(true);
           }
+        } else {
+          console.error('[DuelGame] Server reward error:', serverResult.error);
         }
       });
 
-      // Award leaderboard points: 3 for win, 1 for loss (ties count as loss for points)
-      if (!tie) {
-        awardDuelPoints(user.id, won, duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb');
-      } else {
-        // Ties get 1 point (same as loss - rewards participation)
-        awardDuelPoints(user.id, false, duel.sport as 'nba' | 'pl' | 'nfl' | 'mlb');
-      }
+      // Set XP display (estimated - actual awarded by server)
+      const estimatedXP = xpAmount;
+      setXpProgressInfo({
+        previousXP: 0,
+        newXP: estimatedXP,
+        current: estimatedXP,
+        required: 100,
+        percentage: 50,
+      });
 
-      // Check for achievements
-      setTimeout(() => {
-        checkDuelAchievements(user.id).then((unlocked) => {
-          if (unlocked.length > 0) {
-            setPendingAchievements(unlocked);
-            setCurrentAchievement(unlocked[0]);
-            setShowAchievementToast(true);
+      // Check for first duel win invite prompt
+      if (won && !tie) {
+        setTimeout(async () => {
+          const hasSeen = await hasSeenInvitePrompt();
+          if (!hasSeen) {
+            // Check if this was their first duel win
+            const { data: stats } = await supabase
+              .from('user_stats')
+              .select('duel_wins')
+              .eq('id', user.id)
+              .single();
+
+            // If duel_wins === 1, this was their first win
+            if (stats?.duel_wins === 1) {
+              setShowInviteModal(true);
+              await markInvitePromptSeen();
+            }
           }
-        });
-      }, 500);
+        }, 2000); // Show after achievements have had time to display
+      }
     }
   }, [gamePhase, user, xpAwarded, question, duel, isPlayer1, isMultiQuestion, myScore, opponentScore, asyncWaitingForFriend]);
 
@@ -1996,6 +2021,41 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         visible={showAchievementToast}
         onDismiss={handleAchievementDismiss}
       />
+
+      {/* First Duel Win Invite Modal */}
+      <Modal
+        visible={showInviteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowInviteModal(false)}
+      >
+        <View style={styles.forfeitModalOverlay}>
+          <View style={styles.inviteModalContent}>
+            <Text style={styles.inviteModalTitle}>You Won Your First Duel!</Text>
+            <Text style={styles.inviteModalSubtitle}>
+              Challenge your friends to see who really knows ball
+            </Text>
+            <TouchableOpacity
+              style={styles.inviteModalShareButton}
+              onPress={handleInviteFromModal}
+              disabled={isInviting}
+            >
+              {isInviting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.inviteModalShareText}>INVITE FRIENDS</Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.inviteModalLaterButton}
+              onPress={() => setShowInviteModal(false)}
+              disabled={isInviting}
+            >
+              <Text style={styles.inviteModalLaterText}>Maybe Later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -3875,5 +3935,67 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+  // Invite Modal Styles
+  inviteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 24,
+    width: '90%',
+    maxWidth: 340,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  inviteModalTitle: {
+    fontSize: 22,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  inviteModalSubtitle: {
+    fontSize: 15,
+    fontFamily: 'DMSans_400Regular',
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  inviteModalShareButton: {
+    backgroundColor: '#1ABC9C',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    width: '100%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    marginBottom: 12,
+  },
+  inviteModalShareText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  inviteModalLaterButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  inviteModalLaterText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#888888',
   },
 });

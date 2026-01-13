@@ -141,25 +141,85 @@ export async function getGlobalLeaderboard(
 ): Promise<LeaderboardEntry[]> {
   console.log('[getGlobalLeaderboard] Fetching with:', { timePeriod, sportFilter, limit });
 
-  // Determine which points column to use based on time period and sport filter
-  let pointsColumn: string;
+  try {
+    // For "ALL" sports filter, we need to aggregate sport-specific columns
+    // because the total columns (points_weekly, etc.) may have inconsistent data
+    if (!sportFilter || sportFilter === 'all') {
+      const prefix = timePeriod === 'weekly' ? 'points_weekly'
+        : timePeriod === 'monthly' ? 'points_monthly'
+        : 'points_all_time';
 
-  if (sportFilter && ['nba', 'pl', 'nfl', 'mlb'].includes(sportFilter)) {
-    // Sport-specific points column
-    pointsColumn = timePeriod === 'weekly' ? `points_weekly_${sportFilter}`
+      // Query all sport-specific columns for this time period
+      const sportColumns = ['nba', 'pl', 'nfl', 'mlb'].map(s => `${prefix}_${s}`);
+
+      const { data: statsData, error: statsError } = await supabase
+        .from('user_stats')
+        .select(`id, ${sportColumns.join(', ')}`);
+
+      if (statsError) {
+        console.error('[getGlobalLeaderboard] Stats query error:', statsError);
+        return [];
+      }
+
+      if (!statsData || statsData.length === 0) {
+        return [];
+      }
+
+      // Calculate total points per user by summing sport columns
+      const usersWithPoints = statsData
+        .map((user: any) => ({
+          id: user.id,
+          totalPoints: sportColumns.reduce((sum, col) => sum + (user[col] || 0), 0)
+        }))
+        .filter(u => u.totalPoints > 0)
+        .sort((a, b) => b.totalPoints - a.totalPoints)
+        .slice(0, limit);
+
+      if (usersWithPoints.length === 0) {
+        return [];
+      }
+
+      // Get profiles for these users
+      const userIds = usersWithPoints.map(u => u.id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, country')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('[getGlobalLeaderboard] Profiles query error:', profilesError);
+        return [];
+      }
+
+      const profilesMap = new Map(
+        (profilesData || []).map((p: any) => [p.id, p])
+      );
+
+      const entries: LeaderboardEntry[] = usersWithPoints
+        .filter(user => profilesMap.has(user.id))
+        .map((user, index) => {
+          const profile = profilesMap.get(user.id);
+          return {
+            rank: index + 1,
+            user_id: user.id,
+            username: profile?.username || 'Unknown',
+            country: profile?.country || null,
+            points: user.totalPoints,
+            avatar: null,
+          };
+        });
+
+      console.log('[getGlobalLeaderboard] Returning', entries.length, 'aggregated entries');
+      return entries;
+    }
+
+    // For specific sport filter, use the sport-specific column directly
+    const pointsColumn = timePeriod === 'weekly' ? `points_weekly_${sportFilter}`
       : timePeriod === 'monthly' ? `points_monthly_${sportFilter}`
       : `points_all_time_${sportFilter}`;
-  } else {
-    // Total points (all sports)
-    pointsColumn = timePeriod === 'weekly' ? 'points_weekly'
-      : timePeriod === 'monthly' ? 'points_monthly'
-      : 'points_all_time';
-  }
 
-  console.log('[getGlobalLeaderboard] Using column:', pointsColumn);
+    console.log('[getGlobalLeaderboard] Using column:', pointsColumn);
 
-  try {
-    // Get user_stats with points for the selected time period/sport
     const { data: statsData, error: statsError } = await supabase
       .from('user_stats')
       .select(`id, ${pointsColumn}`)
@@ -169,11 +229,6 @@ export async function getGlobalLeaderboard(
 
     if (statsError) {
       console.error('[getGlobalLeaderboard] Stats query error:', statsError);
-      // If column doesn't exist yet, fall back to total points
-      if (statsError.message?.includes('column') || statsError.code === '42703') {
-        console.log('[getGlobalLeaderboard] Sport column not found, falling back to total');
-        return getGlobalLeaderboard(timePeriod, undefined, limit);
-      }
       return [];
     }
 
@@ -222,12 +277,40 @@ export async function getGlobalLeaderboard(
   }
 }
 
-// Get total player count for a time period
-export async function getLeaderboardPlayerCount(timePeriod: TimePeriod = 'weekly'): Promise<number> {
-  // Determine which points column to use based on time period
-  const pointsColumn = timePeriod === 'weekly' ? 'points_weekly'
-    : timePeriod === 'monthly' ? 'points_monthly'
-    : 'points_all_time';
+// Get total player count for a time period and optional sport filter
+export async function getLeaderboardPlayerCount(
+  timePeriod: TimePeriod = 'weekly',
+  sportFilter?: string
+): Promise<number> {
+  // For "ALL" sports filter, count users with any sport-specific points
+  if (!sportFilter || sportFilter === 'all') {
+    const prefix = timePeriod === 'weekly' ? 'points_weekly'
+      : timePeriod === 'monthly' ? 'points_monthly'
+      : 'points_all_time';
+
+    const sportColumns = ['nba', 'pl', 'nfl', 'mlb'].map(s => `${prefix}_${s}`);
+
+    const { data, error } = await supabase
+      .from('user_stats')
+      .select(`id, ${sportColumns.join(', ')}`);
+
+    if (error) {
+      console.error('[getLeaderboardPlayerCount] Error:', error);
+      return 0;
+    }
+
+    // Count users with any points across all sports
+    const count = (data || []).filter((user: any) =>
+      sportColumns.some(col => (user[col] || 0) > 0)
+    ).length;
+
+    return count;
+  }
+
+  // For specific sport filter, use the sport-specific column
+  const pointsColumn = timePeriod === 'weekly' ? `points_weekly_${sportFilter}`
+    : timePeriod === 'monthly' ? `points_monthly_${sportFilter}`
+    : `points_all_time_${sportFilter}`;
 
   const { count, error } = await supabase
     .from('user_stats')

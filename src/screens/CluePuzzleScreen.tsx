@@ -18,6 +18,7 @@ import {
   InteractionManager,
   AppState,
   AppStateStatus,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -28,13 +29,16 @@ import { colors, shadows, getSportColor, Sport, borders, borderRadius } from '..
 import { AnimatedButton } from '../components/AnimatedComponents';
 import { soundService } from '../lib/soundService';
 import { useAuth } from '../contexts/AuthContext';
-import { awardXP, calculateLevel, XPAwardResult } from '../lib/xpService';
-import { awardPuzzlePoints } from '../lib/pointsService';
+import { calculateLevel, XPAwardResult } from '../lib/xpService';
 import { awardLeaguePoints } from '../lib/leaguesService';
-import { fetchUserStats, getPlayStreak, getWinStreak, UserStats, updateStatsAfterWin, updateStatsAfterLoss, updateDailyStreak } from '../lib/statsService';
+import { fetchUserStats, getPlayStreak, getWinStreak, UserStats, updateStatsAfterLoss, updateDailyStreak } from '../lib/statsService';
 import { cancelStreakReminder } from '../lib/notificationService';
+import { Achievement } from '../lib/achievementsService';
+import { completePuzzleServerSide, PuzzleCompletionResult } from '../lib/serverRewardsService';
+import { supabase } from '../lib/supabase';
 import XPEarnedModal from '../components/XPEarnedModal';
 import LevelUpModal from '../components/LevelUpModal';
+import AchievementToast from '../components/AchievementToast';
 import JerseyReveal, { getFullTeamName } from '../components/JerseyReveal';
 import LinkEmailPromptModal from '../components/LinkEmailPromptModal';
 import nbaPlayersData from '../../data/nba-players-clues.json';
@@ -66,6 +70,9 @@ const sportIcons: Record<Sport, any> = {
 const fireIcon = require('../../assets/images/icon-fire.png');
 const lightningIcon = require('../../assets/images/icon-lightning.png');
 
+// Ad banner for countdown
+const countdownAdImage = require('../../assets/images/ad-banner-email-big.png');
+
 interface CluePlayer {
   id: number;
   name: string;
@@ -90,7 +97,7 @@ interface Props {
 const getStorageKey = (sport: string) => `ballrs_clue_puzzle_state_${sport}`;
 const getStreakKey = (sport: string) => `ballrs_clue_puzzle_streak_${sport}`;
 const MAX_GUESSES = 3;
-const TIMER_DURATION = 10; // seconds per clue
+const TIMER_DURATION = 15; // seconds per clue
 
 interface GameState {
   date: string;
@@ -142,7 +149,52 @@ function getTodayString(): string {
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 }
 
-function getDailyPlayer(players: CluePlayer[], sport: string): CluePlayer {
+// Cache for daily player index to avoid repeated database calls
+const dailyPlayerIndexCache: Record<string, { index: number; date: string }> = {};
+
+// Fetch today's player index from database (sequential rotation)
+async function getDailyPlayerIndex(sport: string, totalPlayers: number): Promise<number> {
+  const today = getTodayString();
+  const cacheKey = `${sport}_${today}`;
+
+  // Check cache first
+  if (dailyPlayerIndexCache[cacheKey]) {
+    return dailyPlayerIndexCache[cacheKey].index;
+  }
+
+  try {
+    // Call the Postgres function that handles sequential rotation
+    const { data, error } = await supabase.rpc('get_or_create_daily_puzzle', {
+      p_sport: sport,
+      p_total_players: totalPlayers,
+    });
+
+    if (error) {
+      console.error('[DailyPuzzle] Database error:', error);
+      throw error;
+    }
+
+    if (data && data.length > 0) {
+      const playerIndex = data[0].player_index;
+      console.log(`[DailyPuzzle] Got player index ${playerIndex} for ${sport} on ${today}`);
+
+      // Cache the result
+      dailyPlayerIndexCache[cacheKey] = { index: playerIndex, date: today };
+      return playerIndex;
+    }
+
+    throw new Error('No data returned from database');
+  } catch (err) {
+    console.error('[DailyPuzzle] Failed to get player index from database:', err);
+    // Fallback to hash-based selection (maintains consistency if DB fails)
+    const fallbackIndex = getFallbackPlayerIndex(sport, totalPlayers);
+    console.log(`[DailyPuzzle] Using fallback index ${fallbackIndex}`);
+    return fallbackIndex;
+  }
+}
+
+// Fallback hash-based selection (used if database is unavailable)
+function getFallbackPlayerIndex(sport: string, totalPlayers: number): number {
   const dateString = getTodayString();
   let hash = 99999;
   const seedString = dateString + sport;
@@ -151,7 +203,12 @@ function getDailyPlayer(players: CluePlayer[], sport: string): CluePlayer {
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
-  const index = Math.abs(hash) % players.length;
+  return Math.abs(hash) % totalPlayers;
+}
+
+// Get daily player using database-backed sequential rotation
+async function getDailyPlayer(players: CluePlayer[], sport: string): Promise<CluePlayer> {
+  const index = await getDailyPlayerIndex(sport, players.length);
   return players[index];
 }
 
@@ -260,6 +317,11 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
   const [timerPaused, setTimerPaused] = useState(false);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerPulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Pre-game countdown state (3, 2, 1, GO!)
+  const [showCountdown, setShowCountdown] = useState(true);
+  const [countdownNumber, setCountdownNumber] = useState(3);
+  const countdownScaleAnim = useRef(new Animated.Value(0)).current;
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   // Level up modal state
@@ -267,6 +329,11 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
 
   // Link email prompt state
   const [showLinkEmailPrompt, setShowLinkEmailPrompt] = useState(false);
+
+  // Achievement state
+  const [pendingAchievements, setPendingAchievements] = useState<Achievement[]>([]);
+  const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
+  const [showAchievementToast, setShowAchievementToast] = useState(false);
 
   // Speed tracking state
   const puzzleStartTimeRef = useRef<number | null>(null);
@@ -314,6 +381,19 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
       await AsyncStorage.setItem(LINK_EMAIL_PROMPT_KEY, new Date().toISOString());
     } catch (err) {
       console.error('Error saving link email prompt dismissal:', err);
+    }
+  };
+
+  // Handle achievement toast dismiss - show next achievement if any
+  const handleAchievementToastDismiss = () => {
+    setShowAchievementToast(false);
+    const remaining = pendingAchievements.slice(1);
+    setPendingAchievements(remaining);
+    if (remaining.length > 0) {
+      setCurrentAchievement(remaining[0]);
+      setTimeout(() => setShowAchievementToast(true), 300);
+    } else {
+      setCurrentAchievement(null);
     }
   };
 
@@ -394,8 +474,8 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
 
   // Timer countdown effect
   useEffect(() => {
-    // Don't run timer if game is over or loading
-    if (solved || gaveUp || loading || timerPaused) {
+    // Don't run timer if game is over, loading, or pre-game countdown is showing
+    if (solved || gaveUp || loading || timerPaused || showCountdown) {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
@@ -429,7 +509,7 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
         timerIntervalRef.current = null;
       }
     };
-  }, [solved, gaveUp, loading, timerPaused, currentClueIndex, handleTimerExpiry]);
+  }, [solved, gaveUp, loading, timerPaused, showCountdown, currentClueIndex, handleTimerExpiry]);
 
   // Reset timer when clue changes
   useEffect(() => {
@@ -473,6 +553,43 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     return () => subscription.remove();
   }, []);
 
+  // Pre-game countdown effect (3, 2, 1, GO!)
+  useEffect(() => {
+    // Only run countdown if not already solved/gave up and not loading
+    if (loading || solved || gaveUp || !showCountdown) return;
+
+    // Animate the number popping in
+    const animateNumber = () => {
+      countdownScaleAnim.setValue(0);
+      Animated.spring(countdownScaleAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 100,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    animateNumber();
+
+    const countdownInterval = setInterval(() => {
+      setCountdownNumber((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          // Small delay before hiding countdown
+          setTimeout(() => {
+            setShowCountdown(false);
+          }, 500);
+          return 0;
+        }
+        // Animate next number
+        setTimeout(animateNumber, 50);
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownInterval);
+  }, [loading, solved, gaveUp, showCountdown, countdownScaleAnim]);
+
   // Get timer color based on time remaining
   const getTimerColor = () => {
     if (timeRemaining > 5) return '#1ABC9C'; // Teal
@@ -498,7 +615,7 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
 
   async function loadGameState() {
     try {
-      const player = getDailyPlayer(players, sport);
+      const player = await getDailyPlayer(players, sport);
       setMysteryPlayer(player);
 
       const stored = await AsyncStorage.getItem(getStorageKey(sport));
@@ -512,6 +629,10 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
           setSolved(state.solved);
           setGaveUp(state.gaveUp || false);
           setPointsEarned(state.pointsEarned);
+          // Skip countdown if puzzle is already completed
+          if (state.solved || state.gaveUp) {
+            setShowCountdown(false);
+          }
         }
       }
 
@@ -610,11 +731,6 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     // Light haptic feedback for any guess submission
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Check if player is in the mystery pool (clue players)
-    const isInMysteryPool = players.some(p =>
-      p.name.toLowerCase() === selectedPlayer.name.toLowerCase()
-    );
-
     // Check if the selected player matches the mystery player
     const isCorrect = mysteryPlayer.name.toLowerCase() === selectedPlayer.name.toLowerCase();
 
@@ -657,46 +773,12 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
       // const interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID);
       // interstitial.show();
 
-      // Award XP (points earned = XP earned in clue puzzle)
-      // Defer database operations to prevent UI freeze
+      // Complete puzzle via server-side Edge Function (secure)
       if (user) {
-        const xpAmount = points * 10; // 10 XP per point earned
-        setXpEarned(xpAmount);
+        // Cancel streak reminder since they've played today
+        cancelStreakReminder();
 
-        // Record completion time to database and get percentile
-        if (completionTime !== null) {
-          recordPuzzleCompletion(user.id, sport, completionTime, cluesUsed)
-            .then((stats) => {
-              if (stats) {
-                setCompletionStats(stats);
-              }
-            })
-            .catch((err) => {
-              console.error('Error recording puzzle completion:', err);
-            });
-        }
-
-        // Wrap in try-catch to prevent crashes
-        try {
-          awardPuzzlePoints(user.id, cluesUsed, sport).catch((err) => {
-            console.error('Error awarding puzzle points:', err);
-          });
-        } catch (err) {
-          console.error('Error calling awardPuzzlePoints:', err);
-        }
-
-        // Update daily streak (consecutive days played)
-        try {
-          updateDailyStreak(user.id).catch((err) => {
-            console.error('Error updating daily streak:', err);
-          });
-          // Cancel 8pm streak reminder since they've played today
-          cancelStreakReminder();
-        } catch (err) {
-          console.error('Error calling updateDailyStreak:', err);
-        }
-
-        // Award league points
+        // Award league points (still client-side for now)
         try {
           awardLeaguePoints(user.id, sport, cluesUsed, true).catch((err) => {
             console.error('Error awarding league points:', err);
@@ -705,33 +787,86 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
           console.error('Error calling awardLeaguePoints:', err);
         }
 
+        // Complete puzzle server-side - all rewards calculated securely
         InteractionManager.runAfterInteractions(() => {
-          awardXP(user.id, xpAmount).then((result) => {
-            if (result) {
-              setXpResult(result);
-              // Delay XP modal by 2.6 seconds after confetti to let user see jersey reveal first
+          completePuzzleServerSide(
+            String(mysteryPlayer.id),
+            cluesUsed,
+            sport,
+            completionTime || 0
+          ).then((serverResult: PuzzleCompletionResult) => {
+            console.log('[Puzzle] Server result:', serverResult);
+
+            if (serverResult.success) {
+              // Set XP earned for display
+              setXpEarned(serverResult.xpAwarded);
+
+              // Create XP result for modal
+              const xpResultData: XPAwardResult = {
+                success: true,
+                xpAwarded: serverResult.xpAwarded,
+                previousXP: serverResult.newTotalXp - serverResult.xpAwarded,
+                newXP: serverResult.newTotalXp,
+                previousLevel: calculateLevel(serverResult.newTotalXp - serverResult.xpAwarded),
+                newLevel: serverResult.newLevel,
+                leveledUp: serverResult.newLevel > calculateLevel(serverResult.newTotalXp - serverResult.xpAwarded),
+              };
+              setXpResult(xpResultData);
+
+              // Delay XP modal to let user see jersey reveal first
               setTimeout(() => {
                 setShowXPModal(true);
               }, 2900);
+
+              // Update local user stats for display
+              if (userStats) {
+                const updatedStats = {
+                  ...userStats,
+                  daily_streak: serverResult.dailyStreak,
+                  [`${sport}_current_streak`]: serverResult.sportStreak,
+                  [`${sport}_total_solved`]: ((userStats as any)[`${sport}_total_solved`] || 0) + 1,
+                };
+                setUserStats(updatedStats as UserStats);
+              }
+
+              // Record completion time for percentile (this is separate from rewards)
+              if (completionTime !== null) {
+                recordPuzzleCompletion(user.id, sport, completionTime, cluesUsed)
+                  .then((stats) => {
+                    if (stats) {
+                      setCompletionStats(stats);
+                    }
+                  })
+                  .catch((err) => {
+                    console.error('Error recording puzzle completion:', err);
+                  });
+              }
+
+              // Handle achievements unlocked by server
+              if (serverResult.achievementsUnlocked && serverResult.achievementsUnlocked.length > 0) {
+                const unlockedAchievements: Achievement[] = serverResult.achievementsUnlocked.map(name => ({
+                  id: name,
+                  name,
+                  description: '',
+                  icon: '',
+                  xp_reward: 0,
+                  category: '',
+                  is_secret: false,
+                }));
+                setTimeout(() => {
+                  setPendingAchievements(unlockedAchievements);
+                  setCurrentAchievement(unlockedAchievements[0]);
+                  setShowAchievementToast(true);
+                }, 4000);
+              }
+            } else {
+              console.error('Server puzzle completion failed:', serverResult.error);
+              Alert.alert('Error', serverResult.error || 'Failed to save progress. Please try again.');
             }
           }).catch((err) => {
-            console.error('Error awarding XP:', err);
+            console.error('Error completing puzzle server-side:', err);
+            Alert.alert('Error', 'Failed to save progress. Please try again.');
           });
-
-          // Update stats with daily streak (only increments once per day)
-          if (userStats) {
-            calculateDailyStreak(sport).then((dailyStreak) => {
-              updateStatsAfterWin(user.id, sport, userStats, dailyStreak).then((updatedStats) => {
-                if (updatedStats) {
-                  setUserStats(updatedStats);
-                }
-              }).catch((err) => {
-                console.error('Error updating stats:', err);
-              });
-            }).catch((err) => {
-              console.error('Error calculating daily streak:', err);
-            });
-          }
         });
       }
     } else {
@@ -917,10 +1052,11 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
     }
   }
 
+  // Filter all players for autocomplete - show ALL matching players from the sport
   const filteredPlayers = guess.trim().length > 0
     ? allPlayers.filter(p =>
         p.name.toLowerCase().includes(guess.toLowerCase())
-      ).slice(0, 8)
+      )
     : [];
 
   if (loading || !mysteryPlayer) {
@@ -942,14 +1078,18 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         enableOnAndroid={true}
-        extraScrollHeight={0}
+        extraScrollHeight={Platform.OS === 'android' ? 150 : 0}
         enableAutomaticScroll={true}
+        keyboardOpeningTime={Platform.OS === 'android' ? 0 : 250}
       >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <Text style={styles.backButtonText}>‚Üê Back</Text>
-            </TouchableOpacity>
+            <View style={styles.headerTopRow}>
+              <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                <Text style={styles.backButtonText}>‚Üê BACK</Text>
+              </TouchableOpacity>
+              <View style={{ width: 80 }} />
+            </View>
             <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
               <Image source={sportIcons[sport]} style={styles.sportBadgeIcon} resizeMode="contain" />
               <Text style={styles.sportBadgeText}>{sport === 'pl' ? 'EPL' : sport.toUpperCase()}</Text>
@@ -1172,19 +1312,25 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
               </View>
               {showSuggestions && filteredPlayers.length > 0 && (
                 <View style={styles.suggestionsContainer}>
-                  {filteredPlayers.map((player, index) => (
-                    <TouchableOpacity
-                      key={`${player.id}-${index}`}
-                      style={styles.suggestionItem}
-                      onPress={() => {
-                        soundService.playButtonClick();
-                        handleSelectPlayer(player);
-                      }}
-                    >
-                      <Text style={styles.suggestionName}>{player.name}</Text>
-                      <Text style={styles.suggestionTeam}>{player.team}</Text>
-                    </TouchableOpacity>
-                  ))}
+                  <ScrollView
+                    style={styles.suggestionsList}
+                    nestedScrollEnabled={true}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {filteredPlayers.map((player, index) => (
+                      <TouchableOpacity
+                        key={`${player.id}-${index}`}
+                        style={styles.suggestionItem}
+                        onPress={() => {
+                          soundService.playButtonClick();
+                          handleSelectPlayer(player);
+                        }}
+                      >
+                        <Text style={styles.suggestionName}>{player.name}</Text>
+                        <Text style={styles.suggestionTeam}>{player.team}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 </View>
               )}
               {/* Remaining Guesses Indicator */}
@@ -1294,6 +1440,54 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}üî• ${playStreakValue} ‚ö
         }}
         onMaybeLater={handleLinkEmailPromptDismiss}
       />
+
+      {/* Achievement Toast */}
+      <AchievementToast
+        achievement={currentAchievement}
+        visible={showAchievementToast}
+        onDismiss={handleAchievementToastDismiss}
+      />
+
+      {/* Pre-game Countdown Overlay */}
+      {showCountdown && !solved && !gaveUp && (
+        <View style={styles.countdownOverlay}>
+          {/* Ad Banner at top */}
+          <TouchableOpacity
+            style={styles.countdownAdBanner}
+            onPress={() => Linking.openURL('https://parlaysfordays.com')}
+            activeOpacity={0.9}
+          >
+            <Image
+              source={countdownAdImage}
+              style={styles.countdownAdImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
+
+          {/* Countdown Content */}
+          <View style={styles.countdownContent}>
+            {/* Sport Badge */}
+            <View style={[styles.countdownSportBadge, { backgroundColor: sportColor }]}>
+              <Image source={sportIcons[sport]} style={styles.countdownSportIcon} resizeMode="contain" />
+              <Text style={styles.countdownSportText}>{sport === 'pl' ? 'EPL' : sport.toUpperCase()}</Text>
+            </View>
+
+            <Text style={styles.countdownTitle}>GET READY!</Text>
+            <Text style={styles.countdownSubtitle}>First clue in...</Text>
+            <Animated.View
+              style={[
+                styles.countdownNumberContainer,
+                { transform: [{ scale: countdownScaleAnim }] },
+              ]}
+            >
+              <Text style={[styles.countdownNumber, { color: sportColor }]}>
+                {countdownNumber === 0 ? 'GO!' : countdownNumber}
+              </Text>
+            </Animated.View>
+            <Text style={styles.countdownHint}>{"Answer quickly and correctly\nto earn more points!"}</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1657,7 +1851,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 10,
+  },
+  suggestionsList: {
+    maxHeight: 250,
   },
   suggestionItem: {
     padding: 16,
@@ -1797,5 +1994,103 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'DMSans_700Bold',
+  },
+  // Pre-game countdown overlay
+  countdownOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(245, 242, 235, 0.98)',
+    zIndex: 2000,
+  },
+  countdownAdBanner: {
+    flex: 1,
+    marginTop: 60,
+    marginHorizontal: 24,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  countdownAdImage: {
+    width: '100%',
+    height: '100%',
+  },
+  countdownContent: {
+    flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  countdownSportBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    marginBottom: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  countdownSportIcon: {
+    width: 20,
+    height: 20,
+  },
+  countdownSportText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  countdownTitle: {
+    fontSize: 28,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    marginBottom: 8,
+    letterSpacing: 1,
+  },
+  countdownSubtitle: {
+    fontSize: 16,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888888',
+    marginBottom: 24,
+  },
+  countdownNumberContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 4,
+    borderColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+    marginBottom: 24,
+  },
+  countdownNumber: {
+    fontSize: 56,
+    fontFamily: 'DMSans_900Black',
+  },
+  countdownHint: {
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888888',
+    textAlign: 'center',
   },
 });
