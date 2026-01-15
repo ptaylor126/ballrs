@@ -196,7 +196,7 @@ export default function LevelProgressionModal({
               <View style={styles.progressSection}>
                 <Text style={styles.progressLevelText}>Level {currentLevel}</Text>
                 <Text style={styles.progressXPText}>
-                  <Text style={styles.progressXPValue}>{xpIntoLevel}/{xpNeededForNext} XP</Text>
+                  <Text style={styles.progressXPValue}>{currentXP.toLocaleString()}/{nextLevelXP.toLocaleString()} XP</Text>
                   <Text style={styles.progressXPLabel}> to next level</Text>
                 </Text>
                 <View style={styles.xpBarOuter}>

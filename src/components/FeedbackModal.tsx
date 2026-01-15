@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Linking,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors, borders, borderRadius, typography, spacing, shadows } from '../lib/theme';
@@ -194,6 +195,17 @@ export default function FeedbackModal({ visible, onClose, userId, username, onSu
               )}
             </TouchableOpacity>
           </View>
+
+          {/* Email link */}
+          <TouchableOpacity
+            style={styles.emailLink}
+            onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
+          >
+            <Text style={styles.emailLinkText}>
+              Or email us directly at{' '}
+              <Text style={styles.emailAddress}>hello@ballrs.net</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -345,5 +357,17 @@ const styles = StyleSheet.create({
   },
   submitButtonTextDisabled: {
     color: '#FFFFFF',
+  },
+  emailLink: {
+    marginTop: spacing.md,
+    alignItems: 'center',
+  },
+  emailLinkText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+  },
+  emailAddress: {
+    color: colors.accent,
+    textDecorationLine: 'underline',
   },
 });

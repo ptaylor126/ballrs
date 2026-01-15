@@ -117,7 +117,7 @@ export default function XPProgressBar({ xp, level, showDetails = true, compact =
           </View>
           {showDetails && (
             <Text style={styles.compactXPText}>
-              {xpIntoLevel}/{xpNeededForNext} XP
+              {xp.toLocaleString()}/{nextLevelXP.toLocaleString()} XP
             </Text>
           )}
         </View>
@@ -135,7 +135,7 @@ export default function XPProgressBar({ xp, level, showDetails = true, compact =
         {showDetails && (
           <View style={styles.xpContainer}>
             <Text style={styles.xpText}>
-              {xpIntoLevel} / {xpNeededForNext} XP
+              {xp.toLocaleString()} / {nextLevelXP.toLocaleString()} XP
             </Text>
           </View>
         )}

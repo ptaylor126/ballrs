@@ -1,10 +1,11 @@
 // Supabase Edge Function for completing daily puzzles
-// Uses user's JWT with RLS for secure access
+// Uses service role key to bypass RLS for reliable database updates
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // Level thresholds - must match client-side xpService.ts
 const LEVEL_THRESHOLDS = [
@@ -70,18 +71,17 @@ Deno.serve(async (req: Request) => {
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Create Supabase client with proper auth configuration
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    // Create auth client to verify user
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
         detectSessionInUrl: false,
       },
-      global: { headers: { Authorization: authHeader } },
     });
 
     // Verify user by passing token directly
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await authClient.auth.getUser(token);
     if (authError || !user) {
       console.error('Auth error:', authError);
       return new Response(
@@ -89,6 +89,15 @@ Deno.serve(async (req: Request) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Create service role client for database operations (bypasses RLS)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+    });
 
     const userId = user.id;
     console.log('User authenticated:', userId);
@@ -179,6 +188,11 @@ Deno.serve(async (req: Request) => {
     const sportBest = Math.max(sportStreak, (stats as any)?.[sportBestKey] || 0);
     const sportTotal = ((stats as any)?.[sportTotalKey] || 0) + 1;
 
+    // Sport-specific points columns
+    const sportPointsAllTime = `points_all_time_${sport}`;
+    const sportPointsWeekly = `points_weekly_${sport}`;
+    const sportPointsMonthly = `points_monthly_${sport}`;
+
     // Build update data
     const updateData: Record<string, any> = {
       xp: newTotalXp,
@@ -188,6 +202,9 @@ Deno.serve(async (req: Request) => {
       points_all_time: (stats?.points_all_time || 0) + pointsAwarded,
       points_weekly: (stats?.points_weekly || 0) + pointsAwarded,
       points_monthly: (stats?.points_monthly || 0) + pointsAwarded,
+      [sportPointsAllTime]: ((stats as any)?.[sportPointsAllTime] || 0) + pointsAwarded,
+      [sportPointsWeekly]: ((stats as any)?.[sportPointsWeekly] || 0) + pointsAwarded,
+      [sportPointsMonthly]: ((stats as any)?.[sportPointsMonthly] || 0) + pointsAwarded,
       [sportStreakKey]: sportStreak,
       [sportBestKey]: sportBest,
       [sportTotalKey]: sportTotal,

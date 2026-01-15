@@ -9,11 +9,17 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  TouchableOpacity,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import { AnimatedButton } from '../components/AnimatedComponents';
 import { colors, shadows, borders, borderRadius } from '../lib/theme';
+
+// Eye icons for password visibility toggle
+const eyeOpenIcon = require('../../assets/images/icon-eye-open.png');
+const eyeClosedIcon = require('../../assets/images/icon-eye-closed.png');
 
 interface Props {
   onBack: () => void;
@@ -65,6 +71,8 @@ export default function LinkEmailScreen({ onBack, onSuccess }: Props) {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -159,30 +167,54 @@ export default function LinkEmailScreen({ onBack, onSuccess }: Props) {
               />
 
               <Text style={styles.label}>PASSWORD</Text>
-              <TextInput
-                style={[styles.input, passwordFocused && styles.inputFocused]}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Create a password"
-                placeholderTextColor="#999999"
-                secureTextEntry
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-                selectionColor="#1ABC9C"
-              />
+              <View style={[styles.passwordContainer, passwordFocused && styles.inputFocused]}>
+                <TextInput
+                  style={styles.passwordInput}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Create a password"
+                  placeholderTextColor="#999999"
+                  secureTextEntry={!showPassword}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                  selectionColor="#1ABC9C"
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                >
+                  <Image
+                    source={showPassword ? eyeOpenIcon : eyeClosedIcon}
+                    style={styles.eyeIcon}
+                  />
+                </TouchableOpacity>
+              </View>
 
               <Text style={styles.label}>CONFIRM PASSWORD</Text>
-              <TextInput
-                style={[styles.input, confirmPasswordFocused && styles.inputFocused]}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm your password"
-                placeholderTextColor="#999999"
-                secureTextEntry
-                onFocus={() => setConfirmPasswordFocused(true)}
-                onBlur={() => setConfirmPasswordFocused(false)}
-                selectionColor="#1ABC9C"
-              />
+              <View style={[styles.passwordContainer, confirmPasswordFocused && styles.inputFocused]}>
+                <TextInput
+                  style={styles.passwordInput}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="Confirm your password"
+                  placeholderTextColor="#999999"
+                  secureTextEntry={!showConfirmPassword}
+                  onFocus={() => setConfirmPasswordFocused(true)}
+                  onBlur={() => setConfirmPasswordFocused(false)}
+                  selectionColor="#1ABC9C"
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  activeOpacity={0.7}
+                >
+                  <Image
+                    source={showConfirmPassword ? eyeOpenIcon : eyeClosedIcon}
+                    style={styles.eyeIcon}
+                  />
+                </TouchableOpacity>
+              </View>
 
               <AnimatedButton
                 style={[styles.button, loading && styles.buttonDisabled]}
@@ -294,6 +326,33 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: colors.primary,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    ...shadows.card,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 16,
+    fontFamily: 'DMSans_400Regular',
+    color: colors.text,
+  },
+  eyeButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#666666',
   },
   button: {
     backgroundColor: colors.primary,

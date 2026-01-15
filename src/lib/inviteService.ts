@@ -10,13 +10,13 @@ const ANDROID_APP_URL = 'https://play.google.com/store/apps/details?id=com.anony
 
 /**
  * Get the share message for inviting friends
+ * Platform-specific to avoid App Store rejection for mentioning competing platforms
  */
 export function getInviteMessage(): string {
+  const appUrl = Platform.OS === 'ios' ? IOS_APP_URL : ANDROID_APP_URL;
   return `Think you know ball? \u{1F3C0}\u{26BD}\u{1F3C8}\u{26BE}
 I'm playing Ballrs - daily sports trivia puzzles. Challenge me!
-Download free:
-iOS: ${IOS_APP_URL}
-Android: ${ANDROID_APP_URL}`;
+Download free: ${appUrl}`;
 }
 
 /**

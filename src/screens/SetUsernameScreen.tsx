@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +25,10 @@ import {
 import { AnimatedButton } from '../components/AnimatedComponents';
 import { colors, shadows, borders, borderRadius } from '../lib/theme';
 import { supabase } from '../lib/supabase';
+
+// Eye icons for password visibility toggle
+const eyeOpenIcon = require('../../assets/images/icon-eye-open.png');
+const eyeClosedIcon = require('../../assets/images/icon-eye-closed.png');
 
 // Word pools for random username generation (short words for 10 char limit)
 const ADJECTIVES = [
@@ -142,7 +147,7 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
       );
     }
   };
-  const { user, signInWithEmail, refreshProfile } = useAuth();
+  const { user, signInWithEmail, refreshProfile, refreshProfileForUser } = useAuth();
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -226,23 +231,18 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
         return;
       }
 
-      const profile = await getProfile(session.user.id);
+      // Sign-in successful - explicitly refresh profile for the signed-in user
+      // This avoids race conditions with AuthContext's user state update
+      await refreshProfileForUser(session.user.id);
 
-      if (profile) {
-        await refreshProfile();
-        setShowSignInModal(false);
-        setSignInLoading(false);
-        if (onSignInComplete) {
-          onSignInComplete();
-        } else {
-          onComplete();
-        }
-        return;
-      }
-
-      // No profile found - user will need to create one
       setShowSignInModal(false);
       setSignInLoading(false);
+
+      if (onSignInComplete) {
+        onSignInComplete();
+      } else {
+        onComplete();
+      }
     } catch (err: any) {
       console.error('Sign-in error (caught):', err);
       setSignInError(getAuthErrorMessage(err));
@@ -386,7 +386,10 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
         animationType="fade"
         onRequestClose={closeSignInModal}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Sign In</Text>
                 <Text style={styles.modalSubtitle}>
@@ -429,7 +432,10 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
                       onPress={() => setShowPassword(!showPassword)}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                      <Image
+                        source={showPassword ? eyeOpenIcon : eyeClosedIcon}
+                        style={styles.eyeIcon}
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -459,7 +465,7 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
                   </TouchableOpacity>
                 </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -558,7 +564,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'DMSans_500Medium',
     textAlign: 'center',
-    marginBottom: 16,
   },
   continueButton: {
     backgroundColor: colors.primary,
@@ -681,7 +686,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   eyeIcon: {
-    fontSize: 18,
+    width: 24,
+    height: 24,
+    tintColor: '#666666',
   },
   modalButtons: {
     flexDirection: 'row',

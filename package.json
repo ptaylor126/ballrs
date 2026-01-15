@@ -13,6 +13,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.89.0",
     "babel-preset-expo": "^54.0.9",
+    "bad-words": "^4.0.0",
     "expo": "^54.0.0",
     "expo-av": "~16.0.8",
     "expo-clipboard": "~8.0.8",

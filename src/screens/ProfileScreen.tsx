@@ -12,6 +12,8 @@ import {
   Animated,
   Easing,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,6 +32,7 @@ import { countryCodeToFlag, COUNTRIES, Country } from '../lib/countryUtils';
 import { soundService } from '../lib/soundService';
 import { getUserPreferences, updateSelectedSports, getDefaultSports, ALL_SPORTS } from '../lib/userPreferencesService';
 import FeedbackModal from '../components/FeedbackModal';
+import BlockedUsersModal from '../components/BlockedUsersModal';
 import { deleteUserAccount } from '../lib/accountService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -53,13 +56,14 @@ function getLevelTitle(level: number): string {
 interface Props {
   onBack?: () => void;
   onLogout: () => void;
+  onAccountDeleted?: () => Promise<void>;
   onNavigateToAchievements: () => void;
   onNavigateToCustomize: () => void;
   onReplayOnboarding?: () => void;
   onLinkEmail?: () => void;
 }
 
-export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievements, onNavigateToCustomize, onReplayOnboarding, onLinkEmail }: Props) {
+export default function ProfileScreen({ onBack, onLogout, onAccountDeleted, onNavigateToAchievements, onNavigateToCustomize, onReplayOnboarding, onLinkEmail }: Props) {
   const { user, signOut, isAnonymous, hasLinkedEmail, username: cachedUsername, profileLoading } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -78,6 +82,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [selectedSports, setSelectedSports] = useState<Sport[]>(getDefaultSports());
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showBlockedUsersModal, setShowBlockedUsersModal] = useState(false);
   const [showFeedbackToast, setShowFeedbackToast] = useState(false);
   const feedbackToastAnim = useRef(new Animated.Value(0)).current;
 
@@ -245,8 +250,14 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
           }),
         ]).start(async () => {
           setShowDeletedToast(false);
+          // Reset app state BEFORE signing out to prevent auto sign-in race condition
+          if (onAccountDeleted) {
+            await onAccountDeleted();
+          }
           await signOut();
-          onLogout();
+          if (!onAccountDeleted) {
+            onLogout();
+          }
         });
       } else {
         Alert.alert('Error', 'Failed to delete account. Please try again.');
@@ -631,6 +642,16 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                 <Image source={speechIcon} style={styles.feedbackIcon} />
               </TouchableOpacity>
 
+              {/* Blocked Users */}
+              <View style={styles.settingDivider} />
+              <TouchableOpacity style={styles.settingRow} onPress={() => setShowBlockedUsersModal(true)}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>Blocked Users</Text>
+                  <Text style={styles.settingDescription}>Manage blocked users</Text>
+                </View>
+                <Text style={styles.settingArrow}>→</Text>
+              </TouchableOpacity>
+
               {/* Delete Account */}
               <View style={styles.settingDivider} />
               <TouchableOpacity
@@ -674,7 +695,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
         transparent
         onRequestClose={() => setShowCountryPicker(false)}
       >
-        <View style={styles.countryModalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.countryModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.countryModalContent}>
             <View style={styles.countryModalHeader}>
               <Text style={styles.countryModalTitle}>Select Country</Text>
@@ -713,7 +737,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
               ))}
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Feedback Modal */}
@@ -724,6 +748,15 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
         username={cachedUsername || null}
         onSuccess={handleFeedbackSuccess}
       />
+
+      {/* Blocked Users Modal */}
+      {user?.id && (
+        <BlockedUsersModal
+          visible={showBlockedUsersModal}
+          onClose={() => setShowBlockedUsersModal(false)}
+          userId={user.id}
+        />
+      )}
 
       {/* Feedback Success Toast */}
       {showFeedbackToast && (
@@ -774,7 +807,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
                   setShowDeleteConfirmModal(true);
                 }}
               >
-                <Text style={styles.deleteModalDeleteText}>Delete My Account</Text>
+                <Text style={styles.deleteModalDeleteText}>Delete Account</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -791,7 +824,10 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
           setDeleteConfirmText('');
         }}
       >
-        <View style={styles.deleteModalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.deleteModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.deleteModalContent}>
             <Text style={styles.deleteModalTitle}>Confirm Deletion</Text>
             <Text style={styles.deleteModalBody}>
@@ -832,7 +868,7 @@ export default function ProfileScreen({ onBack, onLogout, onNavigateToAchievemen
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Account Deleted Toast */}

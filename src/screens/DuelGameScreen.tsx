@@ -33,6 +33,7 @@ const handshakeIcon = require('../../assets/images/icon-handshake.png');
 const trophyIcon = require('../../assets/images/icon-trophy.png');
 const thumbsDownIcon = require('../../assets/images/icon-thumbs-down.png');
 const crownIcon = require('../../assets/images/icon-crown.png');
+const speakerIcon = require('../../assets/images/icon-speaker.png');
 
 // Ad banners
 const adBannerImage = require('../../assets/images/ad-banner-parlays.png');
@@ -66,12 +67,13 @@ import {
 } from '../lib/duelService';
 import { areFriends, addFriend } from '../lib/friendsService';
 import { supabase } from '../lib/supabase';
-import { calculateDuelXP, getXPProgressInLevel } from '../lib/xpService';
+import { calculateDuelXP, getXPProgressInLevel, awardXP, getUserXP, getXPForLevel } from '../lib/xpService';
 import { completeDuelServerSide } from '../lib/serverRewardsService';
 import { Achievement } from '../lib/achievementsService';
 import { hasSeenInvitePrompt, markInvitePromptSeen, inviteFriends } from '../lib/inviteService';
 import LevelUpModal from '../components/LevelUpModal';
 import AchievementToast from '../components/AchievementToast';
+import ReportUserModal from '../components/ReportUserModal';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 // Import trivia data
@@ -187,6 +189,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   const [showForfeitModal, setShowForfeitModal] = useState(false);
   const [isForfeiting, setIsForfeiting] = useState(false);
 
+  // Report modal state
+  const [showReportModal, setShowReportModal] = useState(false);
+
+  // Sound toggle state
+  const [soundEnabled, setSoundEnabled] = useState(soundService.isEnabled());
+
   // First duel win invite modal state
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
@@ -200,6 +208,26 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     percentage: number;
   } | null>(null);
   const xpBarAnimatedWidth = useRef(new Animated.Value(0)).current;
+
+  // Animate XP bar when progress info updates
+  useEffect(() => {
+    if (xpProgressInfo) {
+      // Calculate starting percentage (before XP was awarded)
+      const startPercentage = (xpProgressInfo.previousXP / xpProgressInfo.required) * 100;
+
+      // Set to starting position immediately
+      xpBarAnimatedWidth.setValue(Math.min(startPercentage, 100));
+
+      // Animate to final percentage after a brief delay for modal to render
+      setTimeout(() => {
+        Animated.timing(xpBarAnimatedWidth, {
+          toValue: Math.min(xpProgressInfo.percentage, 100),
+          duration: 600,
+          useNativeDriver: false,
+        }).start();
+      }, 150);
+    }
+  }, [xpProgressInfo]);
 
   // Refs for safety timeout and connection monitoring
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -611,50 +639,86 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           };
 
           if (isChallenger) {
-            const result = await submitChallengerResult(duel.id, aggregatedResult);
-            if (result?.expires_at) {
-              const remaining = getTimeRemaining(result.expires_at);
-              setAsyncTimeRemaining(remaining);
+            try {
+              const result = await submitChallengerResult(duel.id, aggregatedResult);
+              if (result?.expires_at) {
+                const remaining = getTimeRemaining(result.expires_at);
+                setAsyncTimeRemaining(remaining);
+              }
+            } catch (err) {
+              console.error('[DuelGame] submitChallengerResult error:', err);
             }
-            setGamePhase('results'); // Exit roundResult phase to hide that modal
+            // Always show waiting screen for challenger
+            setGamePhase('results');
             setAsyncWaitingForFriend(true);
             setShowAsyncResultModal(true);
           } else {
-            const result = await submitOpponentResult(duel.id, aggregatedResult);
-            if (result) {
-              // Calculate scores from the player results
-              const p1Result = result.player1_result as PlayerResult | null;
-              const p2Result = result.player2_result as PlayerResult | null;
+            // Helper function to show results with local/fallback scores
+            const showLocalResults = () => {
+              console.warn('[DuelGame] Using local scores for results');
+              const localMyScore = asyncLocalResults.filter(r => r.correct).length;
+              setMyScore(localMyScore);
 
-              // Parse the answer field to count correct answers (it's a JSON array)
-              let p1Score = 0;
-              let p2Score = 0;
-
+              // Try to get opponent's score from the duel's player1_result
+              let oppScore = 0;
+              const p1Result = duel.player1_result as PlayerResult | null;
               if (p1Result?.answer) {
                 try {
                   const p1Answers = JSON.parse(p1Result.answer);
-                  p1Score = Array.isArray(p1Answers) ? p1Answers.filter((a: PlayerResult) => a.correct).length : (p1Result.correct ? 1 : 0);
+                  oppScore = Array.isArray(p1Answers) ? p1Answers.filter((a: PlayerResult) => a.correct).length : (p1Result.correct ? 1 : 0);
                 } catch {
-                  p1Score = p1Result.correct ? 1 : 0;
+                  oppScore = p1Result.correct ? 1 : 0;
                 }
               }
-
-              if (p2Result?.answer) {
-                try {
-                  const p2Answers = JSON.parse(p2Result.answer);
-                  p2Score = Array.isArray(p2Answers) ? p2Answers.filter((a: PlayerResult) => a.correct).length : (p2Result.correct ? 1 : 0);
-                } catch {
-                  p2Score = p2Result.correct ? 1 : 0;
-                }
-              }
-
-              // Set scores based on which player this user is
-              setMyScore(isPlayer1 ? p1Score : p2Score);
-              setOpponentScore(isPlayer1 ? p2Score : p1Score);
-
-              setDuel(result);
+              setOpponentScore(oppScore);
               setGamePhase('results');
               setShowResultModal(true);
+            };
+
+            try {
+              const result = await submitOpponentResult(duel.id, aggregatedResult);
+              if (result) {
+                // Calculate scores from the player results
+                const p1Result = result.player1_result as PlayerResult | null;
+                const p2Result = result.player2_result as PlayerResult | null;
+
+                // Parse the answer field to count correct answers (it's a JSON array)
+                let p1Score = 0;
+                let p2Score = 0;
+
+                if (p1Result?.answer) {
+                  try {
+                    const p1Answers = JSON.parse(p1Result.answer);
+                    p1Score = Array.isArray(p1Answers) ? p1Answers.filter((a: PlayerResult) => a.correct).length : (p1Result.correct ? 1 : 0);
+                  } catch {
+                    p1Score = p1Result.correct ? 1 : 0;
+                  }
+                }
+
+                if (p2Result?.answer) {
+                  try {
+                    const p2Answers = JSON.parse(p2Result.answer);
+                    p2Score = Array.isArray(p2Answers) ? p2Answers.filter((a: PlayerResult) => a.correct).length : (p2Result.correct ? 1 : 0);
+                  } catch {
+                    p2Score = p2Result.correct ? 1 : 0;
+                  }
+                }
+
+                // Set scores based on which player this user is
+                setMyScore(isPlayer1 ? p1Score : p2Score);
+                setOpponentScore(isPlayer1 ? p2Score : p1Score);
+
+                setDuel(result);
+                setGamePhase('results');
+                setShowResultModal(true);
+              } else {
+                // submitOpponentResult returned null
+                showLocalResults();
+              }
+            } catch (err) {
+              // submitOpponentResult threw an error
+              console.error('[DuelGame] submitOpponentResult error:', err);
+              showLocalResults();
             }
           }
           return;
@@ -676,18 +740,23 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
         // Player 1 determines final winner and completes duel
         if (isPlayer1) {
-          // Create a temporary duel object with final scores for winner determination
-          const finalDuel = {
-            ...duel,
-            player1_score: finalP1Score,
-            player2_score: finalP2Score,
-            player1_total_time: finalP1Time,
-            player2_total_time: finalP2Time,
-          };
-          const { winnerId } = determineFinalWinner(finalDuel);
-          await completeDuel(duel.id, winnerId);
+          try {
+            // Create a temporary duel object with final scores for winner determination
+            const finalDuel = {
+              ...duel,
+              player1_score: finalP1Score,
+              player2_score: finalP2Score,
+              player1_total_time: finalP1Time,
+              player2_total_time: finalP2Time,
+            };
+            const { winnerId } = determineFinalWinner(finalDuel);
+            await completeDuel(duel.id, winnerId);
+          } catch (err) {
+            console.error('[DuelGame] completeDuel error:', err);
+          }
         }
 
+        // Always show results even if completeDuel failed
         setGamePhase('results');
         setShowResultModal(true);
       } else {
@@ -703,23 +772,27 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           // SYNC MODE: Advance through database (only player 1 does this)
           if (isPlayer1 && !isAdvancingRound) {
             setIsAdvancingRound(true);
-            // Check if questions are pre-stored (comma-separated in mystery_player_id)
-            const storedQuestionIds = duel.mystery_player_id.split(',');
-            const nextRound = duel.current_round + 1;
-            // Use pre-stored question if available, otherwise generate new
-            const newQuestionId = storedQuestionIds.length >= nextRound
-              ? storedQuestionIds[nextRound - 1]
-              : getNewQuestionId();
-            const p1Correct = duel.player1_answer === question.correctAnswer;
-            const p2Correct = duel.player2_answer === question.correctAnswer;
-            await advanceToNextRound(
-              duel.id,
-              newQuestionId,
-              p1Correct,
-              p2Correct,
-              duel.player1_answer_time || TIMER_DURATION * 1000,
-              duel.player2_answer_time || TIMER_DURATION * 1000
-            );
+            try {
+              // Check if questions are pre-stored (comma-separated in mystery_player_id)
+              const storedQuestionIds = duel.mystery_player_id.split(',');
+              const nextRound = duel.current_round + 1;
+              // Use pre-stored question if available, otherwise generate new
+              const newQuestionId = storedQuestionIds.length >= nextRound
+                ? storedQuestionIds[nextRound - 1]
+                : getNewQuestionId();
+              const p1Correct = duel.player1_answer === question.correctAnswer;
+              const p2Correct = duel.player2_answer === question.correctAnswer;
+              await advanceToNextRound(
+                duel.id,
+                newQuestionId,
+                p1Correct,
+                p2Correct,
+                duel.player1_answer_time || TIMER_DURATION * 1000,
+                duel.player2_answer_time || TIMER_DURATION * 1000
+              );
+            } catch (err) {
+              console.error('[DuelGame] advanceToNextRound error:', err);
+            }
           }
         }
 
@@ -1010,6 +1083,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   };
 
   // Handle back button during gameplay - show forfeit warning
+  const toggleSound = async () => {
+    const newEnabled = !soundEnabled;
+    setSoundEnabled(newEnabled);
+    await soundService.setEnabled(newEnabled);
+  };
+
   const handleBackPress = () => {
     // During waiting phase, countdown, or results, just go back
     if (gamePhase === 'waiting' || gamePhase === 'countdown' || gamePhase === 'results' || gamePhase === 'roundResult') {
@@ -1070,10 +1149,23 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
   // Award XP when game ends
   useEffect(() => {
+    console.log('[DuelGame] XP award check:', { gamePhase, user: !!user, xpAwarded, question: !!question, asyncWaitingForFriend });
+
     // Don't award XP for async challenger waiting - they'll get it when viewing final results
-    if (asyncWaitingForFriend) return;
+    if (asyncWaitingForFriend) {
+      console.log('[DuelGame] Skipping XP - async waiting for friend');
+      return;
+    }
 
     if (gamePhase === 'results' && user && !xpAwarded && question) {
+      // For multi-question duels, wait until scores are set (non-zero or we have local results)
+      // This prevents the issue where state updates haven't propagated yet
+      if (isMultiQuestion && myScore === 0 && opponentScore === 0 && asyncLocalResults.length === 0) {
+        console.log('[DuelGame] Waiting for scores to be set before awarding XP');
+        return;
+      }
+
+      console.log('[DuelGame] Awarding XP - conditions met, scores:', { myScore, opponentScore });
       setXpAwarded(true);
 
       let won: boolean;
@@ -1081,11 +1173,20 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
       if (isMultiQuestion) {
         // For multi-question duels, use scores only to determine winner
+        // If scores are still 0/0 but we have local results, calculate from those
+        let effectiveMyScore = myScore;
+        let effectiveOppScore = opponentScore;
+
+        if (myScore === 0 && asyncLocalResults.length > 0) {
+          effectiveMyScore = asyncLocalResults.filter(r => r.correct).length;
+          console.log('[DuelGame] Using asyncLocalResults for myScore:', effectiveMyScore);
+        }
+
         // Equal scores = tie (no time tiebreaker)
-        if (myScore > opponentScore) {
+        if (effectiveMyScore > effectiveOppScore) {
           won = true;
           tie = false;
-        } else if (opponentScore > myScore) {
+        } else if (effectiveOppScore > effectiveMyScore) {
           won = false;
           tie = false;
         } else {
@@ -1104,14 +1205,29 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       const xpResult: 'win' | 'loss' | 'tie' = tie ? 'tie' : won ? 'win' : 'loss';
       const xpAmount = calculateDuelXP(xpResult);
 
-      // Call server to award rewards (also checks achievements)
-      completeDuelServerSide(duel.id, { answer: '', time: 0, correct: won }, isPlayer1).then((serverResult) => {
+      // Award XP and update progress display
+      const awardAndDisplayXP = async () => {
+        // First, get current XP before awarding
+        const beforeXPData = await getUserXP(user.id);
+        const beforeXP = beforeXPData?.xp || 0;
+        const currentLevel = beforeXPData?.level || 1;
+
+        // Calculate level progress before award
+        const currentLevelXP = getXPForLevel(currentLevel);
+        const nextLevelXP = getXPForLevel(currentLevel + 1);
+        const xpIntoLevelBefore = beforeXP - currentLevelXP;
+        const xpNeededForLevel = nextLevelXP - currentLevelXP;
+
+        // Try server-side first, fall back to client-side
+        console.log('[DuelGame] Calling completeDuelServerSide:', { duelId: duel.id, won, isPlayer1 });
+        const serverResult = await completeDuelServerSide(duel.id, { answer: '', time: 0, correct: won }, isPlayer1);
+        console.log('[DuelGame] Server response:', serverResult);
+
         if (serverResult.success) {
           console.log('[DuelGame] Server awarded:', serverResult);
 
           // Handle achievements from server
           if (serverResult.achievementsUnlocked && serverResult.achievementsUnlocked.length > 0) {
-            // Convert string names to Achievement objects for the toast
             const achievementObjects: Achievement[] = serverResult.achievementsUnlocked.map((name: string) => ({
               id: name,
               name,
@@ -1126,19 +1242,31 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             setShowAchievementToast(true);
           }
         } else {
-          console.error('[DuelGame] Server reward error:', serverResult.error);
+          // Server failed - fall back to client-side XP awarding
+          console.warn('[DuelGame] Server reward failed, using client-side fallback:', serverResult.error);
+          try {
+            const result = await awardXP(user.id, xpAmount);
+            if (result) {
+              console.log('[DuelGame] Client-side XP awarded:', result);
+            }
+          } catch (err) {
+            console.error('[DuelGame] Client-side XP award failed:', err);
+          }
         }
-      });
 
-      // Set XP display (estimated - actual awarded by server)
-      const estimatedXP = xpAmount;
-      setXpProgressInfo({
-        previousXP: 0,
-        newXP: estimatedXP,
-        current: estimatedXP,
-        required: 100,
-        percentage: 50,
-      });
+        // Calculate XP after award
+        const xpIntoLevelAfter = xpIntoLevelBefore + xpAmount;
+
+        // Set the progress display (shows animation from before to after)
+        setXpProgressInfo({
+          previousXP: xpIntoLevelBefore,
+          newXP: xpIntoLevelAfter,
+          current: xpIntoLevelAfter,
+          required: xpNeededForLevel,
+          percentage: (xpIntoLevelAfter / xpNeededForLevel) * 100,
+        });
+      };
+      awardAndDisplayXP();
 
       // Check for first duel win invite prompt
       if (won && !tie) {
@@ -1161,7 +1289,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         }, 2000); // Show after achievements have had time to display
       }
     }
-  }, [gamePhase, user, xpAwarded, question, duel, isPlayer1, isMultiQuestion, myScore, opponentScore, asyncWaitingForFriend]);
+  }, [gamePhase, user, xpAwarded, question, duel, isPlayer1, isMultiQuestion, myScore, opponentScore, asyncWaitingForFriend, asyncLocalResults]);
 
   const getTimerColor = () => {
     if (timeRemaining <= 3) return colors.timerDanger;
@@ -1498,14 +1626,23 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Scrollable Header - LEAVE button and sport badge */}
+          {/* Scrollable Header - LEAVE button, sound toggle, and sport badge */}
           <View style={styles.scrollableHeader}>
             <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
               <Text style={styles.backButtonText}>← LEAVE</Text>
             </TouchableOpacity>
-            <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
-              <Image source={sportIcons[duel.sport as Sport]} style={styles.sportIcon} resizeMode="contain" />
-              <Text style={styles.sportBadgeText}>{sportNames[duel.sport as Sport]}</Text>
+            <View style={styles.headerRightGroup}>
+              <TouchableOpacity style={styles.soundToggleButton} onPress={toggleSound}>
+                <Image
+                  source={speakerIcon}
+                  style={[styles.soundToggleIcon, !soundEnabled && styles.soundToggleIconMuted]}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              <View style={[styles.sportBadge, { backgroundColor: sportColor }]}>
+                <Image source={sportIcons[duel.sport as Sport]} style={styles.sportIcon} resizeMode="contain" />
+                <Text style={styles.sportBadgeText}>{sportNames[duel.sport as Sport]}</Text>
+              </View>
             </View>
           </View>
 
@@ -1802,6 +1939,17 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
                 <Text style={styles.duelResultsRematchButtonText}>REMATCH?</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Report Link */}
+            <TouchableOpacity
+              style={styles.duelResultsReportLink}
+              onPress={() => {
+                setShowResultModal(false);
+                setShowReportModal(true);
+              }}
+            >
+              <Text style={styles.duelResultsReportLinkText}>Report User</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -2056,6 +2204,15 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           </View>
         </View>
       </Modal>
+
+      {/* Report User Modal */}
+      <ReportUserModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        userId={isPlayer1 ? duel.player2_id || '' : duel.player1_id || ''}
+        username={opponentUsername || 'Opponent'}
+        reporterId={user?.id || ''}
+      />
     </SafeAreaView>
   );
 }
@@ -2084,6 +2241,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
     paddingTop: 8,
+  },
+  headerRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  soundToggleButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  soundToggleIcon: {
+    width: 20,
+    height: 20,
+  },
+  soundToggleIconMuted: {
+    opacity: 0.3,
   },
   header: {
     padding: 24,
@@ -3569,6 +3748,16 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_900Black',
     color: '#1A1A1A',
     letterSpacing: 0.5,
+  },
+  duelResultsReportLink: {
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  duelResultsReportLinkText: {
+    fontSize: 13,
+    fontFamily: 'DMSans_400Regular',
+    color: '#888888',
+    textDecorationLine: 'underline',
   },
   // Presented By Ad Banner styles
   presentedByContainer: {

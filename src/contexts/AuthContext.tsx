@@ -12,6 +12,7 @@ interface AuthContextType {
   username: string | null;
   profileLoading: boolean;
   refreshProfile: () => Promise<void>;
+  refreshProfileForUser: (userId: string) => Promise<void>;
   signInAnonymously: () => Promise<{ error: Error | null }>;
   signInWithEmail: (email: string, password: string) => Promise<{ data?: { session: Session | null }; error: Error | null }>;
   linkEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -58,6 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUsername(fetchedUsername);
     setProfileLoading(false);
   }, [user, fetchUsername]);
+
+  // Refresh profile for a specific user ID (used after sign-in to avoid race conditions)
+  const refreshProfileForUser = useCallback(async (userId: string) => {
+    setProfileLoading(true);
+    const fetchedUsername = await fetchUsername(userId);
+    console.log('[AuthContext] refreshProfileForUser:', userId, '->', fetchedUsername);
+    setUsername(fetchedUsername);
+    setProfileLoading(false);
+  }, [fetchUsername]);
 
   // Register for push notifications when user logs in
   const setupPushNotifications = async (userId: string) => {
@@ -112,8 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Fetch username and register push notifications on sign in
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('[AuthContext] SIGNED_IN event for user:', session.user.id, 'email:', session.user.email, 'isAnonymous:', session.user.is_anonymous);
           setProfileLoading(true);
           const fetchedUsername = await fetchUsername(session.user.id);
+          console.log('[AuthContext] Fetched username for user', session.user.id, ':', fetchedUsername);
           setUsername(fetchedUsername);
           setProfileLoading(false);
           setupPushNotifications(session.user.id);
@@ -169,6 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     username,
     profileLoading,
     refreshProfile,
+    refreshProfileForUser,
     signInAnonymously,
     signInWithEmail,
     linkEmail,

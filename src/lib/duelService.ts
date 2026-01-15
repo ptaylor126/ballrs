@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { sendDuelChallengeNotification, sendDuelResultNotification } from './notificationService';
+import { isBlocked } from './blockService';
 
 // Helper to get the current authenticated user ID
 async function getCurrentUserId(): Promise<string | null> {
@@ -954,6 +955,13 @@ export async function createAsyncDuel(
 ): Promise<Duel | null> {
   console.log('[createAsyncDuel] Creating duel with questions:', questionIds);
 
+  // Check if either user has blocked the other
+  const blocked = await isBlocked(challengerId, friendId);
+  if (blocked) {
+    console.log('Cannot create duel - users have blocked each other');
+    return null;
+  }
+
   // Try with expires_at first (if migration has been applied)
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + 48);
@@ -1075,8 +1083,19 @@ export async function submitOpponentResult(
   // Handle case where player1 didn't submit (shouldn't happen but be safe)
   if (!p1Result) {
     console.warn('Player1 result is null, treating as forfeit');
-    winnerId = duel.player2_id;
-    player2Score = p2Result.correct ? 1 : 0;
+    // Calculate player2's actual score from their results
+    try {
+      const p2RoundResults = JSON.parse(p2Result.answer) as PlayerResult[];
+      player2Score = p2RoundResults.filter(r => r.correct).length;
+    } catch {
+      player2Score = p2Result.correct ? 1 : 0;
+    }
+    // Player1 forfeited - player2 wins only if they got at least 1 correct
+    // If both scores are 0, treat as a tie (no winner)
+    if (player2Score > 0) {
+      winnerId = duel.player2_id;
+    }
+    // If player2Score is 0, winnerId stays null (tie)
   } else {
     // Calculate scores from player results first
     let isMultiQuestion = false;
@@ -1135,8 +1154,13 @@ export async function submitOpponentResult(
     const opponentUsername = opponentProfile?.username || 'Your opponent';
 
     // Determine result from challenger's perspective
+    // Double-check: if scores are equal, it's always a tie regardless of winnerId
     let challengerResult: 'win' | 'loss' | 'tie';
-    if (winnerId === duel.player1_id) {
+    if (player1Score === player2Score) {
+      // Safety: equal scores should always be a tie
+      challengerResult = 'tie';
+      console.log(`Duel ${duelId}: Scores equal (${player1Score}-${player2Score}), result is tie`);
+    } else if (winnerId === duel.player1_id) {
       challengerResult = 'win';
     } else if (winnerId === duel.player2_id) {
       challengerResult = 'loss';

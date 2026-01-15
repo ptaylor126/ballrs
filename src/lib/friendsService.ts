@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { sendFriendRequestNotification, sendFriendAcceptedNotification } from './notificationService';
+import { isBlocked } from './blockService';
 
 // Helper to verify the current user matches the provided userId
 async function verifyAuthUser(expectedUserId: string): Promise<boolean> {
@@ -363,6 +364,12 @@ export async function sendFriendRequest(senderId: string, receiverId: string): P
   const alreadyFriends = await areFriends(senderId, receiverId);
   if (alreadyFriends) {
     return { success: false, error: 'already_friends' };
+  }
+
+  // Check if either user has blocked the other
+  const blocked = await isBlocked(senderId, receiverId);
+  if (blocked) {
+    return { success: false, error: 'cannot_send_request' };
   }
 
   // Check if a pending request already exists (either direction)

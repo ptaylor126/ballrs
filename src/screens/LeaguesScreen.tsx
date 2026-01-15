@@ -56,6 +56,7 @@ interface Props {
   onCreateLeague: () => void;
   onJoinLeague: () => void;
   onViewLeague: (league: LeagueWithMemberCount) => void;
+  selectedSports?: ('nba' | 'pl' | 'nfl' | 'mlb')[];
 }
 
 type TabType = 'leagues' | 'global';
@@ -121,6 +122,7 @@ export default function LeaguesScreen({
   onCreateLeague,
   onJoinLeague,
   onViewLeague,
+  selectedSports,
 }: Props) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('leagues');
@@ -130,7 +132,9 @@ export default function LeaguesScreen({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('all_time');
-  const [sportFilter, setSportFilter] = useState<SportFilter>('all');
+  // Default to user's sport if they only have one selected
+  const defaultSport: SportFilter = selectedSports?.length === 1 ? selectedSports[0] : 'all';
+  const [sportFilter, setSportFilter] = useState<SportFilter>(defaultSport);
 
   // Animated tab indicator
   const tabIndicatorAnim = useRef(new Animated.Value(0)).current;

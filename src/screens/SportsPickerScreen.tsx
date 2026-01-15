@@ -83,9 +83,9 @@ export default function SportsPickerScreen({ onComplete, initialSelection, isOnb
       <View style={styles.content}>
         {/* Header */}
         <Text style={styles.logo}>BALLRS</Text>
-        <Text style={styles.title}>Which sports do you want to play?</Text>
+        <Text style={styles.title}>Which sports interest you?</Text>
         <Text style={styles.subtitle}>
-          Choose the sports you're interested in
+          Select all that apply
         </Text>
 
         {/* Sports Grid */}
@@ -107,10 +107,10 @@ export default function SportsPickerScreen({ onComplete, initialSelection, isOnb
                     isSelected && { borderColor: sportColor, borderWidth: 4 },
                   ]}
                 >
-                  {/* Selection Indicator */}
+                  {/* Selection Indicator - matches home screen style */}
                   {isSelected && (
-                    <View style={[styles.checkBadge, { backgroundColor: sportColor }]}>
-                      <Image source={checkIcon} style={styles.checkIcon} />
+                    <View style={styles.checkBadge}>
+                      <Image source={checkIcon} style={[styles.checkIcon, { tintColor: sportColor }]} />
                     </View>
                   )}
 
@@ -124,12 +124,7 @@ export default function SportsPickerScreen({ onComplete, initialSelection, isOnb
                     styles.sportName,
                     isSelected && { color: sportColor },
                   ]}>
-                    {sport === 'pl' ? 'EPL' : sport.toUpperCase()}
-                  </Text>
-
-                  {/* Sport Full Name */}
-                  <Text style={styles.sportFullName}>
-                    {getSportName(sport)}
+                    {sport === 'pl' ? 'EPL' : getSportName(sport)}
                   </Text>
                 </AnimatedCard>
               </TouchableOpacity>
@@ -227,16 +222,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+    zIndex: 1,
   },
   checkIcon: {
-    width: 16,
-    height: 16,
-    tintColor: '#FFFFFF',
+    width: 20,
+    height: 20,
   },
   sportIconContainer: {
     width: 60,
@@ -250,16 +240,9 @@ const styles = StyleSheet.create({
     height: 50,
   },
   sportName: {
-    fontSize: 24,
-    fontFamily: 'DMSans_900Black',
+    fontSize: 18,
+    fontFamily: 'DMSans_700Bold',
     color: colors.text,
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  sportFullName: {
-    fontSize: 12,
-    fontFamily: 'DMSans_400Regular',
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   errorText: {

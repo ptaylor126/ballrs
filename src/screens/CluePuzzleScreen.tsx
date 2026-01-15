@@ -15,7 +15,6 @@ import {
   LayoutChangeEvent,
   Keyboard,
   Dimensions,
-  InteractionManager,
   AppState,
   AppStateStatus,
   Linking,
@@ -345,13 +344,18 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     // Don't show if already linked email
     if (hasLinkedEmail) return;
 
-    // Only show on level up
+    // Only show on specific milestone levels (5, 20, 30)
     if (!xpResult) return;
     const previousLevel = calculateLevel(xpResult.previousXP);
     const newLevel = calculateLevel(xpResult.newXP);
-    const didLevelUp = newLevel > previousLevel;
 
-    if (!didLevelUp) return;
+    // Check if user just reached one of the milestone levels
+    const promptLevels = [5, 20, 30];
+    const reachedMilestone = promptLevels.some(
+      level => newLevel >= level && previousLevel < level
+    );
+
+    if (!reachedMilestone) return;
 
     // Check if dismissed within last 7 days
     try {
@@ -489,10 +493,15 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
           // Timer expired
           clearInterval(timerIntervalRef.current!);
           timerIntervalRef.current = null;
+          // Play buzzer sound when time runs out
+          soundService.playBuzzer();
           // Use setTimeout to avoid state update during render
           setTimeout(() => handleTimerExpiry(), 0);
           return 0;
         }
+
+        // Play tick sound each second (faster tick in last 5 seconds)
+        soundService.playTick(prev <= 5);
 
         // Haptic at 3 second warning
         if (prev === 4) {
@@ -558,6 +567,11 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     // Only run countdown if not already solved/gave up and not loading
     if (loading || solved || gaveUp || !showCountdown) return;
 
+    // Start tick-tock sound when countdown begins
+    if (countdownNumber === 3) {
+      soundService.startTickTock();
+    }
+
     // Animate the number popping in
     const animateNumber = () => {
       countdownScaleAnim.setValue(0);
@@ -575,6 +589,9 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
       setCountdownNumber((prev) => {
         if (prev <= 1) {
           clearInterval(countdownInterval);
+          // Stop tick-tock and play whistle when countdown ends
+          soundService.stopTickTock();
+          soundService.playWhistle();
           // Small delay before hiding countdown
           setTimeout(() => {
             setShowCountdown(false);
@@ -587,7 +604,10 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
       });
     }, 1000);
 
-    return () => clearInterval(countdownInterval);
+    return () => {
+      clearInterval(countdownInterval);
+      soundService.stopTickTock();
+    };
   }, [loading, solved, gaveUp, showCountdown, countdownScaleAnim]);
 
   // Get timer color based on time remaining
@@ -788,7 +808,8 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
         }
 
         // Complete puzzle server-side - all rewards calculated securely
-        InteractionManager.runAfterInteractions(() => {
+        // Use setTimeout instead of InteractionManager for more reliable execution
+        setTimeout(() => {
           completePuzzleServerSide(
             String(mysteryPlayer.id),
             cluesUsed,

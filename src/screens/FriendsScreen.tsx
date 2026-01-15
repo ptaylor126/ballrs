@@ -53,8 +53,11 @@ import {
 } from '../lib/notificationService';
 import { usePresence } from '../hooks/usePresence';
 import NotificationPromptModal from '../components/NotificationPromptModal';
+import UserActionsModal from '../components/UserActionsModal';
+import ReportUserModal from '../components/ReportUserModal';
 import { soundService } from '../lib/soundService';
 import { inviteFriends } from '../lib/inviteService';
+import { blockUser } from '../lib/blockService';
 
 // Get trivia questions by sport
 const getTriviaQuestions = (sport: Sport): any[] => {
@@ -81,9 +84,10 @@ interface SwipeableFriendCardProps {
   isOnline: boolean;
   onChallenge: () => void;
   onRemove: () => void;
+  onActions: () => void;
 }
 
-function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove }: SwipeableFriendCardProps) {
+function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove, onActions }: SwipeableFriendCardProps) {
   const translateX = useRef(new Animated.Value(0)).current;
   const [isSwipeOpen, setIsSwipeOpen] = useState(false);
 
@@ -183,6 +187,16 @@ function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove }: Swipea
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          style={styles.actionsButton}
+          onPress={() => {
+            soundService.playButtonClick();
+            onActions();
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.actionsButtonText}>...</Text>
+        </TouchableOpacity>
         <AnimatedButton
           style={styles.challengeButton}
           onPress={() => {
@@ -254,6 +268,11 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
 
   // Invite friends state
   const [inviting, setInviting] = useState(false);
+
+  // Block/Report state
+  const [showUserActionsModal, setShowUserActionsModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [userToAction, setUserToAction] = useState<{ id: string; username: string } | null>(null);
 
 
   // Real-time online status using presence hook
@@ -429,6 +448,55 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
   const cancelRemoveFriend = () => {
     setShowRemoveConfirmModal(false);
     setFriendToRemove(null);
+  };
+
+  // Block/Report handlers
+  const handleOpenUserActions = (userId: string, username: string) => {
+    setUserToAction({ id: userId, username });
+    setShowUserActionsModal(true);
+  };
+
+  const handleBlockUser = async () => {
+    if (!user || !userToAction) return;
+
+    // Close the actions modal first
+    setShowUserActionsModal(false);
+
+    // Store reference before potentially clearing
+    const targetUser = userToAction;
+
+    Alert.alert(
+      'Block User',
+      `Are you sure you want to block ${targetUser.username}? They won't be able to send you friend requests or challenge you to duels.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => setUserToAction(null),
+        },
+        {
+          text: 'Block',
+          style: 'destructive',
+          onPress: async () => {
+            const result = await blockUser(user.id, targetUser.id);
+            if (result.success) {
+              Alert.alert('Blocked', `${targetUser.username} has been blocked.`);
+              loadData(); // Refresh to remove blocked user from friends
+            } else {
+              Alert.alert('Error', 'Failed to block user. Please try again.');
+            }
+            setUserToAction(null);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleReportUser = () => {
+    console.log('[FriendsScreen] handleReportUser called, userToAction:', userToAction);
+    setShowUserActionsModal(false);
+    setShowReportModal(true);
+    console.log('[FriendsScreen] showReportModal set to true');
   };
 
   const handleChallengePress = (friend: FriendWithOnlineStatus) => {
@@ -750,6 +818,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
                   isOnline={isOnline}
                   onChallenge={() => handleChallengePress(friend)}
                   onRemove={() => handleRemoveFriend(friend.friendUserId, friend.username)}
+                  onActions={() => handleOpenUserActions(friend.friendUserId, friend.username)}
                 />
               );
             })
@@ -991,6 +1060,32 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
           </View>
         </View>
       </Modal>
+
+      {/* User Actions Modal (Block/Report) */}
+      <UserActionsModal
+        visible={showUserActionsModal}
+        onClose={() => {
+          setShowUserActionsModal(false);
+          setUserToAction(null);
+        }}
+        username={userToAction?.username || ''}
+        onBlock={handleBlockUser}
+        onReport={handleReportUser}
+      />
+
+      {/* Report User Modal */}
+      {userToAction && (
+        <ReportUserModal
+          visible={showReportModal}
+          onClose={() => {
+            setShowReportModal(false);
+            setUserToAction(null);
+          }}
+          userId={userToAction.id}
+          username={userToAction.username}
+          reporterId={user?.id || ''}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -1339,6 +1434,17 @@ const styles = StyleSheet.create({
   },
   friendStatusOnline: {
     color: '#22C55E',
+  },
+  actionsButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 8,
+  },
+  actionsButtonText: {
+    fontSize: 20,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.textSecondary,
+    letterSpacing: 2,
   },
   challengeButton: {
     backgroundColor: colors.primary,

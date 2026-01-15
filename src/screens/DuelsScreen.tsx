@@ -1151,7 +1151,7 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             ) : friends.length === 0 ? (
               <Text style={styles.noFriendsHint}>No friends yet. Use the code below to invite someone!</Text>
             ) : (
-              <View style={styles.friendsListContainer}>
+              <ScrollView style={styles.friendsListContainer} showsVerticalScrollIndicator={false}>
                 {friends.map((friend) => (
                   <TouchableOpacity
                     key={friend.id}
@@ -1171,7 +1171,7 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
                     <Text style={styles.friendOptionArrow}>→</Text>
                   </TouchableOpacity>
                 ))}
-              </View>
+              </ScrollView>
             )}
 
             {/* Divider */}
@@ -2288,6 +2288,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   friendsListContainer: {
+    maxHeight: 220,
     marginBottom: 8,
   },
   friendOptionCard: {

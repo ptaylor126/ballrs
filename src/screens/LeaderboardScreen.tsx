@@ -24,6 +24,7 @@ type SportFilter = 'all' | 'nba' | 'pl' | 'nfl' | 'mlb';
 
 interface Props {
   onBack: () => void;
+  selectedSports?: ('nba' | 'pl' | 'nfl' | 'mlb')[];
 }
 
 const colors = {
@@ -68,7 +69,7 @@ const goldMedal = require('../../assets/images/icon-gold.png');
 const silverMedal = require('../../assets/images/icon-silver.png');
 const bronzeMedal = require('../../assets/images/icon-bronze.png');
 
-export default function LeaderboardScreen({ onBack }: Props) {
+export default function LeaderboardScreen({ onBack, selectedSports }: Props) {
   const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +77,22 @@ export default function LeaderboardScreen({ onBack }: Props) {
   const [playerCount, setPlayerCount] = useState(0);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('all_time');
   const [sportFilter, setSportFilter] = useState<SportFilter>('all');
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Set default sport filter based on user's selected sports (only once on mount)
+  useEffect(() => {
+    console.log('[LeaderboardScreen] selectedSports:', selectedSports);
+    console.log('[LeaderboardScreen] hasInitialized:', hasInitialized);
+    // Wait until selectedSports is loaded (not null/undefined) before initializing
+    if (hasInitialized || selectedSports === null || selectedSports === undefined) {
+      return;
+    }
+    if (selectedSports.length === 1) {
+      console.log('[LeaderboardScreen] Setting sport filter to:', selectedSports[0]);
+      setSportFilter(selectedSports[0]);
+    }
+    setHasInitialized(true);
+  }, [selectedSports, hasInitialized]);
 
   const fetchLeaderboard = useCallback(async () => {
     const sportFilterValue = sportFilter === 'all' ? undefined : sportFilter;

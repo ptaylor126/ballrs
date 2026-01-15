@@ -1,4 +1,48 @@
 import { supabase } from './supabase';
+import { Filter } from 'bad-words';
+
+// Initialize profanity filter
+const profanityFilter = new Filter();
+
+// Common letter substitutions for bypassing filters
+const letterSubstitutions: Record<string, string> = {
+  '@': 'a',
+  '4': 'a',
+  '8': 'b',
+  '3': 'e',
+  '1': 'i',
+  '!': 'i',
+  '0': 'o',
+  '5': 's',
+  '$': 's',
+  '7': 't',
+  '+': 't',
+};
+
+// Normalize text by replacing common letter substitutions
+function normalizeText(text: string): string {
+  let normalized = text.toLowerCase();
+  for (const [sub, letter] of Object.entries(letterSubstitutions)) {
+    normalized = normalized.split(sub).join(letter);
+  }
+  return normalized;
+}
+
+// Check if username contains profanity (case-insensitive, handles substitutions)
+export function containsProfanity(text: string): boolean {
+  // Check original text
+  if (profanityFilter.isProfane(text)) {
+    return true;
+  }
+
+  // Check normalized text (with letter substitutions converted)
+  const normalized = normalizeText(text);
+  if (profanityFilter.isProfane(normalized)) {
+    return true;
+  }
+
+  return false;
+}
 
 export interface Profile {
   id: string;
@@ -42,16 +86,17 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data;
 }
 
-// Create profile with username
+// Create or update profile with username
 export async function createProfile(userId: string, username: string): Promise<Profile | null> {
+  // Use upsert to handle case where DB trigger already created a profile with default username
   const { data, error } = await supabase
     .from('profiles')
-    .insert({ id: userId, username })
+    .upsert({ id: userId, username }, { onConflict: 'id' })
     .select()
     .single();
 
   if (error) {
-    console.error('Error creating profile:', error);
+    console.error('Error creating/updating profile:', error);
     return null;
   }
 
@@ -87,6 +132,11 @@ export function validateUsername(username: string): { valid: boolean; error?: st
 
   if (!/^[a-zA-Z0-9]+$/.test(username)) {
     return { valid: false, error: 'Username can only contain letters and numbers' };
+  }
+
+  // Check for profanity (case-insensitive, handles common letter substitutions)
+  if (containsProfanity(username)) {
+    return { valid: false, error: 'This username is not allowed' };
   }
 
   return { valid: true };

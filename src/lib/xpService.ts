@@ -174,20 +174,33 @@ export async function awardXP(userId: string, amount: number): Promise<XPAwardRe
     console.log('Updating XP:', { previousXP, newXP, previousLevel, newLevel });
 
     // Update stats in database
-    const { error: updateError } = await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from('user_stats')
       .update({
         xp: newXP,
         level: newLevel,
       })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select('xp, level')
+      .single();
 
     if (updateError) {
       console.error('Error updating XP:', updateError);
+      // Log auth state for debugging
+      const { data: { session } } = await supabase.auth.getSession();
+      console.error('Auth session during XP update:', session?.user?.id, 'Target userId:', userId);
       return null;
     }
 
-    console.log('XP update successful');
+    // Verify the update was applied
+    if (updateData) {
+      console.log('XP update successful, verified new values:', updateData);
+      if (updateData.xp !== newXP) {
+        console.error('XP mismatch! Expected:', newXP, 'Got:', updateData.xp);
+      }
+    } else {
+      console.warn('XP update returned no data (0 rows affected) - RLS may be blocking');
+    }
 
     return {
       success: true,

@@ -5,6 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // Level thresholds - must match client-side xpService.ts
 const LEVEL_THRESHOLDS = [
@@ -79,8 +80,8 @@ Deno.serve(async (req: Request) => {
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Create client with user's JWT - RLS will handle authorization
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    // Create client with user's JWT for auth verification
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
@@ -89,8 +90,17 @@ Deno.serve(async (req: Request) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify the user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Create service role client for database operations (bypasses RLS)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+    });
+
+    // Verify the user using auth client
+    const { data: { user }, error: authError } = await authClient.auth.getUser(token);
     if (authError || !user) {
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid or expired token' }),
@@ -343,6 +353,8 @@ async function awardDuelRewards(
   sport: Sport,
   isWin: boolean
 ) {
+  console.log(`[awardDuelRewards] Starting for user ${userId}: +${xp} XP, +${points} points, sport=${sport}, isWin=${isWin}`);
+
   // Fetch current stats
   const { data: stats, error: fetchError } = await supabase
     .from('user_stats')
@@ -350,8 +362,10 @@ async function awardDuelRewards(
     .eq('id', userId)
     .single();
 
+  console.log(`[awardDuelRewards] Fetch result:`, { hasStats: !!stats, currentXP: stats?.xp, fetchError: fetchError?.message });
+
   if (fetchError && fetchError.code !== 'PGRST116') {
-    console.error('Error fetching user stats for duel rewards:', fetchError);
+    console.error('[awardDuelRewards] Error fetching user stats:', fetchError);
     return;
   }
 
@@ -380,24 +394,34 @@ async function awardDuelRewards(
     updateData.duel_wins = (stats?.duel_wins || 0) + 1;
   }
 
+  console.log(`[awardDuelRewards] Updating XP: ${currentXP} -> ${newXP}`);
+
   // Update or create stats
   if (stats) {
-    const { error: updateError } = await supabase
+    const { data: updateResult, error: updateError } = await supabase
       .from('user_stats')
       .update(updateData)
-      .eq('id', userId);
+      .eq('id', userId)
+      .select('xp, level')
+      .single();
 
     if (updateError) {
-      console.error('Error updating duel rewards:', updateError);
+      console.error('[awardDuelRewards] Error updating:', updateError);
+    } else {
+      console.log(`[awardDuelRewards] Update successful! New XP in DB: ${updateResult?.xp}`);
     }
   } else {
     // Create new stats row
-    const { error: insertError } = await supabase
+    const { data: insertResult, error: insertError } = await supabase
       .from('user_stats')
-      .insert({ id: userId, ...updateData });
+      .insert({ id: userId, ...updateData })
+      .select('xp, level')
+      .single();
 
     if (insertError) {
-      console.error('Error creating user stats for duel rewards:', insertError);
+      console.error('[awardDuelRewards] Error inserting:', insertError);
+    } else {
+      console.log(`[awardDuelRewards] Insert successful! New XP in DB: ${insertResult?.xp}`);
     }
   }
 }

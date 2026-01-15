@@ -13,6 +13,7 @@ import {
   AppState,
   AppStateStatus,
   Platform,
+  Share,
 } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { setupGlobalErrorHandlers, logStartupError } from './src/lib/startupLogger';
@@ -51,7 +52,7 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { colors, shadows, getSportColor, getSportName, getSportEmoji, Sport, borders, borderRadius } from './src/lib/theme';
 import { getUserXP, getXPProgressInLevel, getXPForLevel } from './src/lib/xpService';
-import { fetchUserStats, UserStats } from './src/lib/statsService';
+import { fetchUserStats, UserStats, getStreak } from './src/lib/statsService';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -83,12 +84,13 @@ import AnimatedSplashScreen from './src/screens/AnimatedSplashScreen';
 import { getProfile, updateLastActive } from './src/lib/profilesService';
 import { getUserPreferences, getDefaultSports } from './src/lib/userPreferencesService';
 import { joinPresence, leavePresence } from './src/lib/presenceService';
-import { Duel, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getPendingAsyncChallengesCount, createInviteDuel, createAsyncDuel } from './src/lib/duelService';
+import { Duel, DuelWithOpponent, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getActiveDuels, getPendingAsyncChallengesCount, createInviteDuel, createAsyncDuel } from './src/lib/duelService';
 import { getPendingFriendRequestsCount, subscribeToFriendRequests, unsubscribeFromFriendRequests } from './src/lib/friendsService';
 import { addNotificationListeners, updateStreakReminderFromStats } from './src/lib/notificationService';
 import { getDuelById } from './src/lib/duelService';
 import { getCompletedSportsToday } from './src/lib/dailyPuzzleService';
-import { LeagueWithMemberCount } from './src/lib/leaguesService';
+import { LeagueWithMemberCount, getUserLeagues, getLeagueLeaderboard, LeagueMember } from './src/lib/leaguesService';
+import { getGlobalLeaderboard, LeaderboardEntry } from './src/lib/pointsService';
 import nbaTriviaData from './data/nba-trivia.json';
 import plTriviaData from './data/pl-trivia.json';
 import nflTriviaData from './data/nfl-trivia.json';
@@ -169,15 +171,34 @@ const checkIcon = require('./assets/images/icon-check.png');
 
 type Screen = 'home' | 'nba' | 'pl' | 'nfl' | 'mlb' | 'nbaDaily' | 'plDaily' | 'nflDaily' | 'mlbDaily' | 'profile' | 'setUsername' | 'selectSports' | 'selectCountry' | 'leaderboard' | 'waitingForOpponent' | 'duelGame' | 'asyncDuelGame' | 'inviteFriend' | 'challengeSetup' | 'leagues' | 'leagueDetail' | 'achievements' | 'customizeProfile' | 'linkEmail';
 
+// Constants for AsyncStorage keys
+const SELECTED_SPORT_TAB_KEY = '@ballrs_selected_sport_tab';
+
+// Helper to get ordinal suffix (1st, 2nd, 3rd, etc.)
+function getOrdinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+// League with user position info
+interface LeagueWithPosition extends LeagueWithMemberCount {
+  userPosition: number;
+  userPoints: number;
+  totalMembers: number;
+}
+
 interface HomeScreenProps {
   onDailyPuzzle: (sport: Sport) => void;
   onDuel: (sport: Sport) => void;
   onProfilePress: () => void;
+  onNavigateToDuel: (duel: DuelWithOpponent) => void;
+  onNavigateToLeague: (league: LeagueWithMemberCount) => void;
   refreshKey?: number;
   selectedSports?: Sport[] | null;
 }
 
-function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selectedSports }: HomeScreenProps) {
+function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, onNavigateToLeague, refreshKey, selectedSports }: HomeScreenProps) {
   const { user, loading: authLoading } = useAuth();
   const [xp, setXP] = useState(0);
   const [level, setLevel] = useState(1);
@@ -185,16 +206,86 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
   const [completedToday, setCompletedToday] = useState<Set<Sport>>(new Set());
   const [showLevelModal, setShowLevelModal] = useState(false);
 
+  // New state for tab-based design
+  const [selectedSportTab, setSelectedSportTab] = useState<Sport | null>(null);
+  const [activeDuels, setActiveDuels] = useState<DuelWithOpponent[]>([]);
+  const [incomingChallenges, setIncomingChallenges] = useState<DuelWithOpponent[]>([]);
+  const [userLeagues, setUserLeagues] = useState<LeagueWithPosition[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [tabIndicatorAnim] = useState(new Animated.Value(0));
+
   // Animated XP bar
   const xpBarAnim = useRef(new Animated.Value(0)).current;
 
-  // Staggered card entrance animations
-  const cardAnims = useRef(
-    [0, 1, 2, 3].map(() => ({
-      opacity: new Animated.Value(0),
-      translateY: new Animated.Value(15),
-    }))
-  ).current;
+  // Card entrance animation
+  const cardAnim = useRef({
+    opacity: new Animated.Value(0),
+    translateY: new Animated.Value(15),
+  }).current;
+
+  // All available sports
+  const allSportCards: { sport: Sport; name: string }[] = [
+    { sport: 'nba', name: 'NBA' },
+    { sport: 'pl', name: 'EPL' },
+    { sport: 'nfl', name: 'NFL' },
+    { sport: 'mlb', name: 'MLB' },
+  ];
+
+  // Filter to only show selected sports (default to all if not specified)
+  const sportTabs = selectedSports && selectedSports.length > 0
+    ? allSportCards.filter(card => selectedSports.includes(card.sport))
+    : allSportCards;
+
+  // Load saved tab from AsyncStorage on mount
+  useEffect(() => {
+    const loadSavedTab = async () => {
+      try {
+        const savedTab = await AsyncStorage.getItem(SELECTED_SPORT_TAB_KEY);
+        if (savedTab && sportTabs.some(t => t.sport === savedTab)) {
+          setSelectedSportTab(savedTab as Sport);
+        } else if (sportTabs.length > 0) {
+          setSelectedSportTab(sportTabs[0].sport);
+        }
+      } catch (error) {
+        console.error('Error loading saved sport tab:', error);
+        if (sportTabs.length > 0) {
+          setSelectedSportTab(sportTabs[0].sport);
+        }
+      }
+    };
+    loadSavedTab();
+  }, [sportTabs.length]);
+
+  // Handle tab change with persistence
+  const handleTabChange = async (sport: Sport) => {
+    setSelectedSportTab(sport);
+    try {
+      await AsyncStorage.setItem(SELECTED_SPORT_TAB_KEY, sport);
+    } catch (error) {
+      console.error('Error saving sport tab:', error);
+    }
+
+    // Animate tab indicator
+    const tabIndex = sportTabs.findIndex(t => t.sport === sport);
+    Animated.spring(tabIndicatorAnim, {
+      toValue: tabIndex,
+      friction: 8,
+      tension: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Fetch leaderboard when selected sport changes
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      if (!selectedSportTab) return;
+      // If only 1 sport selected, use that. Otherwise use selected tab.
+      const sportFilter = sportTabs.length === 1 ? sportTabs[0].sport : selectedSportTab;
+      const data = await getGlobalLeaderboard('weekly', sportFilter, 5);
+      setLeaderboard(data);
+    };
+    fetchLeaderboard();
+  }, [selectedSportTab, sportTabs.length]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -203,9 +294,12 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
       setCompletedToday(completed);
 
       if (user) {
-        const [xpData, userStats] = await Promise.all([
+        const [xpData, userStats, duels, challenges, leagues] = await Promise.all([
           getUserXP(user.id),
           fetchUserStats(user.id),
+          getActiveDuels(user.id),
+          getIncomingChallenges(user.id),
+          getUserLeagues(user.id),
         ]);
         if (xpData) {
           setXP(xpData.xp);
@@ -216,10 +310,30 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
           // Schedule streak reminder notification for 8pm if user hasn't played today
           updateStreakReminderFromStats(user.id);
         }
+        setActiveDuels(duels);
+        setIncomingChallenges(challenges);
+
+        // Get user positions in each league
+        const leaguesWithPositions: LeagueWithPosition[] = [];
+        for (const league of leagues) {
+          const members = await getLeagueLeaderboard(league.id, 'all_time');
+          const userIndex = members.findIndex(m => m.user_id === user.id);
+          const userMember = members.find(m => m.user_id === user.id);
+          leaguesWithPositions.push({
+            ...league,
+            userPosition: userIndex >= 0 ? userIndex + 1 : 0,
+            userPoints: userMember?.points_all_time || 0,
+            totalMembers: members.length,
+          });
+        }
+        setUserLeagues(leaguesWithPositions.slice(0, 3)); // Max 3 leagues shown
       } else {
         setXP(0);
         setLevel(1);
         setStats(null);
+        setActiveDuels([]);
+        setIncomingChallenges([]);
+        setUserLeagues([]);
       }
     };
     loadData();
@@ -229,6 +343,12 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
   const getTotalStreak = () => {
     if (!stats) return 0;
     return stats.daily_streak || 0;
+  };
+
+  // Get sport-specific streak
+  const getSportStreak = (sport: Sport) => {
+    if (!stats) return 0;
+    return getStreak(stats, sport);
   };
 
   const progress = getXPProgressInLevel(xp);
@@ -254,43 +374,57 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
     outputRange: ['0%', '100%'],
   });
 
-  // Trigger staggered card entrance animation on mount
+  // Trigger card entrance animation on mount
   useEffect(() => {
-    const animations = cardAnims.map((anim, index) =>
-      Animated.parallel([
-        Animated.timing(anim.opacity, {
-          toValue: 1,
-          duration: 300,
-          delay: index * 100,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(anim.translateY, {
-          toValue: 0,
-          duration: 300,
-          delay: index * 100,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    Animated.parallel(animations).start();
+    Animated.parallel([
+      Animated.timing(cardAnim.opacity, {
+        toValue: 1,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardAnim.translateY, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
-  // All available sports
-  const allSportCards: { sport: Sport; name: string }[] = [
-    { sport: 'nba', name: 'NBA' },
-    { sport: 'pl', name: 'EPL' },
-    { sport: 'nfl', name: 'NFL' },
-    { sport: 'mlb', name: 'MLB' },
-  ];
+  // Combine active duels and incoming challenges for display
+  const allActiveDuels = [...activeDuels, ...incomingChallenges];
 
-  // Filter to only show selected sports (default to all if not specified)
-  console.log('HomeScreen: selectedSports prop =', selectedSports);
-  const sportCards = selectedSports && selectedSports.length > 0
-    ? allSportCards.filter(card => selectedSports.includes(card.sport))
-    : allSportCards;
-  console.log('HomeScreen: showing sportCards =', sportCards.map(c => c.sport));
+  // Get status label for duel card
+  const getDuelStatusLabel = (duel: DuelWithOpponent): string => {
+    if (duel.status === 'invite' && duel.player2_id === user?.id) {
+      return 'New Challenge';
+    }
+    if (duel.status === 'waiting' || duel.status === 'invite') {
+      return 'Waiting';
+    }
+    if (duel.status === 'waiting_for_p2') {
+      return 'Waiting';
+    }
+    return 'Your Turn';
+  };
+
+  // Handle invite friends share
+  const handleInviteFriends = async () => {
+    try {
+      await Share.share({
+        message: 'Challenge me on Ballrs! Download the app and test your sports knowledge.',
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  // Selected sport info
+  const selectedSportInfo = sportTabs.find(s => s.sport === selectedSportTab);
+  const sportColor = selectedSportTab ? getSportColor(selectedSportTab) : colors.primary;
+  const isCompleted = selectedSportTab ? completedToday.has(selectedSportTab) : false;
+  const sportStreak = selectedSportTab ? getSportStreak(selectedSportTab) : 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -346,7 +480,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
                 </View>
               </TouchableOpacity>
             </View>
-            <Text style={styles.xpLabel}>{xpIntoLevel}/{xpNeededForNext} XP</Text>
+            <Text style={styles.xpLabel}>{xp.toLocaleString()}/{nextLevelXP.toLocaleString()} XP</Text>
             <View style={styles.xpBarOuterContainer}>
               <View style={styles.xpBarOuter}>
                 <Animated.View style={[styles.xpBarFillContainer, { width: xpBarWidth }]}>
@@ -362,64 +496,229 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
           </View>
         )}
 
-        {/* Sport Grid */}
-        <View style={styles.sportGrid}>
-          {sportCards.map((card, index) => {
-            const sportColor = getSportColor(card.sport);
-            const isCompleted = completedToday.has(card.sport);
+        {/* Sport Tabs - only show if 2+ sports selected */}
+        {sportTabs.length >= 2 && selectedSportTab && (
+          <View style={styles.sportTabsContainer}>
+            {sportTabs.map((tab) => {
+              const tabColor = getSportColor(tab.sport);
+              const isActive = tab.sport === selectedSportTab;
+              return (
+                <TouchableOpacity
+                  key={tab.sport}
+                  style={[
+                    styles.sportTab,
+                    isActive && { backgroundColor: tabColor },
+                  ]}
+                  onPress={() => handleTabChange(tab.sport)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.sportTabText,
+                    isActive && styles.sportTabTextActive,
+                  ]}>
+                    {tab.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
-            return (
-              <Animated.View
-                key={card.sport}
-                style={{
-                  width: '100%',
-                  opacity: cardAnims[index]?.opacity ?? 1,
-                  transform: [{ translateY: cardAnims[index]?.translateY ?? 0 }],
-                }}
-              >
-                <AnimatedCard style={styles.sportCard}>
-                  {/* Left side - Icon */}
-                  <View style={[styles.sportIconContainer, { backgroundColor: sportColor }]}>
-                    <Image source={sportIcons[card.sport]} style={styles.sportIcon} />
+        {/* Single Sport Card */}
+        {selectedSportTab && selectedSportInfo && (
+          <View style={styles.sportGrid}>
+            <Animated.View
+              style={{
+                width: '100%',
+                opacity: cardAnim.opacity,
+                transform: [{ translateY: cardAnim.translateY }],
+              }}
+            >
+              <AnimatedCard style={styles.singleSportCard}>
+                {/* Status indicator in top right */}
+                {isCompleted ? (
+                  <View style={styles.statusIndicatorTopRight}>
+                    <Image source={checkIcon} style={[styles.completedIconTopRight, { tintColor: sportColor }]} />
                   </View>
+                ) : (
+                  <View style={[styles.statusIndicatorTopRight, styles.notPlayedDotTopRight, { backgroundColor: sportColor }]} />
+                )}
+                {/* Top section - Icon, Name, and Status */}
+                <View style={styles.singleSportHeader}>
+                  <View style={[styles.singleSportIconContainer, { backgroundColor: sportColor }]}>
+                    <Image source={sportIcons[selectedSportTab]} style={styles.singleSportIcon} />
+                  </View>
+                  <View style={styles.singleSportInfo}>
+                    <Text style={styles.singleSportName}>{selectedSportInfo.name}</Text>
+                    {sportStreak > 0 && (
+                      <View style={styles.sportStreakBadge}>
+                        <Image source={fireIcon} style={styles.sportStreakIcon} resizeMode="contain" />
+                        <Text style={styles.sportStreakText}>{sportStreak} day streak</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
 
-                  {/* Right side - Name and Buttons */}
-                  <View style={styles.sportCardContent}>
-                    {/* Top row - Name and Status */}
-                    <View style={styles.sportCardHeader}>
-                      <Text style={styles.sportName}>{card.name}</Text>
-                      <View style={styles.statusIndicator}>
-                        {isCompleted ? (
-                          <AnimatedCheckmark visible={isCompleted}>
-                            <Image source={checkIcon} style={[styles.checkIcon, { tintColor: sportColor }]} />
-                          </AnimatedCheckmark>
-                        ) : (
-                          <View style={[styles.statusDot, { backgroundColor: sportColor }]} />
-                        )}
+                {/* Bottom section - Buttons */}
+                <View style={styles.singleSportButtons}>
+                  <AnimatedButton
+                    style={[styles.singleDailyButton, { backgroundColor: sportColor }]}
+                    onPress={() => onDailyPuzzle(selectedSportTab)}
+                  >
+                    <Text style={styles.singleDailyButtonText}>DAILY</Text>
+                  </AnimatedButton>
+
+                  <AnimatedButton
+                    style={styles.singleDuelButton}
+                    onPress={() => onDuel(selectedSportTab)}
+                  >
+                    <Text style={styles.singleDuelButtonText}>DUEL</Text>
+                  </AnimatedButton>
+                </View>
+              </AnimatedCard>
+            </Animated.View>
+          </View>
+        )}
+
+        {/* Active Duels Section - only show when there are active duels */}
+        {user && allActiveDuels.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Active Duels</Text>
+              <Text style={styles.countText}>({allActiveDuels.length})</Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.duelsScrollContent}
+            >
+              {allActiveDuels.map((duel) => {
+                const duelColor = getSportColor(duel.sport);
+                const statusLabel = getDuelStatusLabel(duel);
+                const isNewChallenge = statusLabel === 'New Challenge';
+                return (
+                  <TouchableOpacity
+                    key={duel.id}
+                    style={styles.duelCard}
+                    onPress={() => onNavigateToDuel(duel)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.duelCardTop}>
+                      <View style={[styles.duelSportIcon, { backgroundColor: duelColor }]}>
+                        <Image source={sportIcons[duel.sport]} style={styles.duelSportIconImage} />
+                      </View>
+                      <View style={[
+                        styles.duelStatusBadge,
+                        isNewChallenge && styles.duelStatusBadgeNew,
+                      ]}>
+                        <Text style={[
+                          styles.duelStatusText,
+                          isNewChallenge && styles.duelStatusTextNew,
+                        ]}>
+                          {statusLabel}
+                        </Text>
                       </View>
                     </View>
+                    <Text style={styles.duelOpponentName} numberOfLines={1}>
+                      {duel.opponent_username || 'Waiting...'}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
-                    {/* Bottom row - Buttons side by side */}
-                    <View style={styles.buttonGroup}>
-                      <AnimatedButton
-                        style={[styles.dailyButton, { backgroundColor: sportColor }]}
-                        onPress={() => onDailyPuzzle(card.sport)}
-                      >
-                        <Text style={styles.dailyButtonText}>DAILY</Text>
-                      </AnimatedButton>
-
-                      <AnimatedButton
-                        style={styles.secondaryButton}
-                        onPress={() => onDuel(card.sport)}
-                      >
-                        <Text style={styles.secondaryButtonText}>DUEL</Text>
-                      </AnimatedButton>
-                    </View>
+        {/* Leaderboard Section */}
+        {user && leaderboard.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {sportTabs.length === 1 ? sportTabs[0].name : sportTabs.find(t => t.sport === selectedSportTab)?.name || 'NBA'} Leaderboard
+              </Text>
+              <Text style={styles.countText}>(Weekly)</Text>
+            </View>
+            <View style={styles.leaderboardList}>
+              {leaderboard.map((entry, index) => (
+                <View key={entry.user_id} style={[
+                  styles.leaderboardRow,
+                  index === leaderboard.length - 1 && { borderBottomWidth: 0 },
+                ]}>
+                  <View style={[
+                    styles.leaderboardRank,
+                    index === 0 && styles.leaderboardRankFirst,
+                    index === 1 && styles.leaderboardRankSecond,
+                    index === 2 && styles.leaderboardRankThird,
+                  ]}>
+                    <Text style={[
+                      styles.leaderboardRankText,
+                      index < 3 && styles.leaderboardRankTextTop3,
+                    ]}>
+                      {entry.rank}
+                    </Text>
                   </View>
-                </AnimatedCard>
-              </Animated.View>
-            );
-          })}
+                  <Text style={[
+                    styles.leaderboardUsername,
+                    entry.user_id === user.id && styles.leaderboardUsernameMe,
+                  ]} numberOfLines={1}>
+                    {entry.username}{entry.user_id === user.id ? ' (You)' : ''}
+                  </Text>
+                  <Text style={styles.leaderboardPoints}>{entry.points} pts</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* League Standings Section */}
+        {user && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Your Leagues</Text>
+            {userLeagues.length > 0 ? (
+              <View style={styles.leaguesList}>
+                {userLeagues.map((league) => (
+                  <TouchableOpacity
+                    key={league.id}
+                    style={styles.leagueRow}
+                    onPress={() => onNavigateToLeague(league)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.leagueInfo}>
+                      <Text style={styles.leagueName} numberOfLines={1}>{league.name}</Text>
+                      <Text style={styles.leaguePosition}>
+                        {getOrdinalSuffix(league.userPosition)} of {league.totalMembers}
+                      </Text>
+                    </View>
+                    <View style={styles.leaguePoints}>
+                      <Text style={styles.leaguePointsText}>{league.userPoints} pts</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <Text style={styles.emptyStateText}>No leagues yet</Text>
+                <AnimatedButton
+                  style={styles.emptyStateButton}
+                  onPress={() => {}}
+                >
+                  <Text style={styles.emptyStateButtonText}>Join or Create League</Text>
+                </AnimatedButton>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Invite Friends Card */}
+        <View style={styles.inviteFriendsCard}>
+          <Text style={styles.inviteFriendsTitle}>Invite Friends</Text>
+          <Text style={styles.inviteFriendsText}>Challenge friends to duels and compete together!</Text>
+          <AnimatedButton
+            style={styles.inviteFriendsButton}
+            onPress={handleInviteFriends}
+          >
+            <Text style={styles.inviteFriendsButtonText}>SHARE</Text>
+          </AnimatedButton>
         </View>
       </ScrollView>
 
@@ -435,11 +734,15 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, refreshKey, selecte
 }
 
 function AppContent() {
-  const { user, loading: authLoading, signInAnonymously } = useAuth();
+  const { user, loading: authLoading, signInAnonymously, signOut } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [activeTab, setActiveTab] = useState<TabName>('home');
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
+  // Ref to prevent auto sign-in during account deletion (state updates are batched)
+  const isDeletingAccountRef = useRef(false);
+  // Ref to track if we just completed onboarding (to prevent reset loop)
+  const justCompletedOnboardingRef = useRef(false);
   const [currentDuel, setCurrentDuel] = useState<Duel | null>(null);
   const [duelSport, setDuelSport] = useState<Sport>('nba');
   const [duelQuestionCount, setDuelQuestionCount] = useState<number>(1);
@@ -481,6 +784,10 @@ function AppContent() {
   }, []);
 
   const handleOnboardingComplete = () => {
+    // Reset deletion flag so auto sign-in works after onboarding
+    isDeletingAccountRef.current = false;
+    // Mark that we just completed onboarding (to prevent reset loop in checkProfile)
+    justCompletedOnboardingRef.current = true;
     setHasSeenOnboarding(true);
     // Splash already played during onboarding, don't show again
     setShowAnimatedSplash(false);
@@ -503,16 +810,21 @@ function AppContent() {
   // Auto sign in anonymously when onboarding is complete and no user exists
   useEffect(() => {
     const autoSignIn = async () => {
+      // Don't auto sign-in if we're in the middle of deleting an account
+      if (isDeletingAccountRef.current) {
+        console.log('Skipping auto sign-in - account deletion in progress');
+        return;
+      }
       if (hasSeenOnboarding && !authLoading && !user) {
         console.log('Auto signing in anonymously...');
         setAuthError(null);
         const { error } = await signInAnonymously();
         if (error) {
           console.error('Anonymous sign in error:', error);
-          setAuthError(error.message || 'Failed to sign in. Please check if anonymous auth is enabled in Supabase.');
+          setAuthError(error.message || 'Failed to sign in.');
           Alert.alert(
             'Sign In Error',
-            'Could not sign in anonymously. Please make sure Anonymous auth is enabled in your Supabase dashboard (Authentication → Providers → Anonymous).',
+            `Could not create account: ${error.message}\n\nPlease try again.`,
             [{ text: 'OK' }]
           );
         } else {
@@ -571,10 +883,31 @@ function AppContent() {
         console.log('checkProfile: checking for user', user.id, 'isAnonymous:', user.is_anonymous);
         const profile = await getProfile(user.id);
         console.log('checkProfile: profile result', { userId: user.id, hasProfile: !!profile, profile });
-        setHasProfile(!!profile);
-        if (!profile) {
+
+        // Check if profile has a real username (not the default user_XXXXXXXX pattern from DB trigger)
+        const hasRealUsername = !!(profile?.username && !profile.username.startsWith('user_'));
+        setHasProfile(hasRealUsername);
+
+        if (!hasRealUsername) {
+          // Check if this is a fresh anonymous user who should see onboarding
+          // Skip this check if we just completed onboarding (to prevent infinite loop)
+          if (user.is_anonymous && !justCompletedOnboardingRef.current) {
+            const preferences = await getUserPreferences(user.id);
+            if (!preferences) {
+              console.log('checkProfile: fresh anonymous user detected, resetting to onboarding');
+              // Sign out this stale user and reset onboarding
+              // A new anonymous user will be created after onboarding completes
+              await signOut();
+              await AsyncStorage.removeItem(ONBOARDING_KEY);
+              setHasSeenOnboarding(false);
+              setHasProfile(null);
+              setShowAnimatedSplash(true);
+              return;
+            }
+          }
           setCurrentScreen('setUsername');
         }
+
         // Update last_active for online status tracking
         updateLastActive(user.id);
 
@@ -695,11 +1028,24 @@ function AppContent() {
     setHomeRefreshKey(prev => prev + 1);
   };
 
+  // Handler for account deletion - resets to fresh state
+  const handleAccountDeleted = async () => {
+    // Set flag to prevent auto sign-in race condition
+    isDeletingAccountRef.current = true;
+    // Clear onboarding flag so new user sees onboarding
+    await AsyncStorage.removeItem(ONBOARDING_KEY);
+    setHasSeenOnboarding(false);
+    setHasProfile(null);
+    setShowAnimatedSplash(true);
+  };
+
   const handleAuthSuccess = async () => {
     setCurrentScreen('home');
   };
 
   const handleUsernameSet = () => {
+    // Clear the onboarding ref since user has now set up their profile
+    justCompletedOnboardingRef.current = false;
     setHasProfile(true);
     setCurrentScreen('selectSports');
   };
@@ -908,20 +1254,22 @@ function AppContent() {
     setCurrentScreen('home');
   };
 
-  // Only hide nav bar during active gameplay (duel game) and auth flows
+  // Only hide nav bar during active gameplay (duel game) and auth/onboarding flows
   const hideNavBar = [
     'duelGame',
     'asyncDuelGame',
     'setUsername',
+    'selectSports',
     'selectCountry',
     'linkEmail',
   ].includes(currentScreen);
 
-  // Show ads on all screens except active duel game and auth flows
+  // Show ads on all screens except active duel game and auth/onboarding flows
   const showAdBanner = ![
     'duelGame',
     'asyncDuelGame',
     'setUsername',
+    'selectSports',
     'selectCountry',
     'linkEmail',
   ].includes(currentScreen);
@@ -968,6 +1316,11 @@ function AppContent() {
     return null;
   }
 
+  // Wait for profile check to complete before rendering
+  if (user && hasProfile === null) {
+    return null;
+  }
+
   if (user && hasProfile === false) {
     return (
       <>
@@ -996,6 +1349,25 @@ function AppContent() {
               handleNavigateToDuels(sport);
             }}
             onProfilePress={() => setCurrentScreen('profile')}
+            onNavigateToDuel={(duel) => {
+              setDuelSport(duel.sport);
+              setCurrentDuel(duel);
+              if (duel.status === 'invite' && duel.player2_id === user?.id) {
+                setIsAsyncDuel(true);
+                setIsAsyncChallenger(false);
+                setCurrentScreen('asyncDuelGame');
+              } else if (duel.status === 'waiting') {
+                setCurrentScreen('waitingForOpponent');
+              } else if (duel.status === 'active') {
+                setCurrentScreen('duelGame');
+              } else if (duel.status === 'invite') {
+                setCurrentScreen('duelGame');
+              }
+            }}
+            onNavigateToLeague={(league) => {
+              setCurrentLeague(league);
+              setCurrentScreen('leagueDetail');
+            }}
             refreshKey={homeRefreshKey}
             selectedSports={selectedSports}
           />
@@ -1063,6 +1435,7 @@ function AppContent() {
         {currentScreen === 'profile' && user && (
           <ProfileScreen
             onLogout={handleBack}
+            onAccountDeleted={handleAccountDeleted}
             onNavigateToAchievements={() => setCurrentScreen('achievements')}
             onNavigateToCustomize={() => setCurrentScreen('customizeProfile')}
             onReplayOnboarding={handleReplayOnboarding}
@@ -1101,7 +1474,7 @@ function AppContent() {
           />
         )}
         {currentScreen === 'leaderboard' && (
-          <LeaderboardScreen onBack={handleBack} />
+          <LeaderboardScreen onBack={handleBack} selectedSports={selectedSports || undefined} />
         )}
         {currentScreen === 'waitingForOpponent' && currentDuel && (
           <WaitingForOpponentScreen
@@ -1163,6 +1536,7 @@ function AppContent() {
               setCurrentLeague(league);
               setCurrentScreen('leagueDetail');
             }}
+            selectedSports={selectedSports || undefined}
           />
         )}
         {currentScreen === 'leagueDetail' && currentLeague && (
@@ -1266,7 +1640,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 170, // Account for AdBanner (60) + BottomNavBar (~100 with safe area)
+    paddingBottom: 100, // Account for AdBanner + BottomNavBar
   },
   // Header
   header: {
@@ -1548,6 +1922,439 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     fontSize: 13,
     fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  // Sport Tabs
+  sportTabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    gap: 8,
+    marginBottom: 16,
+  },
+  sportTab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  sportTabText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  sportTabTextActive: {
+    color: '#FFFFFF',
+  },
+  // Single Sport Card (larger)
+  singleSportCard: {
+    backgroundColor: colors.surface,
+    borderWidth: borders.card,
+    borderColor: colors.border,
+    borderRadius: borderRadius.card,
+    padding: 20,
+    ...shadows.card,
+  },
+  singleSportHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  singleSportIconContainer: {
+    width: 72,
+    height: 72,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+    marginRight: 16,
+  },
+  singleSportIcon: {
+    width: 48,
+    height: 48,
+  },
+  singleSportInfo: {
+    flex: 1,
+  },
+  singleSportName: {
+    fontSize: 24,
+    fontFamily: 'DMSans_900Black',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  streakAndStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  sportStreakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  sportStreakIcon: {
+    width: 14,
+    height: 16,
+  },
+  sportStreakText: {
+    fontSize: 13,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#666',
+  },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  completedIcon: {
+    width: 16,
+    height: 16,
+  },
+  completedText: {
+    fontSize: 13,
+    fontFamily: 'DMSans_600SemiBold',
+  },
+  notPlayedDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  statusIndicatorTopRight: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 1,
+  },
+  notPlayedDotTopRight: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  completedIconTopRight: {
+    width: 20,
+    height: 20,
+  },
+  singleSportButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  singleDailyButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  singleDailyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  singleDuelButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  singleDuelButtonText: {
+    color: '#1A1A1A',
+    fontSize: 15,
+    fontFamily: 'DMSans_900Black',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  // Section Container
+  sectionContainer: {
+    paddingHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+  },
+  countText: {
+    marginLeft: 6,
+    fontSize: 18,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888',
+  },
+  // Active Duels
+  duelsScrollContent: {
+    paddingRight: 24,
+    paddingTop: 2,
+    paddingBottom: 6,
+    gap: 12,
+  },
+  duelCard: {
+    width: 150,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  duelCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  duelSportIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  duelSportIconImage: {
+    width: 20,
+    height: 20,
+  },
+  duelStatusBadge: {
+    backgroundColor: '#E8E8E8',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  duelStatusBadgeNew: {
+    backgroundColor: '#E8F5E9',
+  },
+  duelStatusText: {
+    fontSize: 10,
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#666',
+  },
+  duelStatusTextNew: {
+    color: '#2E7D32',
+  },
+  duelOpponentName: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+  },
+  // Empty State
+  emptyStateContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    color: '#888',
+    marginBottom: 12,
+  },
+  emptyStateButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  emptyStateButtonText: {
+    fontSize: 13,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
+  },
+  // Leaderboard
+  leaderboardList: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  leaderboardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E8E8',
+  },
+  leaderboardRank: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  leaderboardRankFirst: {
+    backgroundColor: '#FFD700',
+  },
+  leaderboardRankSecond: {
+    backgroundColor: '#C0C0C0',
+  },
+  leaderboardRankThird: {
+    backgroundColor: '#CD7F32',
+  },
+  leaderboardRankText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#666',
+  },
+  leaderboardRankTextTop3: {
+    color: '#FFFFFF',
+    fontFamily: 'DMSans_900Black',
+  },
+  leaderboardUsername: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'DMSans_600SemiBold',
+    color: colors.text,
+  },
+  leaderboardUsernameMe: {
+    fontFamily: 'DMSans_700Bold',
+    color: colors.primary,
+  },
+  leaderboardPoints: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#666',
+  },
+  // League Standings
+  leaguesList: {
+    marginTop: 12,
+    gap: 8,
+  },
+  leagueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 12,
+    padding: 14,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  leagueInfo: {
+    flex: 1,
+  },
+  leagueName: {
+    fontSize: 15,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+  },
+  leaguePosition: {
+    fontSize: 13,
+    fontFamily: 'DMSans_500Medium',
+    color: '#666',
+    marginTop: 2,
+  },
+  leaguePoints: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#F5F2EB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  leaguePointsText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+  },
+  // Invite Friends Card
+  inviteFriendsCard: {
+    marginHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  inviteFriendsTitle: {
+    fontSize: 18,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  inviteFriendsText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  inviteFriendsButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  inviteFriendsButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
