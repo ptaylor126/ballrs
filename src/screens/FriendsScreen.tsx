@@ -15,6 +15,7 @@ import {
   PanResponder,
   Dimensions,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -664,21 +665,24 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
         {/* Search Section - Add Friends */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Add Friends</Text>
-          <View style={styles.searchContainer}>
-            <Image source={searchIcon} style={styles.searchIcon} resizeMode="contain" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by username..."
-              placeholderTextColor="#888888"
-              value={searchQuery}
-              onChangeText={handleSearch}
-              autoCapitalize="none"
-              autoCorrect={false}
-              selectionColor="#1ABC9C"
-            />
-            {searching && (
-              <ActivityIndicator size="small" color={colors.primary} />
-            )}
+          <View style={styles.searchContainerWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowSearch} />}
+            <View style={styles.searchContainer}>
+              <Image source={searchIcon} style={styles.searchIcon} resizeMode="contain" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by username..."
+                placeholderTextColor="#888888"
+                value={searchQuery}
+                onChangeText={handleSearch}
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor="#1ABC9C"
+              />
+              {searching && (
+                <ActivityIndicator size="small" color={colors.primary} />
+              )}
+            </View>
           </View>
 
           {/* Search Results */}
@@ -1246,6 +1250,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   // Search
+  searchContainerWrapper: {
+    position: 'relative',
+  },
+  androidShadowSearch: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: borderRadius.card,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -7,15 +7,15 @@
     "icon": "./assets/images/icon-app-2.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/icon-app-2.png",
-      "resizeMode": "contain",
+      "image": "./assets/images/splash-plain.png",
+      "resizeMode": "cover",
       "backgroundColor": "#F5F2EB"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.ballrs",
       "icon": "./assets/images/icon-app-2.png",
-      "buildNumber": "11"
+      "buildNumber": "12"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
         "backgroundColor": "#F5F2EB"
       },
       "package": "com.anonymous.ballrs",
-      "versionCode": 11,
+      "versionCode": 12,
       "googleServicesFile": "./google-services.json"
     },
     "web": {

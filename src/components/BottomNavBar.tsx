@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: 24,
     position: 'relative',
-    marginTop: 8,
   },
   androidShadow: {
     position: 'absolute',

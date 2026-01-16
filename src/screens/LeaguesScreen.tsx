@@ -285,13 +285,15 @@ export default function LeaguesScreen({
     const isPending = status === 'pending';
 
     return (
-      <TouchableOpacity
-        style={[
-          styles.leagueCard,
-          isCompleted && styles.completedCard,
-        ]}
-        onPress={() => onViewLeague(item)}
-      >
+      <View style={styles.leagueCardWrapper}>
+        {Platform.OS === 'android' && <View style={styles.androidShadowLeagueCard} />}
+        <TouchableOpacity
+          style={[
+            styles.leagueCard,
+            isCompleted && styles.completedCard,
+          ]}
+          onPress={() => onViewLeague(item)}
+        >
         {/* Top row: Sport icon + League name + Creator badge */}
         <View style={styles.leagueTopRow}>
           {item.sport === 'all' ? (
@@ -368,7 +370,8 @@ export default function LeaguesScreen({
             </TouchableOpacity>
           )}
         </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -450,24 +453,30 @@ export default function LeaguesScreen({
   const renderMyLeaguesContent = () => (
     <>
       <View style={styles.actions}>
-        <AnimatedButton
-          style={[styles.actionButton, styles.createButton]}
-          onPress={() => {
-            soundService.playButtonClick();
-            onCreateLeague();
-          }}
-        >
-          <Text style={styles.actionButtonText}>Create League</Text>
-        </AnimatedButton>
-        <AnimatedButton
-          style={[styles.actionButton, styles.joinLeagueButton]}
-          onPress={() => {
-            soundService.playButtonClick();
-            onJoinLeague();
-          }}
-        >
-          <Text style={styles.joinLeagueButtonText}>Join League</Text>
-        </AnimatedButton>
+        <View style={styles.actionButtonWrapper}>
+          {Platform.OS === 'android' && <View style={styles.androidShadowActionButton} />}
+          <AnimatedButton
+            style={[styles.actionButton, styles.createButton]}
+            onPress={() => {
+              soundService.playButtonClick();
+              onCreateLeague();
+            }}
+          >
+            <Text style={styles.actionButtonText}>Create League</Text>
+          </AnimatedButton>
+        </View>
+        <View style={styles.actionButtonWrapper}>
+          {Platform.OS === 'android' && <View style={styles.androidShadowActionButton} />}
+          <AnimatedButton
+            style={[styles.actionButton, styles.joinLeagueButton]}
+            onPress={() => {
+              soundService.playButtonClick();
+              onJoinLeague();
+            }}
+          >
+            <Text style={styles.joinLeagueButtonText}>Join League</Text>
+          </AnimatedButton>
+        </View>
       </View>
 
       {/* League Invites Section */}
@@ -530,48 +539,55 @@ export default function LeaguesScreen({
       }
     >
       {/* Time Period Tabs */}
-      <View style={styles.timePeriodContainer}>
-        {TIME_PERIODS.filter(p => p.key === 'weekly' || p.key === 'all_time').map((period) => (
-          <TouchableOpacity
-            key={period.key}
-            style={[
-              styles.timePeriodTab,
-              timePeriod === period.key && styles.timePeriodTabActive,
-            ]}
-            onPress={() => setTimePeriod(period.key)}
-          >
-            <Text
+      <View style={styles.timePeriodContainerWrapper}>
+        {Platform.OS === 'android' && <View style={styles.androidShadowTimePeriod} />}
+        <View style={styles.timePeriodContainer}>
+          {TIME_PERIODS.filter(p => p.key === 'weekly' || p.key === 'all_time').map((period) => (
+            <TouchableOpacity
+              key={period.key}
               style={[
-                styles.timePeriodTabText,
-                timePeriod === period.key && styles.timePeriodTabTextActive,
+                styles.timePeriodTab,
+                timePeriod === period.key && styles.timePeriodTabActive,
               ]}
+              onPress={() => setTimePeriod(period.key)}
             >
-              {period.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={[
+                  styles.timePeriodTabText,
+                  timePeriod === period.key && styles.timePeriodTabTextActive,
+                ]}
+              >
+                {period.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* Sport Filter Pills */}
       <View style={styles.sportFiltersContainer}>
         {SPORT_FILTERS.map((filter) => (
-          <TouchableOpacity
-            key={filter.key}
-            style={[
-              styles.sportPill,
-              sportFilter === filter.key && styles.sportPillActive,
-            ]}
-            onPress={() => setSportFilter(filter.key)}
-          >
-            <Text
+          <View key={filter.key} style={styles.sportPillWrapper}>
+            {Platform.OS === 'android' && sportFilter === filter.key && (
+              <View style={styles.androidShadowSportPill} />
+            )}
+            <TouchableOpacity
               style={[
-                styles.sportPillText,
-                sportFilter === filter.key && styles.sportPillTextActive,
+                styles.sportPill,
+                sportFilter === filter.key && styles.sportPillActive,
               ]}
+              onPress={() => setSportFilter(filter.key)}
             >
-              {filter.label}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.sportPillText,
+                  sportFilter === filter.key && styles.sportPillTextActive,
+                ]}
+              >
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          </View>
         ))}
       </View>
 
@@ -620,10 +636,12 @@ export default function LeaguesScreen({
       </View>
 
       {/* Tabs */}
-      <View
-        style={styles.tabContainer}
-        onLayout={(e: LayoutChangeEvent) => setTabWidth((e.nativeEvent.layout.width - 10) / 2)}
-      >
+      <View style={styles.tabContainerWrapper}>
+        {Platform.OS === 'android' && <View style={styles.androidShadowTabs} />}
+        <View
+          style={styles.tabContainer}
+          onLayout={(e: LayoutChangeEvent) => setTabWidth((e.nativeEvent.layout.width - 10) / 2)}
+        >
         <Animated.View
           style={[
             styles.tabIndicator,
@@ -670,6 +688,7 @@ export default function LeaguesScreen({
             Leaderboard
           </Text>
         </TouchableOpacity>
+        </View>
       </View>
 
       {activeTab === 'leagues' ? renderMyLeaguesContent() : renderGlobalContent()}
@@ -766,10 +785,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.xs,
   },
-  tabContainer: {
-    flexDirection: 'row',
+  tabContainerWrapper: {
     marginHorizontal: spacing.lg,
     marginVertical: spacing.sm,
+    position: 'relative',
+  },
+  androidShadowTabs: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 14,
+  },
+  tabContainer: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
     borderRadius: 14,
     borderWidth: 2,
@@ -779,7 +810,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -814,6 +844,19 @@ const styles = StyleSheet.create({
     paddingRight: spacing.lg + 2, // Extra space for shadow offset
     paddingVertical: spacing.sm,
     gap: 12,
+  },
+  actionButtonWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
+  androidShadowActionButton: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 16,
   },
   actionButton: {
     flex: 1,
@@ -873,18 +916,29 @@ const styles = StyleSheet.create({
     paddingRight: spacing.lg + 2, // Extra space for shadow offset
     paddingBottom: 170, // Account for AdBanner + BottomNavBar
   },
+  leagueCardWrapper: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  androidShadowLeagueCard: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
   leagueCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
     padding: 16,
-    marginBottom: 12,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
   },
   leagueTopRow: {
     flexDirection: 'row',
@@ -1182,10 +1236,22 @@ const styles = StyleSheet.create({
     height: 28,
   },
   // Time period tabs
-  timePeriodContainer: {
-    flexDirection: 'row',
+  timePeriodContainerWrapper: {
     marginHorizontal: spacing.lg,
     marginTop: 12,
+    position: 'relative',
+  },
+  androidShadowTimePeriod: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 12,
+  },
+  timePeriodContainer: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 2,
@@ -1222,6 +1288,18 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 20,
     gap: 10,
+  },
+  sportPillWrapper: {
+    position: 'relative',
+  },
+  androidShadowSportPill: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 20,
   },
   sportPill: {
     paddingHorizontal: 16,

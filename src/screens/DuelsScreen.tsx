@@ -240,6 +240,7 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
         {isWaitingForOpponent ? (
           // Non-interactive card - waiting for opponent to play
           <View style={styles.duelCardWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowCard} />}
             {/* Their Turn Badge - positioned in corner */}
             <View style={styles.activeDuelStatusBadgeWaiting}>
               <Text style={styles.activeDuelStatusTextWaiting}>THEIR TURN</Text>
@@ -269,6 +270,7 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
             ]}
             {...panResponder.panHandlers}
           >
+            {Platform.OS === 'android' && <View style={styles.androidShadowCard} />}
             {/* Your Turn Badge - positioned in corner */}
             <View style={styles.activeDuelStatusBadgeYourTurn}>
               <Text style={styles.activeDuelStatusTextYourTurn}>YOUR TURN</Text>
@@ -385,6 +387,7 @@ function SwipeableChallengeCard({ duel, onPlay, onDecline, isProcessing }: Swipe
           ]}
           {...panResponder.panHandlers}
         >
+          {Platform.OS === 'android' && <View style={styles.androidShadowCard} />}
           {/* Your Turn Badge - positioned in corner */}
           <View style={styles.activeDuelStatusBadgeYourTurn}>
             <Text style={styles.activeDuelStatusTextYourTurn}>YOUR TURN</Text>
@@ -1435,9 +1438,12 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
           >
             {/* Sport Badge */}
             {startDuelSport && (
-              <View style={[styles.startDuelSportBadge, { backgroundColor: getSportColor(startDuelSport) }]}>
-                <Image source={sportIcons[startDuelSport]} style={styles.startDuelSportIcon} resizeMode="contain" />
-                <Text style={styles.startDuelSportText}>{sportNames[startDuelSport]}</Text>
+              <View style={styles.startDuelSportBadgeWrapper}>
+                {Platform.OS === 'android' && <View style={[styles.androidShadowSmall, { backgroundColor: '#000000', borderRadius: 16 }]} />}
+                <View style={[styles.startDuelSportBadge, { backgroundColor: getSportColor(startDuelSport) }]}>
+                  <Image source={sportIcons[startDuelSport]} style={styles.startDuelSportIcon} resizeMode="contain" />
+                  <Text style={styles.startDuelSportText}>{sportNames[startDuelSport]}</Text>
+                </View>
               </View>
             )}
 
@@ -1445,23 +1451,29 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             <Text style={styles.startDuelSubtitle}>How do you want to play?</Text>
 
             <View style={styles.startDuelOptions}>
-              <TouchableOpacity
-                style={[styles.startDuelOption, { backgroundColor: ACCENT_COLOR }]}
-                onPress={handlePlayStranger}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.startDuelOptionText}>Quick Duel</Text>
-                <Text style={styles.startDuelOptionSubtext}>Get matched instantly</Text>
-              </TouchableOpacity>
+              <View style={styles.startDuelOptionWrapper}>
+                {Platform.OS === 'android' && <View style={styles.androidShadowButton} />}
+                <TouchableOpacity
+                  style={[styles.startDuelOption, { backgroundColor: ACCENT_COLOR }]}
+                  onPress={handlePlayStranger}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.startDuelOptionText}>Quick Duel</Text>
+                  <Text style={styles.startDuelOptionSubtext}>Get matched instantly</Text>
+                </TouchableOpacity>
+              </View>
 
-              <TouchableOpacity
-                style={[styles.startDuelOption, { backgroundColor: '#F2C94C' }]}
-                onPress={handleChallengeFriendFromModal}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.startDuelOptionText, { color: '#1A1A1A' }]}>Challenge a Friend</Text>
-                <Text style={[styles.startDuelOptionSubtext, { color: '#1A1A1A' }]}>Send an invite code</Text>
-              </TouchableOpacity>
+              <View style={styles.startDuelOptionWrapper}>
+                {Platform.OS === 'android' && <View style={styles.androidShadowButton} />}
+                <TouchableOpacity
+                  style={[styles.startDuelOption, { backgroundColor: '#F2C94C' }]}
+                  onPress={handleChallengeFriendFromModal}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.startDuelOptionText, { color: '#1A1A1A' }]}>Challenge a Friend</Text>
+                  <Text style={[styles.startDuelOptionSubtext, { color: '#1A1A1A' }]}>Send an invite code</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity
@@ -2612,6 +2624,16 @@ const styles = StyleSheet.create({
   duelCardWrapper: {
     backgroundColor: '#F5F2EB',
     marginBottom: 8,
+    position: 'relative',
+  },
+  androidShadowCard: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
   },
   // Active Duel Card (new design)
   activeDuelCard: {
@@ -2852,12 +2874,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
-    marginBottom: 16,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
   },
   startDuelSportIcon: {
     width: 24,
@@ -2883,6 +2903,30 @@ const styles = StyleSheet.create({
   startDuelOptions: {
     width: '100%',
     gap: 12,
+  },
+  startDuelOptionWrapper: {
+    width: '100%',
+    position: 'relative',
+  },
+  startDuelSportBadgeWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  androidShadowSmall: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+  },
+  androidShadowButton: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 16,
   },
   startDuelOption: {
     width: '100%',
