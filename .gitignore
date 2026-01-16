@@ -25,8 +25,7 @@ web-build/
 .env*.local
 .env
 
-# Firebase
-google-services.json
+# Firebase (google-services.json is safe to commit - it's bundled with the app)
 
 # TypeScript
 *.tsbuildinfo

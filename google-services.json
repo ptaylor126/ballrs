@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1030985364238",
+    "project_id": "ballrs-c1699",
+    "storage_bucket": "ballrs-c1699.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1030985364238:android:bb8757420f317cac6add5f",
+        "android_client_info": {
+          "package_name": "com.anonymous.ballrs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1mYGVn8zSInC_8SZVEGnUG6zkzMIngT0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
