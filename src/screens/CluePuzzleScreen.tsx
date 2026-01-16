@@ -163,9 +163,11 @@ async function getDailyPlayerIndex(sport: string, totalPlayers: number): Promise
 
   try {
     // Call the Postgres function that handles sequential rotation
+    // Pass client's local date so puzzles reset at midnight local time
     const { data, error } = await supabase.rpc('get_or_create_daily_puzzle', {
       p_sport: sport,
       p_total_players: totalPlayers,
+      p_client_date: today,
     });
 
     if (error) {
@@ -276,6 +278,13 @@ function getSportNameLocal(sport: Sport): string {
     case 'nfl': return 'NFL';
     case 'mlb': return 'MLB';
   }
+}
+
+// Calculate font size for player names based on length
+function getPlayerNameFontSize(name: string): number {
+  if (name.length > 20) return 18;
+  if (name.length > 16) return 20;
+  return 24;
 }
 
 // Key for storing when the link email prompt was last dismissed
@@ -567,9 +576,9 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
     // Only run countdown if not already solved/gave up and not loading
     if (loading || solved || gaveUp || !showCountdown) return;
 
-    // Start tick-tock sound when countdown begins
+    // Play 3-count-and-whistle sound when countdown begins
     if (countdownNumber === 3) {
-      soundService.startTickTock();
+      soundService.playCountdownWhistle();
     }
 
     // Animate the number popping in
@@ -589,10 +598,7 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
       setCountdownNumber((prev) => {
         if (prev <= 1) {
           clearInterval(countdownInterval);
-          // Stop tick-tock and play whistle when countdown ends
-          soundService.stopTickTock();
-          soundService.playWhistle();
-          // Small delay before hiding countdown
+          // Small delay before hiding countdown (sound includes whistle)
           setTimeout(() => {
             setShowCountdown(false);
           }, 500);
@@ -606,7 +612,6 @@ export default function CluePuzzleScreen({ sport, onBack, onLinkEmail }: Props) 
 
     return () => {
       clearInterval(countdownInterval);
-      soundService.stopTickTock();
     };
   }, [loading, solved, gaveUp, showCountdown, countdownScaleAnim]);
 
@@ -1093,6 +1098,7 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
   const showAnswer = gaveUp && !solved;
 
   return (
+    <>
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <KeyboardAwareScrollView
         ref={scrollViewRef}
@@ -1154,7 +1160,7 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
               </View>
 
               {/* Player Info */}
-              <Text style={styles.resultPlayerName}>{mysteryPlayer.name}</Text>
+              <Text style={[styles.resultPlayerName, { fontSize: getPlayerNameFontSize(mysteryPlayer.name) }]}>{mysteryPlayer.name}</Text>
               <Text style={styles.resultTeamName}>
                 {getFullTeamName(sport, mysteryPlayer.team)}
               </Text>
@@ -1230,7 +1236,7 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
               </View>
 
               {/* Player Info */}
-              <Text style={styles.resultPlayerName}>{mysteryPlayer.name}</Text>
+              <Text style={[styles.resultPlayerName, { fontSize: getPlayerNameFontSize(mysteryPlayer.name) }]}>{mysteryPlayer.name}</Text>
               <Text style={styles.resultTeamName}>
                 {getFullTeamName(sport, mysteryPlayer.team)}
               </Text>
@@ -1240,6 +1246,7 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
 
               {/* Failed Message */}
               <Text style={styles.resultFailedText}>Better luck tomorrow!</Text>
+              <Text style={styles.resultFailedPoints}>0 pts earned</Text>
 
               {/* Streaks - Play streak continues, Win streak resets */}
               <View style={styles.resultStreaksContainer}>
@@ -1469,47 +1476,51 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
         onDismiss={handleAchievementToastDismiss}
       />
 
-      {/* Pre-game Countdown Overlay */}
+    </SafeAreaView>
+
+      {/* Pre-game Countdown Overlay - outside SafeAreaView to cover full screen */}
       {showCountdown && !solved && !gaveUp && (
         <View style={styles.countdownOverlay}>
-          {/* Ad Banner at top */}
-          <TouchableOpacity
-            style={styles.countdownAdBanner}
-            onPress={() => Linking.openURL('https://parlaysfordays.com')}
-            activeOpacity={0.9}
-          >
-            <Image
-              source={countdownAdImage}
-              style={styles.countdownAdImage}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-
-          {/* Countdown Content */}
-          <View style={styles.countdownContent}>
-            {/* Sport Badge */}
-            <View style={[styles.countdownSportBadge, { backgroundColor: sportColor }]}>
-              <Image source={sportIcons[sport]} style={styles.countdownSportIcon} resizeMode="contain" />
-              <Text style={styles.countdownSportText}>{sport === 'pl' ? 'EPL' : sport.toUpperCase()}</Text>
-            </View>
-
-            <Text style={styles.countdownTitle}>GET READY!</Text>
-            <Text style={styles.countdownSubtitle}>First clue in...</Text>
-            <Animated.View
-              style={[
-                styles.countdownNumberContainer,
-                { transform: [{ scale: countdownScaleAnim }] },
-              ]}
+          <SafeAreaView style={styles.countdownSafeArea} edges={['top']}>
+            {/* Ad Banner at top */}
+            <TouchableOpacity
+              style={styles.countdownAdBanner}
+              onPress={() => Linking.openURL('https://parlaysfordays.com')}
+              activeOpacity={0.9}
             >
-              <Text style={[styles.countdownNumber, { color: sportColor }]}>
-                {countdownNumber === 0 ? 'GO!' : countdownNumber}
-              </Text>
-            </Animated.View>
-            <Text style={styles.countdownHint}>{"Answer quickly and correctly\nto earn more points!"}</Text>
-          </View>
+              <Image
+                source={countdownAdImage}
+                style={styles.countdownAdImage}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+
+            {/* Countdown Content */}
+            <View style={styles.countdownContent}>
+              {/* Sport Badge */}
+              <View style={[styles.countdownSportBadge, { backgroundColor: sportColor }]}>
+                <Image source={sportIcons[sport]} style={styles.countdownSportIcon} resizeMode="contain" />
+                <Text style={styles.countdownSportText}>{sport === 'pl' ? 'EPL' : sport.toUpperCase()}</Text>
+              </View>
+
+              <Text style={styles.countdownTitle}>GET READY!</Text>
+              <Text style={styles.countdownSubtitle}>First clue in...</Text>
+              <Animated.View
+                style={[
+                  styles.countdownNumberContainer,
+                  { transform: [{ scale: countdownScaleAnim }] },
+                ]}
+              >
+                <Text style={[styles.countdownNumber, { color: sportColor }]}>
+                  {countdownNumber === 0 ? 'GO!' : countdownNumber}
+                </Text>
+              </Animated.View>
+              <Text style={styles.countdownHint}>{"Answer quickly and correctly\nto earn more points!"}</Text>
+            </View>
+          </SafeAreaView>
         </View>
       )}
-    </SafeAreaView>
+    </>
   );
 }
 
@@ -1774,6 +1785,13 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_500Medium',
     color: '#666666',
     textAlign: 'center',
+    marginBottom: 4,
+  },
+  resultFailedPoints: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: '#E53935',
+    textAlign: 'center',
     marginBottom: 8,
   },
   wrongMessage: {
@@ -2023,12 +2041,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(245, 242, 235, 0.98)',
+    backgroundColor: '#F5F2EB',
     zIndex: 2000,
+  },
+  countdownSafeArea: {
+    flex: 1,
   },
   countdownAdBanner: {
     flex: 1,
-    marginTop: 60,
+    marginTop: 16,
     marginHorizontal: 24,
     borderWidth: 2,
     borderColor: '#000000',

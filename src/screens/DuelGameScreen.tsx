@@ -19,6 +19,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getSportColor, Sport, truncateUsername, colors as themeColors } from '../lib/theme';
 import { soundService } from '../lib/soundService';
+import AdBanner from '../components/AdBanner';
+
+// Toggle this to hide ads for screenshots
+const HIDE_ADS_FOR_SCREENSHOTS = false;
 
 // Sport icons
 const sportIcons: Record<Sport, any> = {
@@ -36,7 +40,7 @@ const crownIcon = require('../../assets/images/icon-crown.png');
 const speakerIcon = require('../../assets/images/icon-speaker.png');
 
 // Ad banners
-const adBannerImage = require('../../assets/images/ad-banner-parlays.png');
+const adBannerImage = require('../../assets/images/ad-banner-email.png');
 const countdownAdImage = require('../../assets/images/ad-banner-email-big.png');
 const questionAdImage = require('../../assets/images/ad-banner-email.png');
 
@@ -94,7 +98,7 @@ interface Props {
   isChallenger?: boolean;
 }
 
-const TIMER_DURATION = 15; // seconds
+const TIMER_DURATION = 10; // seconds per question
 
 const colors = {
   background: '#F5F2EB',
@@ -295,9 +299,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
   useEffect(() => {
     if (gamePhase !== 'countdown') return;
 
-    // Start tick-tock looping when countdown begins (only on first round)
+    // Play countdown + whistle sound when countdown begins (only on first round)
     if (countdownNumber === 3 && currentRound === 1) {
-      soundService.startTickTock();
+      soundService.playCountdownWhistle();
     }
 
     // Animate the countdown number
@@ -342,17 +346,8 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
     };
   }, [gamePhase, countdownNumber, isAsyncMode]);
 
-  // Play whistle and stop tick-tock when game starts (question loads)
-  // Only play whistle on first round
-  useEffect(() => {
-    if (gamePhase === 'playing') {
-      soundService.stopTickTock();
-      // Only play whistle on the first question
-      if (currentRound === 1) {
-        soundService.playWhistle();
-      }
-    }
-  }, [gamePhase, currentRound]);
+  // Note: countdown + whistle sound is played when countdown begins (round 1 only)
+  // No separate sound needed when game phase changes to 'playing'
 
   // Handle app going to background/foreground
   useEffect(() => {
@@ -1293,7 +1288,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
   const getTimerColor = () => {
     if (timeRemaining <= 3) return colors.timerDanger;
-    if (timeRemaining <= 7) return colors.timerWarning;
+    if (timeRemaining <= 5) return colors.timerWarning;
     return sportColor;
   };
 
@@ -1571,17 +1566,19 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
       {gamePhase === 'countdown' && (
         <View style={styles.countdownContainer}>
           {/* Large Ad Banner - 1/3 of screen at top */}
-          <TouchableOpacity
-            style={styles.countdownAdBanner}
-            onPress={() => Linking.openURL('https://parlaysfordays.com')}
-            activeOpacity={0.9}
-          >
-            <Image
-              source={countdownAdImage}
-              style={styles.countdownAdImage}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
+          {!HIDE_ADS_FOR_SCREENSHOTS && (
+            <TouchableOpacity
+              style={styles.countdownAdBanner}
+              onPress={() => Linking.openURL('https://parlaysfordays.com')}
+              activeOpacity={0.9}
+            >
+              <Image
+                source={countdownAdImage}
+                style={styles.countdownAdImage}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          )}
 
           {/* Countdown Content - centered in remaining 2/3 */}
           <View style={styles.countdownContent}>
@@ -1616,6 +1613,9 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
               Answer quickly and correctly to win!
             </Text>
           </View>
+
+          {/* Bottom Ad Banner */}
+          {!HIDE_ADS_FOR_SCREENSHOTS && <AdBanner />}
         </View>
       )}
 
@@ -1690,17 +1690,19 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
           </View>
 
           {/* Ad Banner at bottom of questions */}
-          <TouchableOpacity
-            style={styles.questionAdBanner}
-            onPress={() => Linking.openURL('https://parlaysfordays.com')}
-            activeOpacity={0.9}
-          >
-            <Image
-              source={questionAdImage}
-              style={styles.questionAdImage}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
+          {!HIDE_ADS_FOR_SCREENSHOTS && (
+            <TouchableOpacity
+              style={styles.questionAdBanner}
+              onPress={() => Linking.openURL('https://parlaysfordays.com')}
+              activeOpacity={0.9}
+            >
+              <Image
+                source={questionAdImage}
+                style={styles.questionAdImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          )}
         </ScrollView>
       )}
 
@@ -1783,20 +1785,22 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         <View style={styles.modalOverlayFullScreen}>
           <View style={styles.duelResultsContent}>
             {/* Presented By Ad Banner */}
-            <View style={styles.presentedByContainerTop}>
-              <Text style={styles.presentedByText}>Results presented by</Text>
-              <TouchableOpacity
-                style={styles.presentedByAdBanner}
-                onPress={() => Linking.openURL('https://parlaysfordays.com')}
-                activeOpacity={0.9}
-              >
-                <Image
-                  source={require('../../assets/images/ad-banner-parlays.png')}
-                  style={styles.presentedByAdImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </View>
+            {!HIDE_ADS_FOR_SCREENSHOTS && (
+              <View style={styles.presentedByContainerTop}>
+                <Text style={styles.presentedByText}>Results presented by</Text>
+                <TouchableOpacity
+                  style={styles.presentedByAdBanner}
+                  onPress={() => Linking.openURL('https://parlaysfordays.com')}
+                  activeOpacity={0.9}
+                >
+                  <Image
+                    source={require('../../assets/images/ad-banner-email.png')}
+                    style={styles.presentedByAdImage}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Sport Badge */}
             <View style={[styles.duelResultsSportBadge, { backgroundColor: sportColor }]}>
@@ -1900,9 +1904,14 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             {/* View Answers Link */}
             <TouchableOpacity
               style={styles.duelResultsViewAnswers}
+              activeOpacity={0.7}
               onPress={() => {
-                console.log('[ViewAnswers] roundSummaries:', roundSummaries.length, roundSummaries);
-                setShowFullAnswers(true);
+                // Close results modal first, then show answers modal
+                // This prevents modal stacking issues on native
+                setShowResultModal(false);
+                setTimeout(() => {
+                  setShowFullAnswers(true);
+                }, 100);
               }}
             >
               <Text style={styles.duelResultsViewAnswersText}>View Answers ({roundSummaries.length})</Text>
@@ -1977,12 +1986,12 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
 
             {/* Waiting Message */}
             <Text style={styles.turnCompleteWaiting}>
-              Waiting for {opponentUsername || 'your friend'} to finish...
+              Waiting for {opponentUsername || 'your friend'} to{'\u00A0'}finish...
             </Text>
 
             {/* Notification Note */}
             <Text style={styles.turnCompleteNote}>
-              We'll notify you when results are ready
+              We'll notify you when results are{'\u00A0'}ready
             </Text>
 
             {/* Back Button */}
@@ -2096,13 +2105,21 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
         visible={showFullAnswers}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowFullAnswers(false)}
+        onRequestClose={() => {
+          setShowFullAnswers(false);
+          // Re-open results modal so user can access DONE/REMATCH
+          setTimeout(() => setShowResultModal(true), 100);
+        }}
       >
         <View style={styles.fullAnswersOverlay}>
           <View style={styles.fullAnswersContent}>
             <View style={styles.fullAnswersHeader}>
               <Text style={styles.fullAnswersTitle}>Your Answers</Text>
-              <TouchableOpacity onPress={() => setShowFullAnswers(false)}>
+              <TouchableOpacity onPress={() => {
+                setShowFullAnswers(false);
+                // Re-open results modal so user can access DONE/REMATCH
+                setTimeout(() => setShowResultModal(true), 100);
+              }}>
                 <Text style={styles.fullAnswersClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -2148,7 +2165,11 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             </ScrollView>
             <TouchableOpacity
               style={styles.fullAnswersDoneButton}
-              onPress={() => setShowFullAnswers(false)}
+              onPress={() => {
+                setShowFullAnswers(false);
+                // Re-open results modal so user can access DONE/REMATCH
+                setTimeout(() => setShowResultModal(true), 100);
+              }}
             >
               <Text style={styles.fullAnswersDoneText}>DONE</Text>
             </TouchableOpacity>

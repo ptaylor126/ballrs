@@ -11,20 +11,33 @@ export interface BlockedUser {
 /**
  * Check if either user has blocked the other
  * Returns true if there's a block in either direction
+ * Returns false if table doesn't exist or on error (fail-open for friend requests)
  */
 export async function isBlocked(userId1: string, userId2: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('blocked_users')
-    .select('id')
-    .or(`and(blocker_id.eq.${userId1},blocked_id.eq.${userId2}),and(blocker_id.eq.${userId2},blocked_id.eq.${userId1})`)
-    .limit(1);
+  console.log('[isBlocked] Checking block status between:', userId1, 'and', userId2);
 
-  if (error) {
-    console.error('Error checking block status:', error);
+  try {
+    const { data, error } = await supabase
+      .from('blocked_users')
+      .select('id')
+      .or(`and(blocker_id.eq.${userId1},blocked_id.eq.${userId2}),and(blocker_id.eq.${userId2},blocked_id.eq.${userId1})`)
+      .limit(1);
+
+    console.log('[isBlocked] Query result - data:', data, 'error:', error);
+
+    if (error) {
+      // If table doesn't exist or any error, fail-open (allow the action)
+      console.log('[isBlocked] Error checking block status (failing open):', error.message);
+      return false;
+    }
+
+    const blocked = (data?.length ?? 0) > 0;
+    console.log('[isBlocked] Result:', blocked);
+    return blocked;
+  } catch (err) {
+    console.log('[isBlocked] Exception (failing open):', err);
     return false;
   }
-
-  return (data?.length ?? 0) > 0;
 }
 
 /**

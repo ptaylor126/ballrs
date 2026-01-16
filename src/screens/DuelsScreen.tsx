@@ -16,6 +16,7 @@ import {
   Animated,
   PanResponder,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +25,7 @@ import { supabase } from '../lib/supabase';
 import { AnimatedButton, AnimatedCard } from '../components/AnimatedComponents';
 import { usePresence } from '../hooks/usePresence';
 import { soundService } from '../lib/soundService';
+import UserProfileIcon from '../components/UserProfileIcon';
 
 const ACCENT_COLOR = '#1ABC9C';
 const DISABLED_BG = '#F9EECC';
@@ -110,7 +112,9 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
   // User has already played, waiting for opponent to play
-  const isWaitingForOpponent = duel.status === 'waiting_for_p2';
+  // This includes: waiting_for_p2 status OR invite status where challenger has completed
+  const isWaitingForOpponent = duel.status === 'waiting_for_p2' ||
+    (duel.status === 'invite' && duel.player1_completed_at !== null);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -234,20 +238,24 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
 
         {/* The Card */}
         {isWaitingForOpponent ? (
-          // Completely non-interactive card for waiting_for_p2 duels
-          <View style={styles.duelCardWrapper} pointerEvents="none">
-            <View style={[styles.duelCard, styles.duelCardWaiting]}>
-              <View style={[styles.sportBadge, { backgroundColor: '#CCCCCC' }]}>
-                <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+          // Non-interactive card - waiting for opponent to play
+          <View style={styles.duelCardWrapper}>
+            {/* Their Turn Badge - positioned in corner */}
+            <View style={styles.activeDuelStatusBadgeWaiting}>
+              <Text style={styles.activeDuelStatusTextWaiting}>THEIR TURN</Text>
+            </View>
+
+            <View style={styles.activeDuelCard}>
+              {/* Sport Badge with Icon */}
+              <View style={[styles.activeDuelSportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
+                <Image source={sportIcons[duel.sport]} style={styles.activeDuelSportIcon} />
+                <Text style={styles.activeDuelSportText}>{sportNames[duel.sport]}</Text>
               </View>
-              <View style={styles.duelInfo}>
-                <Text style={[styles.opponentName, styles.opponentNameWaiting]}>
-                  {duel.opponent_username
-                    ? `vs ${truncateUsername(duel.opponent_username)}`
-                    : 'Waiting for opponent...'}
-                </Text>
-                <Text style={[styles.duelStatus, { color: '#999999' }]}>
-                  Waiting for opponent
+
+              {/* Opponent Info */}
+              <View style={styles.activeDuelInfo}>
+                <Text style={styles.activeDuelOpponent}>
+                  vs {truncateUsername(duel.opponent_username) || 'Unknown'}
                 </Text>
               </View>
             </View>
@@ -261,25 +269,30 @@ function SwipeableDuelCard({ duel, onPress, onCancelPress, onAnimatedCancel }: S
             ]}
             {...panResponder.panHandlers}
           >
-            <TouchableOpacity
-              style={styles.duelCard}
-              onPress={handleCardPress}
-              activeOpacity={0.9}
-            >
-              <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
-                <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+            {/* Your Turn Badge - positioned in corner */}
+            <View style={styles.activeDuelStatusBadgeYourTurn}>
+              <Text style={styles.activeDuelStatusTextYourTurn}>YOUR TURN</Text>
+            </View>
+
+            <View style={styles.activeDuelCard}>
+              {/* Sport Badge with Icon */}
+              <View style={[styles.activeDuelSportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
+                <Image source={sportIcons[duel.sport]} style={styles.activeDuelSportIcon} />
+                <Text style={styles.activeDuelSportText}>{sportNames[duel.sport]}</Text>
               </View>
-              <View style={styles.duelInfo}>
-                <Text style={styles.opponentName}>
-                  {duel.opponent_username
-                    ? `vs ${truncateUsername(duel.opponent_username)}`
-                    : 'Waiting for opponent...'}
-                </Text>
-                <Text style={[styles.duelStatus, { color: getSportColor(duel.sport) }]}>
-                  {duel.status === 'waiting' || duel.status === 'invite' ? 'Waiting' : 'In Progress'}
+
+              {/* Opponent Info */}
+              <View style={styles.activeDuelInfo}>
+                <Text style={styles.activeDuelOpponent}>
+                  vs {truncateUsername(duel.opponent_username) || 'Unknown'}
                 </Text>
               </View>
-            </TouchableOpacity>
+
+              {/* Play Button */}
+              <TouchableOpacity style={styles.activeDuelPlayButton} onPress={onPress}>
+                <Text style={styles.activeDuelPlayButtonText}>PLAY</Text>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         )}
       </Animated.View>
@@ -298,6 +311,7 @@ interface SwipeableChallengeCardProps {
 function SwipeableChallengeCard({ duel, onPlay, onDecline, isProcessing }: SwipeableChallengeCardProps) {
   const translateX = useRef(new Animated.Value(0)).current;
   const [isSwiped, setIsSwiped] = useState(false);
+  const sportColor = getSportColor(duel.sport);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -371,25 +385,35 @@ function SwipeableChallengeCard({ duel, onPlay, onDecline, isProcessing }: Swipe
           ]}
           {...panResponder.panHandlers}
         >
+          {/* Your Turn Badge - positioned in corner */}
+          <View style={styles.activeDuelStatusBadgeYourTurn}>
+            <Text style={styles.activeDuelStatusTextYourTurn}>YOUR TURN</Text>
+          </View>
+
           <TouchableOpacity
-            style={styles.playNowCard}
+            style={styles.activeDuelCard}
             onPress={handleCardPress}
             activeOpacity={0.8}
           >
-            <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
-              <Text style={styles.sportBadgeText}>{duel.sport.toUpperCase()}</Text>
+            {/* Sport Badge with Icon */}
+            <View style={[styles.activeDuelSportBadge, { backgroundColor: sportColor }]}>
+              <Image source={sportIcons[duel.sport]} style={styles.activeDuelSportIcon} />
+              <Text style={styles.activeDuelSportText}>{sportNames[duel.sport]}</Text>
             </View>
-            <View style={styles.duelInfo}>
-              <Text style={styles.opponentName}>
+
+            {/* Opponent Info */}
+            <View style={styles.activeDuelInfo}>
+              <Text style={styles.activeDuelOpponent}>
                 vs {truncateUsername(duel.opponent_username) || 'Unknown'}
               </Text>
-              <Text style={styles.playNowStatus}>Your turn!</Text>
             </View>
+
+            {/* Play Button */}
             {isProcessing ? (
-              <ActivityIndicator size="small" color="#1A1A1A" />
+              <ActivityIndicator size="small" color="#1A1A1A" style={{ marginLeft: 8 }} />
             ) : (
-              <View style={styles.playNowButton}>
-                <Text style={styles.playNowButtonText}>PLAY</Text>
+              <View style={styles.activeDuelPlayButton}>
+                <Text style={styles.activeDuelPlayButtonText}>PLAY</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -881,44 +905,62 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
 
         {/* Duel Stats Row */}
         <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>WINS</Text>
-            <Text style={styles.statValue}>{stats?.wins || 0}</Text>
+          <View style={styles.statBoxWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowStatBox} />}
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>WINS</Text>
+              <Text style={styles.statValue}>{stats?.wins || 0}</Text>
+            </View>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>LOSSES</Text>
-            <Text style={styles.statValue}>{stats?.losses || 0}</Text>
+          <View style={styles.statBoxWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowStatBox} />}
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>LOSSES</Text>
+              <Text style={styles.statValue}>{stats?.losses || 0}</Text>
+            </View>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>WIN %</Text>
-            <Text style={styles.statValue}>{stats?.winRate || 0}</Text>
+          <View style={styles.statBoxWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowStatBox} />}
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>WIN %</Text>
+              <Text style={styles.statValue}>{stats?.winRate || 0}</Text>
+            </View>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>STREAK</Text>
-            <Text style={styles.statValue}>{stats?.currentStreak || 0}</Text>
+          <View style={styles.statBoxWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowStatBox} />}
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>STREAK</Text>
+              <Text style={styles.statValue}>{stats?.currentStreak || 0}</Text>
+            </View>
           </View>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.actionButtons}>
-          <AnimatedButton
-            style={styles.actionButton}
-            onPress={() => {
-              soundService.playButtonClick();
-              handleQuickDuelPress();
-            }}
-          >
-            <Text style={styles.actionButtonText}>Quick Duel</Text>
-          </AnimatedButton>
-          <AnimatedButton
-            style={styles.actionButton}
-            onPress={() => {
-              soundService.playButtonClick();
-              handleChallengeFriendPress();
-            }}
-          >
-            <Text style={styles.actionButtonText}>Challenge Friend</Text>
-          </AnimatedButton>
+          <View style={styles.actionButtonWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowActionButton} />}
+            <AnimatedButton
+              style={styles.actionButton}
+              onPress={() => {
+                soundService.playButtonClick();
+                handleQuickDuelPress();
+              }}
+            >
+              <Text style={styles.actionButtonText}>Quick Duel</Text>
+            </AnimatedButton>
+          </View>
+          <View style={styles.actionButtonWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowActionButton} />}
+            <AnimatedButton
+              style={styles.actionButtonYellow}
+              onPress={() => {
+                soundService.playButtonClick();
+                handleChallengeFriendPress();
+              }}
+            >
+              <Text style={styles.actionButtonTextDark}>Challenge Friend</Text>
+            </AnimatedButton>
+          </View>
         </View>
 
         {/* Active Duels Section - includes both your duels and incoming challenges */}
@@ -930,10 +972,13 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             )}
           </View>
           {activeDuels.length === 0 && incomingChallenges.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <Image source={swordsIcon} style={styles.emptyIcon} />
-              <Text style={styles.emptyText}>No active duels</Text>
-              <Text style={styles.emptySubtext}>Challenge a friend or start a quick duel</Text>
+            <View style={styles.emptyCardWrapper}>
+              {Platform.OS === 'android' && <View style={styles.androidShadowEmptyCard} />}
+              <View style={styles.emptyCard}>
+                <Image source={swordsIcon} style={styles.emptyIcon} />
+                <Text style={styles.emptyText}>No active duels</Text>
+                <Text style={styles.emptySubtext}>Challenge a friend or start a quick duel</Text>
+              </View>
             </View>
           ) : (
             <>
@@ -965,36 +1010,42 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>JOIN BY CODE</Text>
           <View style={styles.codeRow}>
-            <TextInput
-              style={[styles.codeInput, inputFocused && styles.codeInputFocused]}
-              placeholder="Enter invite code"
-              placeholderTextColor="#999999"
-              value={inviteCode}
-              onChangeText={setInviteCode}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-              autoCapitalize="characters"
-              maxLength={6}
-              selectionColor="#1ABC9C"
-            />
-            <TouchableOpacity
-              style={[
-                styles.joinButton,
-                !inviteCode.trim() && styles.joinButtonDisabled,
-              ]}
-              onPress={handleJoinByCode}
-              disabled={joiningCode || !inviteCode.trim()}
-              activeOpacity={0.8}
-            >
-              {joiningCode ? (
-                <ActivityIndicator size="small" color={inviteCode.trim() ? '#1A1A1A' : '#999999'} />
-              ) : (
-                <Text style={[
-                  styles.joinButtonText,
-                  !inviteCode.trim() && styles.joinButtonTextDisabled,
-                ]}>JOIN</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.codeInputWrapper}>
+              {Platform.OS === 'android' && <View style={styles.androidShadowCodeInput} />}
+              <TextInput
+                style={[styles.codeInput, inputFocused && styles.codeInputFocused]}
+                placeholder="Enter invite code"
+                placeholderTextColor="#999999"
+                value={inviteCode}
+                onChangeText={setInviteCode}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                autoCapitalize="characters"
+                maxLength={6}
+                selectionColor="#1ABC9C"
+              />
+            </View>
+            <View style={styles.joinButtonWrapper}>
+              {Platform.OS === 'android' && <View style={styles.androidShadowJoinButton} />}
+              <TouchableOpacity
+                style={[
+                  styles.joinButton,
+                  !inviteCode.trim() && styles.joinButtonDisabled,
+                ]}
+                onPress={handleJoinByCode}
+                disabled={joiningCode || !inviteCode.trim()}
+                activeOpacity={0.8}
+              >
+                {joiningCode ? (
+                  <ActivityIndicator size="small" color={inviteCode.trim() ? '#1A1A1A' : '#999999'} />
+                ) : (
+                  <Text style={[
+                    styles.joinButtonText,
+                    !inviteCode.trim() && styles.joinButtonTextDisabled,
+                  ]}>JOIN</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -1005,10 +1056,13 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
             <Text style={styles.historyNote}>Last 48 hours</Text>
           </View>
           {duelHistory.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <Image source={swordsIcon} style={styles.emptyIcon} />
-              <Text style={styles.emptyText}>No duels completed yet</Text>
-              <Text style={styles.emptySubtext}>Your wins and losses will appear here</Text>
+            <View style={styles.emptyCardWrapper}>
+              {Platform.OS === 'android' && <View style={styles.androidShadowEmptyCard} />}
+              <View style={styles.emptyCard}>
+                <Image source={swordsIcon} style={styles.emptyIcon} />
+                <Text style={styles.emptyText}>No duels completed yet</Text>
+                <Text style={styles.emptySubtext}>Your wins and losses will appear here</Text>
+              </View>
             </View>
           ) : (
             duelHistory.map((duel) => {
@@ -1020,40 +1074,42 @@ export default function DuelsScreen({ onNavigateToDuel, onQuickDuel, onChallenge
               const showNewBadge = isPlayer1 && !duel.player1_seen_result;
 
               return (
-                <TouchableOpacity
-                  key={duel.id}
-                  style={styles.historyCard}
-                  onPress={() => handleViewResults(duel)}
-                  activeOpacity={0.7}
-                >
-                  {showNewBadge && (
-                    <View style={styles.newBadge}>
-                      <Text style={styles.newBadgeText}>NEW</Text>
+                <View key={duel.id} style={styles.historyCardWrapper}>
+                  {Platform.OS === 'android' && <View style={styles.androidShadowHistoryCard} />}
+                  <TouchableOpacity
+                    style={styles.historyCard}
+                    onPress={() => handleViewResults(duel)}
+                    activeOpacity={0.7}
+                  >
+                    {showNewBadge && (
+                      <View style={styles.newBadge}>
+                        <Text style={styles.newBadgeText}>NEW</Text>
+                      </View>
+                    )}
+                    <View style={styles.historyLeft}>
+                      <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
+                        <Text style={styles.sportBadgeText}>{duel.sport === 'pl' ? 'EPL' : duel.sport.toUpperCase()}</Text>
+                      </View>
+                      <View style={styles.historyInfo}>
+                        <Text
+                          style={[
+                            styles.historyResult,
+                            { color: tie ? '#F5A623' : won ? '#3BA978' : '#E53935' },
+                          ]}
+                        >
+                          {tie ? 'TIE' : won ? 'WIN' : 'LOSS'}
+                        </Text>
+                        <Text style={styles.historyOpponent}>
+                          vs {truncateUsername(duel.opponent_username) || 'Unknown'}
+                        </Text>
+                      </View>
                     </View>
-                  )}
-                  <View style={styles.historyLeft}>
-                    <View style={[styles.sportBadge, { backgroundColor: getSportColor(duel.sport) }]}>
-                      <Text style={styles.sportBadgeText}>{duel.sport === 'pl' ? 'EPL' : duel.sport.toUpperCase()}</Text>
+                    <View style={styles.historyScores}>
+                      <Text style={styles.scoreLabel}>You: {myScore ?? 0}</Text>
+                      <Text style={styles.scoreLabel}>Them: {theirScore ?? 0}</Text>
                     </View>
-                    <View style={styles.historyInfo}>
-                      <Text
-                        style={[
-                          styles.historyResult,
-                          { color: tie ? '#F5A623' : won ? '#3BA978' : '#E53935' },
-                        ]}
-                      >
-                        {tie ? 'TIE' : won ? 'WIN' : 'LOSS'}
-                      </Text>
-                      <Text style={styles.historyOpponent}>
-                        vs {truncateUsername(duel.opponent_username) || 'Unknown'}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.historyScores}>
-                    <Text style={styles.scoreLabel}>You: {myScore ?? 0}</Text>
-                    <Text style={styles.scoreLabel}>Them: {theirScore ?? 0}</Text>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
               );
             })
           )}
@@ -1572,7 +1628,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   statBox: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 2,
@@ -1660,7 +1715,7 @@ const styles = StyleSheet.create({
   section: {
     paddingLeft: 24,
     paddingRight: 26, // Extra 2px for shadow offset
-    marginBottom: 16,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 12,
@@ -1881,9 +1936,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginBottom: 16,
   },
   codeInput: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -1941,7 +1996,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
@@ -2016,8 +2070,20 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   actionButton: {
-    flex: 1,
     backgroundColor: ACCENT_COLOR,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  actionButtonYellow: {
+    backgroundColor: '#F2C94C',
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 2,
@@ -2033,6 +2099,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  actionButtonTextDark: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -2538,6 +2611,113 @@ const styles = StyleSheet.create({
   },
   duelCardWrapper: {
     backgroundColor: '#F5F2EB',
+    marginBottom: 8,
+  },
+  // Active Duel Card (new design)
+  activeDuelCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 16,
+    paddingTop: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  activeDuelCardWaiting: {
+    borderColor: '#CCCCCC',
+    shadowOpacity: 0.3,
+  },
+  activeDuelSportBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    marginRight: 12,
+    gap: 6,
+  },
+  activeDuelSportIcon: {
+    width: 16,
+    height: 16,
+  },
+  activeDuelSportText: {
+    fontSize: 11,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+  },
+  activeDuelInfo: {
+    flex: 1,
+  },
+  activeDuelOpponentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  activeDuelOpponent: {
+    fontSize: 15,
+    fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
+  },
+  activeDuelStatusBadgeYourTurn: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#F2C94C',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    zIndex: 1,
+    shadowColor: '#1A1A1A',
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  activeDuelStatusTextYourTurn: {
+    fontSize: 10,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  activeDuelStatusBadgeWaiting: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#999999',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    zIndex: 1,
+  },
+  activeDuelStatusTextWaiting: {
+    fontSize: 10,
+    fontFamily: 'DMSans_900Black',
+    color: '#666666',
+  },
+  activeDuelPlayButton: {
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  activeDuelPlayButtonText: {
+    fontSize: 12,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   // Cancel Modal
   cancelModalContent: {
@@ -2895,5 +3075,82 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+  },
+  // Android Shadow Wrappers
+  statBoxWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
+  androidShadowStatBox: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
+  actionButtonWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
+  androidShadowActionButton: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 16,
+  },
+  emptyCardWrapper: {
+    position: 'relative',
+  },
+  androidShadowEmptyCard: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
+  codeInputWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
+  androidShadowCodeInput: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
+  joinButtonWrapper: {
+    position: 'relative',
+  },
+  androidShadowJoinButton: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
+  historyCardWrapper: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  androidShadowHistoryCard: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
   },
 });

@@ -14,6 +14,7 @@ import {
   Animated,
   PanResponder,
   Dimensions,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -42,6 +43,7 @@ import {
 } from '../lib/duelService';
 import { selectQuestionsForDuel } from '../lib/questionSelectionService';
 import { countryCodeToFlag } from '../lib/countryUtils';
+import UserProfileIcon from '../components/UserProfileIcon';
 import nbaTriviaData from '../../data/nba-trivia.json';
 import plTriviaData from '../../data/pl-trivia.json';
 import nflTriviaData from '../../data/nfl-trivia.json';
@@ -148,7 +150,14 @@ function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove, onAction
 
   return (
     <View style={styles.swipeContainer}>
-      {/* Swipeable card */}
+      {/* Delete button - rendered FIRST so it's underneath the card */}
+      <View style={styles.deleteButtonContainer}>
+        <TouchableOpacity style={styles.deleteButton} onPress={handleRemove}>
+          <Text style={styles.deleteButtonText}>REMOVE</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Swipeable card - rendered on top, slides to reveal delete button */}
       <Animated.View
         {...panResponder.panHandlers}
         style={[
@@ -158,11 +167,11 @@ function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove, onAction
       >
         <View style={styles.friendInfo}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {truncateUsername(friend.username).charAt(0).toUpperCase()}
-              </Text>
-            </View>
+            <UserProfileIcon
+              iconUrl={friend.icon_url}
+              size={40}
+              fallbackText={friend.username}
+            />
             <View
               style={[
                 styles.onlineIndicator,
@@ -207,15 +216,6 @@ function SwipeableFriendCard({ friend, isOnline, onChallenge, onRemove, onAction
           <Text style={styles.challengeButtonText}>CHALLENGE</Text>
         </AnimatedButton>
       </Animated.View>
-
-      {/* Delete button - rendered on top, only visible when swiped */}
-      {isSwipeOpen && (
-        <View style={styles.deleteButtonContainer}>
-          <TouchableOpacity style={styles.deleteButton} onPress={handleRemove}>
-            <Text style={styles.deleteButtonText}>REMOVE</Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
   );
 }
@@ -332,6 +332,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
   const handleAddFriend = async (friendId: string, username: string) => {
     if (!user) return;
 
+    Keyboard.dismiss();
     setAddingFriend(friendId);
     try {
       const result = await sendFriendRequest(user.id, friendId);
@@ -351,7 +352,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
         Alert.alert('Error', 'Could not send friend request. Please try again.');
       }
     } catch (error) {
-      console.error('Error sending friend request:', error);
+      console.error('Error adding friend:', error);
       Alert.alert('Error', 'Could not send friend request. Please try again.');
     } finally {
       setAddingFriend(null);
@@ -428,18 +429,27 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
   };
 
   const confirmRemoveFriend = async () => {
-    if (!user || !friendToRemove) return;
+    if (!user || !friendToRemove) {
+      console.log('[confirmRemoveFriend] No user or friendToRemove');
+      return;
+    }
 
+    console.log('[confirmRemoveFriend] Starting - userId:', user.id, 'friendId:', friendToRemove.id);
     setRemovingFriend(true);
     try {
       const success = await removeFriend(user.id, friendToRemove.id);
+      console.log('[confirmRemoveFriend] Result:', success);
       if (success) {
         setShowRemoveConfirmModal(false);
         setFriendToRemove(null);
         loadData();
+      } else {
+        console.log('[confirmRemoveFriend] Failed to remove friend');
+        Alert.alert('Error', 'Could not remove friend. Please try again.');
       }
     } catch (error) {
-      console.error('Error removing friend:', error);
+      console.error('[confirmRemoveFriend] Exception:', error);
+      Alert.alert('Error', 'Could not remove friend. Please try again.');
     } finally {
       setRemovingFriend(false);
     }
@@ -616,6 +626,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
@@ -675,11 +686,11 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
             <View style={styles.searchResults}>
               {searchResults.map((result) => (
                 <View key={result.id} style={styles.searchResultItem}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {truncateUsername(result.username).charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
+                  <UserProfileIcon
+                    iconUrl={result.icon_url}
+                    size={44}
+                    fallbackText={result.username}
+                  />
                   <Text style={styles.searchResultUsername}>{truncateUsername(result.username)}</Text>
                   <AnimatedButton
                     style={[
@@ -713,11 +724,11 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
             {friendRequests.map((request) => (
               <AnimatedCard key={request.id} style={styles.requestCard}>
                 <View style={styles.requestInfo}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {request.senderUsername.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
+                  <UserProfileIcon
+                    iconUrl={request.senderIconUrl}
+                    size={44}
+                    fallbackText={request.senderUsername}
+                  />
                   <Text style={styles.requestUsername}>{request.senderUsername}</Text>
                 </View>
                 <View style={styles.requestButtons}>
@@ -762,11 +773,11 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
             {sentRequests.map((request) => (
               <AnimatedCard key={request.id} style={styles.sentRequestCard}>
                 <View style={[styles.requestInfo, { gap: 10, flex: 1, marginBottom: 0 }]}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {request.receiverUsername.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
+                  <UserProfileIcon
+                    iconUrl={request.receiverIconUrl}
+                    size={44}
+                    fallbackText={request.receiverUsername}
+                  />
                   <View style={[styles.sentRequestInfo, { marginLeft: 0 }]}>
                     <Text style={[styles.requestUsername, { marginLeft: 0 }]} numberOfLines={1}>{request.receiverUsername}</Text>
                     <Text style={styles.pendingLabel}>Pending</Text>
@@ -1003,7 +1014,7 @@ export default function FriendsScreen({ onNavigateToAsyncDuel }: FriendsScreenPr
             <Text style={styles.requestSentIcon}>✓</Text>
             <Text style={styles.requestSentTitle}>Friend Request Sent!</Text>
             <Text style={styles.requestSentSubtitle}>
-              {sentRequestUsername} will be notified and can accept or decline.
+              {sentRequestUsername} will be notified and can accept{'\u00A0'}or{'\u00A0'}decline.
             </Text>
             <AnimatedButton
               style={styles.requestSentOkButton}
@@ -1329,9 +1340,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: SWIPE_THRESHOLD + 40,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingLeft: 44,
-    paddingRight: 8,
+    alignItems: 'flex-end',
+    paddingRight: 12,
+    zIndex: 0,
   },
   deleteButton: {
     backgroundColor: '#E53935',
@@ -1363,6 +1374,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: borderRadius.card,
     padding: 12,
+    zIndex: 1,
     ...shadows.card,
   },
   friendCard: {

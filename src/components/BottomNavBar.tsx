@@ -21,6 +21,7 @@ interface Props {
   onTabPress: (tab: TabName) => void;
   duelsBadgeCount?: number;
   friendsBadgeCount?: number; // Pending friend requests count
+  leaguesBadgeCount?: number; // Pending league invites count
 }
 
 // Icon images for each tab (using same icon for both states, active state uses filled background)
@@ -38,7 +39,7 @@ const tabs: { name: TabName }[] = [
   { name: 'friends' },
 ];
 
-export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 0, friendsBadgeCount = 0 }: Props) {
+export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 0, friendsBadgeCount = 0, leaguesBadgeCount = 0 }: Props) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -50,6 +51,7 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
           const isActive = activeTab === tab.name;
           const showDuelsBadge = tab.name === 'duels' && duelsBadgeCount > 0;
           const showFriendsBadge = tab.name === 'friends' && friendsBadgeCount > 0;
+          const showLeaguesBadge = tab.name === 'leagues' && leaguesBadgeCount > 0;
 
           return (
             <AnimatedNavIcon
@@ -81,6 +83,13 @@ export default function BottomNavBar({ activeTab, onTabPress, duelsBadgeCount = 
                     </Svg>
                   </View>
                 )}
+                {showLeaguesBadge && (
+                  <View style={styles.badge}>
+                    <Svg width={10} height={10} viewBox="0 0 10 10">
+                      <Circle cx={5} cy={5} r={5} fill={BADGE_COLOR} />
+                    </Svg>
+                  </View>
+                )}
               </View>
             </AnimatedNavIcon>
           );
@@ -95,6 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: 24,
     position: 'relative',
+    marginTop: 8,
   },
   androidShadow: {
     position: 'absolute',

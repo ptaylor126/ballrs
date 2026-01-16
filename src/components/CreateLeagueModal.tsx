@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { createLeague, League, LeagueSport, LeagueDuration, DURATION_OPTIONS, calculateLeagueDates } from '../lib/leaguesService';
 import { colors, borders, borderRadius, typography, spacing, shadows } from '../lib/theme';
+import InviteToLeagueModal from './InviteToLeagueModal';
 
 interface Props {
   visible: boolean;
@@ -33,6 +34,7 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
   const [error, setError] = useState<string | null>(null);
   const [createdLeague, setCreatedLeague] = useState<League | null>(null);
   const [inputFocused, setInputFocused] = useState(false);
+  const [showInviteFriendsModal, setShowInviteFriendsModal] = useState(false);
 
   const handleCreate = async () => {
     if (!user || !name.trim()) {
@@ -239,9 +241,6 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
             </>
           ) : (
             <>
-              <View style={styles.successIconCircle}>
-                <Text style={styles.successIcon}>L</Text>
-              </View>
               <Text style={styles.title}>League Created!</Text>
               <Text style={styles.subtitle}>
                 Share the invite code with friends
@@ -262,6 +261,13 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
               </TouchableOpacity>
 
               <TouchableOpacity
+                style={styles.inviteFriendsButton}
+                onPress={() => setShowInviteFriendsModal(true)}
+              >
+                <Text style={styles.inviteFriendsButtonText}>INVITE FRIENDS</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={styles.doneButton}
                 onPress={handleDone}
               >
@@ -271,6 +277,14 @@ export default function CreateLeagueModal({ visible, onClose, onLeagueCreated }:
           )}
         </View>
       </KeyboardAvoidingView>
+
+      {/* Invite Friends Modal */}
+      <InviteToLeagueModal
+        visible={showInviteFriendsModal}
+        onClose={() => setShowInviteFriendsModal(false)}
+        leagueId={createdLeague?.id || ''}
+        leagueName={createdLeague?.name || ''}
+      />
     </Modal>
   );
 }
@@ -507,6 +521,27 @@ const styles = StyleSheet.create({
   shareButtonText: {
     ...typography.button,
     color: '#FFFFFF',
+    fontSize: 14,
+  },
+  inviteFriendsButton: {
+    backgroundColor: '#F2C94C',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.button,
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+    marginBottom: spacing.sm,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  inviteFriendsButtonText: {
+    ...typography.button,
+    color: '#1A1A1A',
     fontSize: 14,
   },
   doneButton: {

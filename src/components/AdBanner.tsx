@@ -14,14 +14,22 @@ import {
  * Standard banner size: 320x50 (with padding = 60px total height)
  */
 
+// Toggle this to hide ads for screenshots
+const HIDE_ADS_FOR_SCREENSHOTS = false;
+
 // Ad banner image
-const adBannerImage = require('../../assets/images/ad-banner-parlays.png');
+const adBannerImage = require('../../assets/images/ad-banner-email.png');
 
 interface AdBannerProps {
   url?: string;
 }
 
 export default function AdBanner({ url = 'https://parlaysfordays.com' }: AdBannerProps) {
+  // Hide ads for App Store screenshots
+  if (HIDE_ADS_FOR_SCREENSHOTS) {
+    return null;
+  }
+
   const handlePress = async () => {
     try {
       const supported = await Linking.canOpenURL(url);

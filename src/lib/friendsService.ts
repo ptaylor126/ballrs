@@ -12,6 +12,7 @@ async function verifyAuthUser(expectedUserId: string): Promise<boolean> {
 export interface UserProfile {
   id: string;
   username: string;
+  icon_url: string | null;
 }
 
 // Friend Request types
@@ -26,6 +27,8 @@ export interface FriendRequest {
 export interface FriendRequestWithProfile extends FriendRequest {
   senderUsername: string;
   receiverUsername: string;
+  senderIconUrl: string | null;
+  receiverIconUrl: string | null;
 }
 
 export interface Friend {
@@ -44,6 +47,7 @@ export interface FriendWithProfile {
   username: string;
   createdAt: string;
   pendingChallengeId: string | null;
+  icon_url: string | null;
 }
 
 // Extended interface with online status
@@ -93,6 +97,37 @@ export async function getFriends(userId: string): Promise<FriendWithProfile[]> {
     return [];
   }
 
+  // Fetch user_stats to get selected_icon_id for each friend
+  const { data: statsData } = await supabase
+    .from('user_stats')
+    .select('id, selected_icon_id')
+    .in('id', friendUserIds);
+
+  // Get icon_urls for friends with selected icons
+  const iconIds = (statsData || [])
+    .map((s: any) => s.selected_icon_id)
+    .filter((id): id is string => id != null);
+
+  let iconsMap = new Map<string, string>();
+  if (iconIds.length > 0) {
+    const { data: iconsData } = await supabase
+      .from('profile_icons')
+      .select('id, icon_url')
+      .in('id', iconIds);
+
+    if (iconsData) {
+      iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+    }
+  }
+
+  // Create a map of user_id to icon_url
+  const userIconMap = new Map<string, string>();
+  (statsData || []).forEach((s: any) => {
+    if (s.selected_icon_id && iconsMap.has(s.selected_icon_id)) {
+      userIconMap.set(s.id, iconsMap.get(s.selected_icon_id)!);
+    }
+  });
+
   // Map friendships to FriendWithProfile
   const profileMap = new Map(profiles?.map(p => [p.id, p.username]) || []);
 
@@ -104,6 +139,7 @@ export async function getFriends(userId: string): Promise<FriendWithProfile[]> {
       username: profileMap.get(friendUserId) || 'Unknown',
       createdAt: f.created_at,
       pendingChallengeId: f.pending_challenge_id,
+      icon_url: userIconMap.get(friendUserId) || null,
     };
   }).sort((a, b) => a.username.localeCompare(b.username));
 }
@@ -161,6 +197,7 @@ export async function removeFriend(userId: string, friendId: string): Promise<bo
     return false;
   }
 
+  // Delete friendship in both directions
   const { error } = await supabase
     .from('friends')
     .delete()
@@ -195,7 +232,42 @@ export async function searchUsersByUsername(
     return [];
   }
 
-  return data || [];
+  if (!data || data.length === 0) return [];
+
+  // Get icon_urls for search results
+  const userIds = data.map((u: any) => u.id);
+  const { data: statsData } = await supabase
+    .from('user_stats')
+    .select('id, selected_icon_id')
+    .in('id', userIds);
+
+  const iconIds = (statsData || [])
+    .map((s: any) => s.selected_icon_id)
+    .filter((id): id is string => id != null);
+
+  let iconsMap = new Map<string, string>();
+  if (iconIds.length > 0) {
+    const { data: iconsData } = await supabase
+      .from('profile_icons')
+      .select('id, icon_url')
+      .in('id', iconIds);
+
+    if (iconsData) {
+      iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+    }
+  }
+
+  const userIconMap = new Map<string, string>();
+  (statsData || []).forEach((s: any) => {
+    if (s.selected_icon_id && iconsMap.has(s.selected_icon_id)) {
+      userIconMap.set(s.id, iconsMap.get(s.selected_icon_id)!);
+    }
+  });
+
+  return data.map((u: any) => ({
+    ...u,
+    icon_url: userIconMap.get(u.id) || null,
+  }));
 }
 
 // Get user by exact username
@@ -214,7 +286,26 @@ export async function getUserByUsername(username: string): Promise<UserProfile |
     return null;
   }
 
-  return data;
+  if (!data) return null;
+
+  // Get icon_url for this user
+  const { data: statsData } = await supabase
+    .from('user_stats')
+    .select('selected_icon_id')
+    .eq('id', data.id)
+    .single();
+
+  let icon_url = null;
+  if (statsData?.selected_icon_id) {
+    const { data: iconData } = await supabase
+      .from('profile_icons')
+      .select('icon_url')
+      .eq('id', statsData.selected_icon_id)
+      .single();
+    icon_url = iconData?.icon_url || null;
+  }
+
+  return { ...data, icon_url };
 }
 
 // Set a pending challenge for a friend (notifies them via realtime)
@@ -372,26 +463,60 @@ export async function sendFriendRequest(senderId: string, receiverId: string): P
     return { success: false, error: 'cannot_send_request' };
   }
 
-  // Check if a pending request already exists (either direction)
-  const { data: existingRequest, error: checkError } = await supabase
+  // Check if any request already exists (either direction, any status)
+  const { data: existingRequests, error: checkError } = await supabase
     .from('friend_requests')
     .select('id, status, sender_id')
-    .or(`and(sender_id.eq.${senderId},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${senderId})`)
-    .eq('status', 'pending')
-    .maybeSingle();
+    .or(`and(sender_id.eq.${senderId},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${senderId})`);
 
   if (checkError && !isTableNotFound(checkError)) {
     console.error('Error checking existing request:', checkError);
     return { success: false, error: 'check_failed' };
   }
 
-  if (existingRequest) {
-    // If they sent us a request, auto-accept it
-    if (existingRequest.sender_id === receiverId) {
-      const accepted = await acceptFriendRequest(existingRequest.id, senderId);
+  if (existingRequests && existingRequests.length > 0) {
+    // Check for pending request from them to us (auto-accept)
+    const pendingFromThem = existingRequests.find(r => r.status === 'pending' && r.sender_id === receiverId);
+    if (pendingFromThem) {
+      const accepted = await acceptFriendRequest(pendingFromThem.id, senderId);
       return accepted ? { success: true } : { success: false, error: 'accept_failed' };
     }
-    return { success: false, error: 'already_pending' };
+
+    // Check for pending request from us to them
+    const pendingFromUs = existingRequests.find(r => r.status === 'pending' && r.sender_id === senderId);
+    if (pendingFromUs) {
+      return { success: false, error: 'already_pending' };
+    }
+
+    // Check for declined request - update it back to pending
+    const declinedRequest = existingRequests.find(r => r.status === 'declined');
+    if (declinedRequest) {
+      const { error: updateError } = await supabase
+        .from('friend_requests')
+        .update({ status: 'pending', sender_id: senderId, receiver_id: receiverId })
+        .eq('id', declinedRequest.id);
+
+      if (updateError) {
+        console.error('Error updating declined request:', updateError);
+        return { success: false, error: 'update_failed' };
+      }
+      return { success: true };
+    }
+
+    // If there are existing requests but none are pending or declined, they might be stale 'accepted' records
+    // Clean them up and allow a new request
+    const staleRequests = existingRequests.filter(r => r.status === 'accepted');
+    if (staleRequests.length > 0) {
+      // Delete stale accepted requests (friendship should exist in friends table, not here)
+      await supabase
+        .from('friend_requests')
+        .delete()
+        .in('id', staleRequests.map(r => r.id));
+      // Continue to create a new request below
+    } else {
+      // Unknown state - shouldn't happen
+      return { success: false, error: 'already_friends' };
+    }
   }
 
   // Create the friend request
@@ -471,12 +596,43 @@ export async function getPendingFriendRequests(userId: string): Promise<FriendRe
     return [];
   }
 
+  // Get icon_urls for senders
+  const { data: statsData } = await supabase
+    .from('user_stats')
+    .select('id, selected_icon_id')
+    .in('id', senderIds);
+
+  const iconIds = (statsData || [])
+    .map((s: any) => s.selected_icon_id)
+    .filter((id): id is string => id != null);
+
+  let iconsMap = new Map<string, string>();
+  if (iconIds.length > 0) {
+    const { data: iconsData } = await supabase
+      .from('profile_icons')
+      .select('id, icon_url')
+      .in('id', iconIds);
+
+    if (iconsData) {
+      iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+    }
+  }
+
+  const userIconMap = new Map<string, string>();
+  (statsData || []).forEach((s: any) => {
+    if (s.selected_icon_id && iconsMap.has(s.selected_icon_id)) {
+      userIconMap.set(s.id, iconsMap.get(s.selected_icon_id)!);
+    }
+  });
+
   const profileMap = new Map(profiles?.map(p => [p.id, p.username]) || []);
 
   return requests.map(r => ({
     ...r,
     senderUsername: profileMap.get(r.sender_id) || 'Unknown',
     receiverUsername: '', // Not needed for received requests
+    senderIconUrl: userIconMap.get(r.sender_id) || null,
+    receiverIconUrl: null,
   }));
 }
 
@@ -617,12 +773,43 @@ export async function getSentFriendRequests(userId: string): Promise<FriendReque
     return [];
   }
 
+  // Get icon_urls for receivers
+  const { data: statsData } = await supabase
+    .from('user_stats')
+    .select('id, selected_icon_id')
+    .in('id', receiverIds);
+
+  const iconIds = (statsData || [])
+    .map((s: any) => s.selected_icon_id)
+    .filter((id): id is string => id != null);
+
+  let iconsMap = new Map<string, string>();
+  if (iconIds.length > 0) {
+    const { data: iconsData } = await supabase
+      .from('profile_icons')
+      .select('id, icon_url')
+      .in('id', iconIds);
+
+    if (iconsData) {
+      iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+    }
+  }
+
+  const userIconMap = new Map<string, string>();
+  (statsData || []).forEach((s: any) => {
+    if (s.selected_icon_id && iconsMap.has(s.selected_icon_id)) {
+      userIconMap.set(s.id, iconsMap.get(s.selected_icon_id)!);
+    }
+  });
+
   const profileMap = new Map(profiles?.map(p => [p.id, p.username]) || []);
 
   return requests.map(r => ({
     ...r,
     senderUsername: '', // Not needed for sent requests
     receiverUsername: profileMap.get(r.receiver_id) || 'Unknown',
+    senderIconUrl: null,
+    receiverIconUrl: userIconMap.get(r.receiver_id) || null,
   }));
 }
 
@@ -724,6 +911,37 @@ export async function getFriendsWithOnlineStatus(userId: string): Promise<Friend
     return [];
   }
 
+  // Fetch user_stats to get selected_icon_id for each friend
+  const { data: statsData } = await supabase
+    .from('user_stats')
+    .select('id, selected_icon_id')
+    .in('id', friendUserIds);
+
+  // Get icon_urls for friends with selected icons
+  const iconIds = (statsData || [])
+    .map((s: any) => s.selected_icon_id)
+    .filter((id): id is string => id != null);
+
+  let iconsMap = new Map<string, string>();
+  if (iconIds.length > 0) {
+    const { data: iconsData } = await supabase
+      .from('profile_icons')
+      .select('id, icon_url')
+      .in('id', iconIds);
+
+    if (iconsData) {
+      iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+    }
+  }
+
+  // Create a map of user_id to icon_url
+  const userIconMap = new Map<string, string>();
+  (statsData || []).forEach((s: any) => {
+    if (s.selected_icon_id && iconsMap.has(s.selected_icon_id)) {
+      userIconMap.set(s.id, iconsMap.get(s.selected_icon_id)!);
+    }
+  });
+
   // Map friendships to FriendWithOnlineStatus
   const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
@@ -738,6 +956,7 @@ export async function getFriendsWithOnlineStatus(userId: string): Promise<Friend
       username: profile?.username || 'Unknown',
       createdAt: f.created_at,
       pendingChallengeId: f.pending_challenge_id,
+      icon_url: userIconMap.get(friendUserId) || null,
       lastActive,
       isOnline: isUserOnline(lastActive),
       country: profile?.country || null,

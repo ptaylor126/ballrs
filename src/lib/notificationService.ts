@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 
 const NOTIFICATION_PROMPT_KEY = 'notificationPromptDismissedAt';
+const ANDROID_CHANNEL_ID = 'ballrs-default';
 
 // Configure how notifications appear when app is in foreground
 // Wrapped in try-catch to prevent crashes on Android if native module isn't ready
@@ -21,6 +22,28 @@ try {
   });
 } catch (error) {
   console.warn('Failed to set notification handler:', error);
+}
+
+// Initialize Android notification channel - MUST be called on app startup
+export async function initializeNotifications(): Promise<void> {
+  if (Platform.OS === 'android') {
+    try {
+      await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+        name: 'Ballrs Notifications',
+        description: 'Notifications for duels, challenges, and reminders',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#1ABC9C',
+        enableVibrate: true,
+        enableLights: true,
+        showBadge: true,
+        sound: 'default',
+      });
+      console.log('[Notifications] Android channel created successfully');
+    } catch (error) {
+      console.error('[Notifications] Failed to create Android channel:', error);
+    }
+  }
 }
 
 // Register for push notifications and get token
@@ -47,6 +70,9 @@ export async function registerForPushNotifications(): Promise<string | null> {
     return null;
   }
 
+  // Ensure Android channel exists before getting token
+  await initializeNotifications();
+
   // Get Expo push token
   try {
     // Safely access projectId with multiple fallbacks
@@ -67,20 +93,11 @@ export async function registerForPushNotifications(): Promise<string | null> {
       projectId,
     });
     token = tokenData.data;
+    console.log('[Notifications] Got push token:', token);
   } catch (error) {
     // Gracefully handle errors - push notifications are optional
     console.log('Push notifications not available:', error);
     return null;
-  }
-
-  // Android specific channel setup
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#1ABC9C',
-    });
   }
 
   return token;
@@ -135,6 +152,8 @@ export async function sendPushNotification(
     title,
     body,
     data: data || {},
+    channelId: ANDROID_CHANNEL_ID, // Required for Android
+    priority: 'high', // Ensures delivery on Android
   };
 
   try {
@@ -497,6 +516,9 @@ export async function scheduleStreakReminder(
   const secondsUntil8pm = Math.floor((trigger8pm.getTime() - now.getTime()) / 1000);
 
   try {
+    // Ensure channel exists on Android
+    await initializeNotifications();
+
     await Notifications.scheduleNotificationAsync({
       identifier: STREAK_REMINDER_ID,
       content: {
@@ -504,6 +526,7 @@ export async function scheduleStreakReminder(
         body: `You're on a ${dailyStreak} day streak. Play today to keep it going!`,
         sound: 'default',
         data: { type: 'streak_reminder' },
+        ...(Platform.OS === 'android' && { channelId: ANDROID_CHANNEL_ID }),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,

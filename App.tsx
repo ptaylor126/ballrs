@@ -51,6 +51,7 @@ import {
   DMSans_900Black,
 } from '@expo-google-fonts/dm-sans';
 import { colors, shadows, getSportColor, getSportName, getSportEmoji, Sport, borders, borderRadius } from './src/lib/theme';
+import { countryCodeToFlag } from './src/lib/countryUtils';
 import { getUserXP, getXPProgressInLevel, getXPForLevel } from './src/lib/xpService';
 import { fetchUserStats, UserStats, getStreak } from './src/lib/statsService';
 import { StatusBar } from 'expo-status-bar';
@@ -72,6 +73,7 @@ import LeagueDetailScreen from './src/screens/LeagueDetailScreen';
 import AchievementsScreen from './src/screens/AchievementsScreen';
 import CustomizeProfileScreen from './src/screens/CustomizeProfileScreen';
 import LinkEmailScreen from './src/screens/LinkEmailScreen';
+import UserProfileIcon from './src/components/UserProfileIcon';
 import FriendsScreen from './src/screens/FriendsScreen';
 import FriendChallengeListener from './src/components/FriendChallengeListener';
 import AdBanner from './src/components/AdBanner';
@@ -86,10 +88,12 @@ import { getUserPreferences, getDefaultSports } from './src/lib/userPreferencesS
 import { joinPresence, leavePresence } from './src/lib/presenceService';
 import { Duel, DuelWithOpponent, findWaitingDuel, createDuel, joinDuel, getIncomingChallenges, getActiveDuels, getPendingAsyncChallengesCount, createInviteDuel, createAsyncDuel } from './src/lib/duelService';
 import { getPendingFriendRequestsCount, subscribeToFriendRequests, unsubscribeFromFriendRequests } from './src/lib/friendsService';
-import { addNotificationListeners, updateStreakReminderFromStats } from './src/lib/notificationService';
+import { addNotificationListeners, updateStreakReminderFromStats, initializeNotifications } from './src/lib/notificationService';
 import { getDuelById } from './src/lib/duelService';
 import { getCompletedSportsToday } from './src/lib/dailyPuzzleService';
 import { LeagueWithMemberCount, getUserLeagues, getLeagueLeaderboard, LeagueMember } from './src/lib/leaguesService';
+import { getPendingLeagueInvites, getPendingLeagueInvitesCount, LeagueInviteWithDetails } from './src/lib/leagueInvitesService';
+import LeagueInviteCard from './src/components/LeagueInviteCard';
 import { getGlobalLeaderboard, LeaderboardEntry } from './src/lib/pointsService';
 import nbaTriviaData from './data/nba-trivia.json';
 import plTriviaData from './data/pl-trivia.json';
@@ -123,6 +127,11 @@ const sportIcons = {
 
 // Fire icon for streak display
 const fireIcon = require('./assets/images/icon-fire.png');
+
+// Medal icons for leaderboard
+const goldMedal = require('./assets/images/icon-gold.png');
+const silverMedal = require('./assets/images/icon-silver.png');
+const bronzeMedal = require('./assets/images/icon-bronze.png');
 
 // Animated fire icon with bounce-in on load
 function AnimatedFireIcon({ totalStreak }: { totalStreak: number }) {
@@ -211,6 +220,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
   const [activeDuels, setActiveDuels] = useState<DuelWithOpponent[]>([]);
   const [incomingChallenges, setIncomingChallenges] = useState<DuelWithOpponent[]>([]);
   const [userLeagues, setUserLeagues] = useState<LeagueWithPosition[]>([]);
+  const [leagueInvites, setLeagueInvites] = useState<LeagueInviteWithDetails[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [tabIndicatorAnim] = useState(new Animated.Value(0));
 
@@ -294,12 +304,13 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
       setCompletedToday(completed);
 
       if (user) {
-        const [xpData, userStats, duels, challenges, leagues] = await Promise.all([
+        const [xpData, userStats, duels, challenges, leagues, pendingLeagueInvites] = await Promise.all([
           getUserXP(user.id),
           fetchUserStats(user.id),
           getActiveDuels(user.id),
           getIncomingChallenges(user.id),
           getUserLeagues(user.id),
+          getPendingLeagueInvites(user.id),
         ]);
         if (xpData) {
           setXP(xpData.xp);
@@ -312,6 +323,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
         }
         setActiveDuels(duels);
         setIncomingChallenges(challenges);
+        setLeagueInvites(pendingLeagueInvites);
 
         // Get user positions in each league
         const leaguesWithPositions: LeagueWithPosition[] = [];
@@ -334,6 +346,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
         setActiveDuels([]);
         setIncomingChallenges([]);
         setUserLeagues([]);
+        setLeagueInvites([]);
       }
     };
     loadData();
@@ -400,8 +413,12 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
     if (duel.status === 'invite' && duel.player2_id === user?.id) {
       return 'New Challenge';
     }
-    if (duel.status === 'waiting' || duel.status === 'invite') {
+    // If challenger has already played, it's opponent's turn (waiting)
+    if (duel.status === 'invite' && duel.player1_completed_at !== null) {
       return 'Waiting';
+    }
+    if (duel.status === 'waiting' || duel.status === 'invite') {
+      return 'Your Turn';
     }
     if (duel.status === 'waiting_for_p2') {
       return 'Waiting';
@@ -420,6 +437,32 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
     }
   };
 
+  // Handle league invite responded (accept or decline)
+  const handleLeagueInviteResponded = async () => {
+    if (!user) return;
+    // Refresh both invites and leagues
+    const [leagues, invites] = await Promise.all([
+      getUserLeagues(user.id),
+      getPendingLeagueInvites(user.id),
+    ]);
+    setLeagueInvites(invites);
+
+    // Update leagues with positions
+    const leaguesWithPositions: LeagueWithPosition[] = [];
+    for (const league of leagues) {
+      const members = await getLeagueLeaderboard(league.id, 'all_time');
+      const userIndex = members.findIndex((m: LeagueMember) => m.user_id === user.id);
+      const userMember = members.find((m: LeagueMember) => m.user_id === user.id);
+      leaguesWithPositions.push({
+        ...league,
+        userPosition: userIndex >= 0 ? userIndex + 1 : 0,
+        userPoints: userMember?.points_all_time || 0,
+        totalMembers: members.length,
+      });
+    }
+    setUserLeagues(leaguesWithPositions.slice(0, 3));
+  };
+
   // Selected sport info
   const selectedSportInfo = sportTabs.find(s => s.sport === selectedSportTab);
   const sportColor = selectedSportTab ? getSportColor(selectedSportTab) : colors.primary;
@@ -436,31 +479,39 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>BALLRS</Text>
-          <TouchableOpacity style={styles.headerAvatar} onPress={onProfilePress} activeOpacity={0.7}>
-            <Image source={require('./assets/images/icon-profile.png')} style={styles.headerAvatarIcon} resizeMode="contain" />
-          </TouchableOpacity>
+          <View style={styles.headerAvatarWrapper}>
+            {Platform.OS === 'android' && <View style={styles.androidShadowProfileButton} />}
+            <TouchableOpacity style={styles.headerAvatar} onPress={onProfilePress} activeOpacity={0.7}>
+              <Image source={require('./assets/images/icon-profile.png')} style={styles.headerAvatarIcon} resizeMode="contain" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Level & XP Bar */}
         {authLoading && (
           <View style={styles.levelSection}>
-            <View style={[styles.combinedLevelBadge, { backgroundColor: '#E8E8E8' }]}>
-              <ActivityIndicator size="small" color="#888" style={{ marginHorizontal: 16, marginVertical: 6 }} />
+            <View style={styles.levelBadgeContainer}>
+              <View style={[styles.combinedLevelBadge, { backgroundColor: '#E8E8E8' }]}>
+                <ActivityIndicator size="small" color="#888" style={{ marginHorizontal: 16, marginVertical: 6 }} />
+              </View>
             </View>
           </View>
         )}
         {!authLoading && !user && (
           <View style={styles.levelSection}>
-            <View style={[styles.combinedLevelBadge, { backgroundColor: '#FFE0E0' }]}>
-              <Text style={[styles.levelBadgeText, { paddingHorizontal: 12, paddingVertical: 6, color: '#E53935' }]}>
-                Not signed in - check console
-              </Text>
+            <View style={styles.levelBadgeContainer}>
+              <View style={[styles.combinedLevelBadge, { backgroundColor: '#FFE0E0' }]}>
+                <Text style={[styles.levelBadgeText, { paddingHorizontal: 12, paddingVertical: 6, color: '#E53935' }]}>
+                  Not signed in - check console
+                </Text>
+              </View>
             </View>
           </View>
         )}
         {user && (
           <View style={styles.levelSection}>
             <View style={styles.levelBadgeContainer}>
+              {Platform.OS === 'android' && <View style={styles.androidShadow} />}
               <TouchableOpacity
                 style={styles.combinedLevelBadge}
                 onPress={() => setShowLevelModal(true)}
@@ -482,6 +533,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
             </View>
             <Text style={styles.xpLabel}>{xp.toLocaleString()}/{nextLevelXP.toLocaleString()} XP</Text>
             <View style={styles.xpBarOuterContainer}>
+              {Platform.OS === 'android' && <View style={styles.androidShadowXpBar} />}
               <View style={styles.xpBarOuter}>
                 <Animated.View style={[styles.xpBarFillContainer, { width: xpBarWidth }]}>
                   <LinearGradient
@@ -503,22 +555,24 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
               const tabColor = getSportColor(tab.sport);
               const isActive = tab.sport === selectedSportTab;
               return (
-                <TouchableOpacity
-                  key={tab.sport}
-                  style={[
-                    styles.sportTab,
-                    isActive && { backgroundColor: tabColor },
-                  ]}
-                  onPress={() => handleTabChange(tab.sport)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[
-                    styles.sportTabText,
-                    isActive && styles.sportTabTextActive,
-                  ]}>
-                    {tab.name}
-                  </Text>
-                </TouchableOpacity>
+                <View key={tab.sport} style={styles.sportTabWrapper}>
+                  {Platform.OS === 'android' && <View style={styles.androidShadowTab} />}
+                  <TouchableOpacity
+                    style={[
+                      styles.sportTab,
+                      isActive && { backgroundColor: tabColor },
+                    ]}
+                    onPress={() => handleTabChange(tab.sport)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.sportTabText,
+                      isActive && styles.sportTabTextActive,
+                    ]}>
+                      {tab.name}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               );
             })}
           </View>
@@ -596,33 +650,36 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
                 const duelColor = getSportColor(duel.sport);
                 const statusLabel = getDuelStatusLabel(duel);
                 const isNewChallenge = statusLabel === 'New Challenge';
+                const isWaiting = statusLabel === 'Waiting';
                 return (
-                  <TouchableOpacity
-                    key={duel.id}
-                    style={styles.duelCard}
-                    onPress={() => onNavigateToDuel(duel)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.duelCardTop}>
-                      <View style={[styles.duelSportIcon, { backgroundColor: duelColor }]}>
-                        <Image source={sportIcons[duel.sport]} style={styles.duelSportIconImage} />
-                      </View>
-                      <View style={[
-                        styles.duelStatusBadge,
-                        isNewChallenge && styles.duelStatusBadgeNew,
-                      ]}>
-                        <Text style={[
-                          styles.duelStatusText,
-                          isNewChallenge && styles.duelStatusTextNew,
+                  <View key={duel.id} style={styles.duelCardWrapper}>
+                    {Platform.OS === 'android' && <View style={styles.androidShadowDuelCard} />}
+                    <TouchableOpacity
+                      style={styles.duelCard}
+                      onPress={() => !isWaiting && onNavigateToDuel(duel)}
+                      activeOpacity={isWaiting ? 1 : 0.8}
+                    >
+                      <View style={styles.duelCardTop}>
+                        <View style={[styles.duelSportIcon, { backgroundColor: duelColor }]}>
+                          <Image source={sportIcons[duel.sport]} style={styles.duelSportIconImage} />
+                        </View>
+                        <View style={[
+                          styles.duelStatusBadge,
+                          isNewChallenge && styles.duelStatusBadgeNew,
                         ]}>
-                          {statusLabel}
-                        </Text>
+                          <Text style={[
+                            styles.duelStatusText,
+                            isNewChallenge && styles.duelStatusTextNew,
+                          ]}>
+                            {statusLabel}
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                    <Text style={styles.duelOpponentName} numberOfLines={1}>
-                      {duel.opponent_username || 'Waiting...'}
-                    </Text>
-                  </TouchableOpacity>
+                      <Text style={styles.duelOpponentName} numberOfLines={1}>
+                        {duel.opponent_username || 'Waiting...'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 );
               })}
             </ScrollView>
@@ -638,34 +695,39 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
               </Text>
               <Text style={styles.countText}>(Weekly)</Text>
             </View>
-            <View style={styles.leaderboardList}>
-              {leaderboard.map((entry, index) => (
-                <View key={entry.user_id} style={[
-                  styles.leaderboardRow,
-                  index === leaderboard.length - 1 && { borderBottomWidth: 0 },
-                ]}>
-                  <View style={[
-                    styles.leaderboardRank,
-                    index === 0 && styles.leaderboardRankFirst,
-                    index === 1 && styles.leaderboardRankSecond,
-                    index === 2 && styles.leaderboardRankThird,
-                  ]}>
-                    <Text style={[
-                      styles.leaderboardRankText,
-                      index < 3 && styles.leaderboardRankTextTop3,
+            <View style={styles.leaderboardListWrapper}>
+              {Platform.OS === 'android' && <View style={styles.androidShadowLeaderboard} />}
+              <View style={styles.leaderboardList}>
+                {leaderboard.map((entry, index) => {
+                  const medalIcon = entry.rank === 1 ? goldMedal : entry.rank === 2 ? silverMedal : entry.rank === 3 ? bronzeMedal : null;
+                  return (
+                    <View key={entry.user_id} style={[
+                      styles.leaderboardRow,
+                      index === leaderboard.length - 1 && { borderBottomWidth: 0 },
                     ]}>
-                      {entry.rank}
-                    </Text>
-                  </View>
-                  <Text style={[
-                    styles.leaderboardUsername,
-                    entry.user_id === user.id && styles.leaderboardUsernameMe,
-                  ]} numberOfLines={1}>
-                    {entry.username}{entry.user_id === user.id ? ' (You)' : ''}
-                  </Text>
-                  <Text style={styles.leaderboardPoints}>{entry.points} pts</Text>
-                </View>
-              ))}
+                      <View style={styles.leaderboardRankContainer}>
+                        {medalIcon ? (
+                          <Image source={medalIcon} style={styles.leaderboardMedal} resizeMode="contain" />
+                        ) : (
+                          <Text style={styles.leaderboardRankText}>#{entry.rank}</Text>
+                        )}
+                      </View>
+                      <UserProfileIcon
+                        iconUrl={entry.icon_url}
+                        size={24}
+                        fallbackText={entry.username}
+                      />
+                      <Text style={[
+                        styles.leaderboardUsername,
+                        entry.user_id === user.id && styles.leaderboardUsernameMe,
+                      ]} numberOfLines={1}>
+                        {entry.username}{entry.country ? ` ${countryCodeToFlag(entry.country)}` : ''}{entry.user_id === user.id ? ' (You)' : ''}
+                      </Text>
+                      <Text style={styles.leaderboardPoints}>{entry.points} pts</Text>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           </View>
         )}
@@ -674,28 +736,54 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
         {user && (
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Your Leagues</Text>
+
+            {/* Pending League Invites */}
+            {leagueInvites.length > 0 && (
+              <View style={styles.leagueInvitesContainer}>
+                {leagueInvites.map((invite) => (
+                  <LeagueInviteCard
+                    key={invite.id}
+                    invite={invite}
+                    onResponded={handleLeagueInviteResponded}
+                  />
+                ))}
+              </View>
+            )}
+
             {userLeagues.length > 0 ? (
               <View style={styles.leaguesList}>
                 {userLeagues.map((league) => (
-                  <TouchableOpacity
-                    key={league.id}
-                    style={styles.leagueRow}
-                    onPress={() => onNavigateToLeague(league)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.leagueInfo}>
-                      <Text style={styles.leagueName} numberOfLines={1}>{league.name}</Text>
-                      <Text style={styles.leaguePosition}>
-                        {getOrdinalSuffix(league.userPosition)} of {league.totalMembers}
-                      </Text>
-                    </View>
-                    <View style={styles.leaguePoints}>
-                      <Text style={styles.leaguePointsText}>{league.userPoints} pts</Text>
-                    </View>
-                  </TouchableOpacity>
+                  <View key={league.id} style={styles.leagueRowWrapper}>
+                    {Platform.OS === 'android' && <View style={styles.androidShadowLeagueRow} />}
+                    <TouchableOpacity
+                      style={styles.leagueRow}
+                      onPress={() => onNavigateToLeague(league)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.leagueInfo}>
+                        <View style={styles.leagueNameRow}>
+                          <Text style={styles.leagueName} numberOfLines={1}>{league.name}</Text>
+                          <View style={[
+                            styles.leagueSportBadge,
+                            { backgroundColor: league.sport === 'all' ? '#1ABC9C' : getSportColor(league.sport as Sport) }
+                          ]}>
+                            <Text style={styles.leagueSportBadgeText}>
+                              {league.sport === 'all' ? 'ALL' : league.sport === 'pl' ? 'EPL' : league.sport.toUpperCase()}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.leaguePosition}>
+                          {getOrdinalSuffix(league.userPosition)} of {league.totalMembers}
+                        </Text>
+                      </View>
+                      <View style={styles.leaguePoints}>
+                        <Text style={styles.leaguePointsText}>{league.userPoints} pts</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 ))}
               </View>
-            ) : (
+            ) : leagueInvites.length === 0 ? (
               <View style={styles.emptyStateContainer}>
                 <Text style={styles.emptyStateText}>No leagues yet</Text>
                 <AnimatedButton
@@ -705,7 +793,7 @@ function HomeScreen({ onDailyPuzzle, onDuel, onProfilePress, onNavigateToDuel, o
                   <Text style={styles.emptyStateButtonText}>Join or Create League</Text>
                 </AnimatedButton>
               </View>
-            )}
+            ) : null}
           </View>
         )}
 
@@ -753,6 +841,7 @@ function AppContent() {
   const [incomingChallengesCount, setIncomingChallengesCount] = useState(0);
   const [pendingAsyncChallengesCount, setPendingAsyncChallengesCount] = useState(0);
   const [pendingFriendRequestsCount, setPendingFriendRequestsCount] = useState(0);
+  const [pendingLeagueInvitesCount, setPendingLeagueInvitesCount] = useState(0);
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
   const [autoStartDuelSport, setAutoStartDuelSport] = useState<Sport | null>(null);
   const [isAsyncDuel, setIsAsyncDuel] = useState(false);
@@ -762,6 +851,11 @@ function AppContent() {
   // Initialize sound service
   useEffect(() => {
     soundService.initialize();
+  }, []);
+
+  // Initialize notifications (creates Android channel)
+  useEffect(() => {
+    initializeNotifications();
   }, []);
 
   // Check if onboarding has been completed
@@ -837,18 +931,21 @@ function AppContent() {
 
   const refreshChallengesCount = useCallback(async () => {
     if (user) {
-      const [challenges, asyncCount, friendRequestsCount] = await Promise.all([
+      const [challenges, asyncCount, friendRequestsCount, leagueInvitesCount] = await Promise.all([
         getIncomingChallenges(user.id),
         getPendingAsyncChallengesCount(user.id),
         getPendingFriendRequestsCount(user.id),
+        getPendingLeagueInvitesCount(user.id),
       ]);
       setIncomingChallengesCount(challenges.length);
       setPendingAsyncChallengesCount(asyncCount);
       setPendingFriendRequestsCount(friendRequestsCount);
+      setPendingLeagueInvitesCount(leagueInvitesCount);
     } else {
       setIncomingChallengesCount(0);
       setPendingAsyncChallengesCount(0);
       setPendingFriendRequestsCount(0);
+      setPendingLeagueInvitesCount(0);
     }
   }, [user]);
 
@@ -1440,6 +1537,7 @@ function AppContent() {
             onNavigateToCustomize={() => setCurrentScreen('customizeProfile')}
             onReplayOnboarding={handleReplayOnboarding}
             onLinkEmail={() => setCurrentScreen('linkEmail')}
+            onSportsChange={setSelectedSports}
           />
         )}
         {currentScreen === 'linkEmail' && (
@@ -1570,6 +1668,7 @@ function AppContent() {
           onTabPress={handleTabPress}
           duelsBadgeCount={incomingChallengesCount + pendingAsyncChallengesCount}
           friendsBadgeCount={pendingFriendRequestsCount}
+          leaguesBadgeCount={pendingLeagueInvitesCount}
         />
       )}
       </View>
@@ -1687,6 +1786,20 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
   },
+  headerAvatarWrapper: {
+    position: 'relative',
+    width: 40,
+    height: 40,
+  },
+  androidShadowProfileButton: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    width: 40,
+    height: 40,
+    backgroundColor: '#000000',
+    borderRadius: 20,
+  },
   headerAvatarShadow: {
     // Not used - keeping for backwards compatibility
     display: 'none',
@@ -1700,11 +1813,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#000000',
+    // Shadow - iOS uses native, Android uses fake shadow view
     shadowColor: '#000000',
-    shadowOffset: { width: 3, height: 3 },
+    shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 3,
   },
   headerAvatarIcon: {
     width: 20,
@@ -1721,6 +1834,27 @@ const styles = StyleSheet.create({
   levelBadgeContainer: {
     alignSelf: 'flex-start',
     marginBottom: 6,
+    // Position relative for Android shadow positioning
+    position: 'relative',
+    // Shadow on container so overflow:hidden on badge doesn't clip it (iOS only)
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+      },
+      default: {},
+    }),
+  },
+  androidShadow: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
   },
   levelBadgeShadow: {
     // Not used - keeping for backwards compatibility
@@ -1734,18 +1868,18 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
+    // Shadow on container for iOS, box-shadow for web
+    ...Platform.select({
+      web: {
+        boxShadow: '2px 2px 0px #000000',
+      },
+      default: {},
+    }),
   },
   levelSection_left: {
     backgroundColor: '#F2C94C',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderTopLeftRadius: 6,
-    borderBottomLeftRadius: 6,
   },
   levelDivider: {
     width: 2,
@@ -1763,8 +1897,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F2EB',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderTopRightRadius: 6,
-    borderBottomRightRadius: 6,
   },
   levelFireIcon: {
     width: 16,
@@ -1794,7 +1926,26 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   xpBarOuterContainer: {
-    // Container for XP bar
+    position: 'relative',
+    // Shadow on container so overflow:hidden on bar doesn't clip it (iOS only)
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+      },
+      default: {},
+    }),
+  },
+  androidShadowXpBar: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 8,
   },
   xpBarShadow: {
     // Not used - keeping for backwards compatibility
@@ -1807,11 +1958,13 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     borderRadius: 8,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
+    // Shadow on container for iOS, box-shadow for web
+    ...Platform.select({
+      web: {
+        boxShadow: '2px 2px 0px #000000',
+      },
+      default: {},
+    }),
   },
   xpBarFillContainer: {
     height: '100%',
@@ -1932,19 +2085,31 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  sportTab: {
+  sportTabWrapper: {
     flex: 1,
+    position: 'relative',
+  },
+  androidShadowTab: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 20,
+  },
+  sportTab: {
     paddingVertical: 10,
     borderRadius: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#000000',
+    alignItems: 'center',
+    // Shadow - iOS uses native, Android uses fake shadow view
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
-    alignItems: 'center',
   },
   sportTabText: {
     fontSize: 14,
@@ -2092,7 +2257,6 @@ const styles = StyleSheet.create({
   sectionContainer: {
     paddingHorizontal: 24,
     marginTop: 24,
-    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -2116,7 +2280,19 @@ const styles = StyleSheet.create({
     paddingRight: 24,
     paddingTop: 2,
     paddingBottom: 6,
-    gap: 12,
+  },
+  duelCardWrapper: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  androidShadowDuelCard: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 12,
   },
   duelCard: {
     width: 150,
@@ -2125,11 +2301,11 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     borderRadius: 12,
     padding: 12,
+    // Shadow - iOS uses native, Android uses fake shadow view
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
   },
   duelCardTop: {
     flexDirection: 'row',
@@ -2200,17 +2376,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   // Leaderboard
+  leaderboardListWrapper: {
+    position: 'relative',
+  },
+  androidShadowLeaderboard: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 12,
+  },
   leaderboardList: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#000000',
     borderRadius: 12,
     overflow: 'hidden',
+    // Shadow - iOS uses native, Android uses fake shadow view
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
   },
   leaderboardRow: {
     flexDirection: 'row',
@@ -2220,38 +2408,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E8E8E8',
   },
-  leaderboardRank: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#F0F0F0',
-    justifyContent: 'center',
+  leaderboardRankContainer: {
+    width: 32,
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
-  leaderboardRankFirst: {
-    backgroundColor: '#FFD700',
-  },
-  leaderboardRankSecond: {
-    backgroundColor: '#C0C0C0',
-  },
-  leaderboardRankThird: {
-    backgroundColor: '#CD7F32',
+  leaderboardMedal: {
+    width: 24,
+    height: 24,
   },
   leaderboardRankText: {
     fontSize: 14,
     fontFamily: 'DMSans_700Bold',
     color: '#666',
   },
-  leaderboardRankTextTop3: {
-    color: '#FFFFFF',
-    fontFamily: 'DMSans_900Black',
-  },
   leaderboardUsername: {
     flex: 1,
     fontSize: 15,
     fontFamily: 'DMSans_600SemiBold',
     color: colors.text,
+    marginLeft: 8,
   },
   leaderboardUsernameMe: {
     fontFamily: 'DMSans_700Bold',
@@ -2263,9 +2439,24 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   // League Standings
+  leagueInvitesContainer: {
+    marginTop: 12,
+  },
   leaguesList: {
     marginTop: 12,
     gap: 8,
+  },
+  leagueRowWrapper: {
+    position: 'relative',
+  },
+  androidShadowLeagueRow: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: '#000000',
+    borderRadius: 12,
   },
   leagueRow: {
     flexDirection: 'row',
@@ -2275,19 +2466,35 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     borderRadius: 12,
     padding: 14,
+    // Shadow - iOS uses native, Android uses fake shadow view
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
   },
   leagueInfo: {
     flex: 1,
+  },
+  leagueNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   leagueName: {
     fontSize: 15,
     fontFamily: 'DMSans_700Bold',
     color: colors.text,
+    flexShrink: 1,
+  },
+  leagueSportBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  leagueSportBadgeText: {
+    fontSize: 9,
+    fontFamily: 'DMSans_700Bold',
+    color: '#FFFFFF',
   },
   leaguePosition: {
     fontSize: 13,

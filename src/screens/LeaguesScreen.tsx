@@ -14,6 +14,7 @@ import {
   Easing,
   LayoutChangeEvent,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -50,6 +51,10 @@ import {
 } from '../lib/leaguesService';
 import { supabase } from '../lib/supabase';
 import { LeaderboardEntry, TimePeriod, getGlobalLeaderboard, getLeaderboardPlayerCount } from '../lib/pointsService';
+import UserProfileIcon from '../components/UserProfileIcon';
+import LeagueInviteCard from '../components/LeagueInviteCard';
+import { getPendingLeagueInvites, LeagueInviteWithDetails } from '../lib/leagueInvitesService';
+import { countryCodeToFlag } from '../lib/countryUtils';
 
 interface Props {
   onBack?: () => void;
@@ -140,9 +145,26 @@ export default function LeaguesScreen({
   const tabIndicatorAnim = useRef(new Animated.Value(0)).current;
   const [tabWidth, setTabWidth] = useState(0);
 
+  // Delete/Leave league confirmation modal
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [leagueToDelete, setLeagueToDelete] = useState<LeagueWithMemberCount | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // League invites
+  const [leagueInvites, setLeagueInvites] = useState<LeagueInviteWithDetails[]>([]);
+
+  const loadLeagueInvites = useCallback(async () => {
+    if (!user) return;
+    const invites = await getPendingLeagueInvites(user.id);
+    setLeagueInvites(invites);
+  }, [user]);
+
   const loadLeagues = useCallback(async () => {
     if (!user) return;
-    const userLeagues = await getUserLeagues(user.id);
+    const [userLeagues] = await Promise.all([
+      getUserLeagues(user.id),
+      loadLeagueInvites(),
+    ]);
     const sortedLeagues = userLeagues.sort((a, b) => {
       const statusA = getLeagueStatus(a);
       const statusB = getLeagueStatus(b);
@@ -151,7 +173,7 @@ export default function LeaguesScreen({
       return a.name.localeCompare(b.name);
     });
     setLeagues(sortedLeagues);
-  }, [user]);
+  }, [user, loadLeagueInvites]);
 
   const loadLeaderboard = useCallback(async () => {
     console.log('[LeaguesScreen] Loading leaderboard with filters:', { timePeriod, sportFilter });
@@ -200,61 +222,37 @@ export default function LeaguesScreen({
     setRefreshing(false);
   }, [loadData]);
 
-  const handleLeaveLeague = async (league: LeagueWithMemberCount) => {
+  const handleLeaveLeague = (league: LeagueWithMemberCount) => {
     if (!user) return;
+    setLeagueToDelete(league);
+    setConfirmModalVisible(true);
+  };
 
-    const message = league.is_creator
-      ? 'As the creator, leaving will delete this league for everyone. Are you sure?'
-      : `Are you sure you want to leave "${league.name}"?`;
+  const confirmDeleteLeague = async () => {
+    if (!user || !leagueToDelete) return;
 
-    const title = league.is_creator ? 'Delete League' : 'Leave League';
-
-    // Handle web platform
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm(`${title}\n\n${message}`);
-      if (confirmed) {
-        let success: boolean;
-        if (league.is_creator) {
-          success = await deleteLeague(league.id);
-        } else {
-          success = await leaveLeague(league.id, user.id);
-        }
-
-        if (success) {
-          await loadLeagues();
-        } else {
-          window.alert('Failed to leave league. Please try again.');
-        }
-      }
-      return;
+    setIsDeleting(true);
+    let success: boolean;
+    if (leagueToDelete.is_creator) {
+      success = await deleteLeague(leagueToDelete.id);
+    } else {
+      success = await leaveLeague(leagueToDelete.id, user.id);
     }
 
-    // Handle mobile platforms
-    Alert.alert(
-      title,
-      message,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: league.is_creator ? 'Delete' : 'Leave',
-          style: 'destructive',
-          onPress: async () => {
-            let success: boolean;
-            if (league.is_creator) {
-              success = await deleteLeague(league.id);
-            } else {
-              success = await leaveLeague(league.id, user.id);
-            }
+    setIsDeleting(false);
+    setConfirmModalVisible(false);
+    setLeagueToDelete(null);
 
-            if (success) {
-              await loadLeagues();
-            } else {
-              Alert.alert('Error', 'Failed to leave league. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+    if (success) {
+      await loadLeagues();
+    } else {
+      // Show error - use Alert for mobile, it's brief
+      if (Platform.OS === 'web') {
+        window.alert('Failed. Please try again.');
+      } else {
+        Alert.alert('Error', 'Failed. Please try again.');
+      }
+    }
   };
 
   const getRankStyle = (rank: number) => {
@@ -296,11 +294,24 @@ export default function LeaguesScreen({
       >
         {/* Top row: Sport icon + League name + Creator badge */}
         <View style={styles.leagueTopRow}>
-          <Image
-            source={sportIcons[item.sport]}
-            style={styles.sportIcon}
-            resizeMode="contain"
-          />
+          {item.sport === 'all' ? (
+            <View style={styles.allSportsIcons}>
+              <View style={styles.allSportsRow}>
+                <Image source={sportIcons.nba} style={styles.smallSportIcon} resizeMode="contain" />
+                <Image source={sportIcons.pl} style={styles.smallSportIcon} resizeMode="contain" />
+              </View>
+              <View style={styles.allSportsRow}>
+                <Image source={sportIcons.nfl} style={styles.smallSportIcon} resizeMode="contain" />
+                <Image source={sportIcons.mlb} style={styles.smallSportIcon} resizeMode="contain" />
+              </View>
+            </View>
+          ) : (
+            <Image
+              source={sportIcons[item.sport]}
+              style={styles.sportIcon}
+              resizeMode="contain"
+            />
+          )}
           <Text style={[styles.leagueName, isCompleted && styles.completedText]} numberOfLines={1}>
             {item.name}
           </Text>
@@ -380,14 +391,14 @@ export default function LeaguesScreen({
           )}
         </View>
         <View style={styles.playerColumn}>
-          <View style={styles.playerAvatar}>
-            <Text style={styles.playerAvatarText}>
-              {item.avatar || item.username.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <UserProfileIcon
+            iconUrl={item.icon_url}
+            size={32}
+            fallbackText={item.username}
+          />
           <View style={styles.playerNameContainer}>
             <Text style={styles.playerName} numberOfLines={1}>
-              {item.username}
+              {item.username}{item.country ? ` ${countryCodeToFlag(item.country)}` : ''}
             </Text>
             {isCurrentUser && <Text style={styles.youLabel}>(You)</Text>}
           </View>
@@ -459,6 +470,20 @@ export default function LeaguesScreen({
         </AnimatedButton>
       </View>
 
+      {/* League Invites Section */}
+      {leagueInvites.length > 0 && (
+        <View style={styles.invitesSection}>
+          <Text style={styles.invitesSectionTitle}>League Invites</Text>
+          {leagueInvites.map((invite) => (
+            <LeagueInviteCard
+              key={invite.id}
+              invite={invite}
+              onResponded={loadLeagues}
+            />
+          ))}
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -477,13 +502,15 @@ export default function LeaguesScreen({
             />
           }
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Image source={leaguesIcon} style={styles.emptyIcon} />
-              <Text style={styles.emptyText}>No leagues yet</Text>
-              <Text style={styles.emptySubtext}>
-                Create your own or join with an invite code
-              </Text>
-            </View>
+            leagueInvites.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Image source={leaguesIcon} style={styles.emptyIcon} />
+                <Text style={styles.emptyText}>No leagues yet</Text>
+                <Text style={styles.emptySubtext}>
+                  Create your own or join with an invite code
+                </Text>
+              </View>
+            ) : null
           }
         />
       )}
@@ -646,6 +673,52 @@ export default function LeaguesScreen({
       </View>
 
       {activeTab === 'leagues' ? renderMyLeaguesContent() : renderGlobalContent()}
+
+      {/* Delete/Leave League Confirmation Modal */}
+      <Modal
+        visible={confirmModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {leagueToDelete?.is_creator ? 'Delete League?' : 'Leave League?'}
+            </Text>
+            <Text style={styles.modalMessage}>
+              {leagueToDelete?.is_creator
+                ? `Deleting "${leagueToDelete?.name}" will remove it for all members. This cannot be undone.`
+                : `Are you sure you want to leave "${leagueToDelete?.name}"?`}
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => {
+                  setConfirmModalVisible(false);
+                  setLeagueToDelete(null);
+                }}
+                disabled={isDeleting}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalDeleteButton}
+                onPress={confirmDeleteLeague}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.modalDeleteButtonText}>
+                    {leagueToDelete?.is_creator ? 'Delete' : 'Leave'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -776,6 +849,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     lineHeight: 18,
   },
+  invitesSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  invitesSectionTitle: {
+    fontSize: 14,
+    fontFamily: 'DMSans_700Bold',
+    color: colors.text,
+    marginBottom: spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -808,6 +894,18 @@ const styles = StyleSheet.create({
   sportIcon: {
     width: 32,
     height: 32,
+  },
+  allSportsIcons: {
+    flexDirection: 'column',
+    gap: 2,
+  },
+  allSportsRow: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  smallSportIcon: {
+    width: 14,
+    height: 14,
   },
   leagueName: {
     flex: 1,
@@ -1149,5 +1247,84 @@ const styles = StyleSheet.create({
   },
   sportPillTextActive: {
     color: '#1A1A1A',
+  },
+  // Delete/Leave confirmation modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: '#000000',
+    padding: 24,
+    width: '100%',
+    maxWidth: 320,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: '#F2C94C',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  modalCancelButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#1A1A1A',
+  },
+  modalDeleteButton: {
+    flex: 1,
+    backgroundColor: '#E53935',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  modalDeleteButtonText: {
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
+    color: '#FFFFFF',
   },
 });

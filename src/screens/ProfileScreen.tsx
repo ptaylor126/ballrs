@@ -41,6 +41,25 @@ const fireIcon = require('../../assets/images/icon-fire.png');
 const trophyIcon = require('../../assets/images/icon-trophy.png');
 const speechIcon = require('../../assets/images/icon-speech.png');
 
+// Profile icon images mapping
+const profileIconImages: Record<string, any> = {
+  'basketball': require('../../assets/images/icon-basketball.png'),
+  'soccer': require('../../assets/images/icon-soccer.png'),
+  'football': require('../../assets/images/icon-football.png'),
+  'baseball': require('../../assets/images/icon-baseball.png'),
+  'heart': require('../../assets/images/profile-icons/icon-profile-heart.png'),
+  'glasses': require('../../assets/images/profile-icons/icon-profile-glasses.png'),
+  'ghost': require('../../assets/images/profile-icons/icon-profile-ghost.png'),
+  'cactus': require('../../assets/images/profile-icons/icon-profile-cactus.png'),
+  'pizza': require('../../assets/images/profile-icons/icon-profile-pizza.png'),
+  'donut': require('../../assets/images/profile-icons/icon-profile-donut.png'),
+  'unicorn': require('../../assets/images/profile-icons/icon-profile-unicorn.png'),
+  'alien': require('../../assets/images/profile-icons/icon-profile-alien.png'),
+  'robot': require('../../assets/images/profile-icons/icon-profile-robot.png'),
+  'ninja': require('../../assets/images/profile-icons/icon-profile-ninja.png'),
+};
+
+
 // Get level title based on level number
 function getLevelTitle(level: number): string {
   if (level >= 100) return 'Hall of Famer';
@@ -61,9 +80,10 @@ interface Props {
   onNavigateToCustomize: () => void;
   onReplayOnboarding?: () => void;
   onLinkEmail?: () => void;
+  onSportsChange?: (sports: Sport[]) => void;
 }
 
-export default function ProfileScreen({ onBack, onLogout, onAccountDeleted, onNavigateToAchievements, onNavigateToCustomize, onReplayOnboarding, onLinkEmail }: Props) {
+export default function ProfileScreen({ onBack, onLogout, onAccountDeleted, onNavigateToAchievements, onNavigateToCustomize, onReplayOnboarding, onLinkEmail, onSportsChange }: Props) {
   const { user, signOut, isAnonymous, hasLinkedEmail, username: cachedUsername, profileLoading } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -136,6 +156,9 @@ export default function ProfileScreen({ onBack, onLogout, onAccountDeleted, onNa
       // Revert on failure
       console.log('Reverting to previous selection');
       setSelectedSports(selectedSports);
+    } else {
+      // Notify parent of sports change so home screen updates immediately
+      onSportsChange?.(newSelection);
     }
   };
 
@@ -316,12 +339,20 @@ export default function ProfileScreen({ onBack, onLogout, onAccountDeleted, onNa
                 {
                   borderColor: frameStyle.borderColor,
                   borderWidth: frameStyle.borderWidth,
+                  backgroundColor: profileIcon && profileIconImages[profileIcon] ? 'transparent' : colors.primary,
                 },
               ]}
             >
-              <Text style={styles.avatarText}>
-                {profileIcon || user?.email?.charAt(0).toUpperCase() || '?'}
-              </Text>
+              {profileIcon && profileIconImages[profileIcon] ? (
+                <Image
+                  source={profileIconImages[profileIcon]}
+                  style={styles.avatarIcon}
+                />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {user?.email?.charAt(0).toUpperCase() || '?'}
+                </Text>
+              )}
             </View>
 
             {/* Username with Flag */}
@@ -951,6 +982,11 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontFamily: 'DMSans_900Black',
     color: '#FFFFFF',
+  },
+  avatarIcon: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
   },
   username: {
     fontSize: 24,

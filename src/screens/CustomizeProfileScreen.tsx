@@ -30,42 +30,48 @@ interface Props {
   onBack: () => void;
 }
 
-// Icon image mapping
+// Icon image mapping - all profile icons from /assets/images/profile-icons/
 const iconImages: Record<string, any> = {
+  // Default unlocked icons (level 1) - using existing sport icons
   'basketball': require('../../assets/images/icon-basketball.png'),
   'soccer': require('../../assets/images/icon-soccer.png'),
   'football': require('../../assets/images/icon-football.png'),
   'baseball': require('../../assets/images/icon-baseball.png'),
-  'fire': require('../../assets/images/icon-fire.png'),
-  'duel': require('../../assets/images/icon-duel.png'),
-  'check': require('../../assets/images/icon-check.png'),
-  'profile': require('../../assets/images/icon-profile.png'),
-  'home': require('../../assets/images/icon-home.png'),
-  'leagues': require('../../assets/images/icon-leagues.png'),
+  'heart': require('../../assets/images/profile-icons/icon-profile-heart.png'),
+
+  // Level 10 unlock icons
+  'glasses': require('../../assets/images/profile-icons/icon-profile-glasses.png'),
+  'ghost': require('../../assets/images/profile-icons/icon-profile-ghost.png'),
+
+  // Level 15 unlock icons
+  'cactus': require('../../assets/images/profile-icons/icon-profile-cactus.png'),
+  'pizza': require('../../assets/images/profile-icons/icon-profile-pizza.png'),
+
+  // Level 20 unlock icons
+  'donut': require('../../assets/images/profile-icons/icon-profile-donut.png'),
+  'unicorn': require('../../assets/images/profile-icons/icon-profile-unicorn.png'),
+
+  // Level 25 unlock icons
+  'alien': require('../../assets/images/profile-icons/icon-profile-alien.png'),
+  'robot': require('../../assets/images/profile-icons/icon-profile-robot.png'),
+
+  // Level 30 unlock icons
+  'ninja': require('../../assets/images/profile-icons/icon-profile-ninja.png'),
+
+  // UI icons (keep in main images folder)
   'padlock': require('../../assets/images/icon-padlock.png'),
+  'profile': require('../../assets/images/icon-profile.png'),
 };
 
-// Map icon_url (emoji or name) to image key
+// Map icon_url to image - direct mapping since we use simple names now
 function getIconImage(iconUrl: string): any | null {
-  const iconMap: Record<string, string> = {
-    '🏀': 'basketball',
-    '⚽': 'soccer',
-    '🏈': 'football',
-    '⚾': 'baseball',
-    '🔥': 'fire',
-    '⚔️': 'duel',
-    '✓': 'check',
-    '👤': 'profile',
-    'basketball': 'basketball',
-    'soccer': 'soccer',
-    'football': 'football',
-    'baseball': 'baseball',
-    'fire': 'fire',
-    'duel': 'duel',
-  };
+  return iconImages[iconUrl] || null;
+}
 
-  const key = iconMap[iconUrl];
-  return key ? iconImages[key] : null;
+// Sport icons are larger assets and need to be scaled down to match profile icons
+const sportIconUrls = ['basketball', 'soccer', 'football', 'baseball'];
+function isSportIcon(iconUrl: string): boolean {
+  return sportIconUrls.includes(iconUrl);
 }
 
 export default function CustomizeProfileScreen({ onBack }: Props) {
@@ -344,7 +350,11 @@ export default function CustomizeProfileScreen({ onBack }: Props) {
                     {unlocked && iconImage ? (
                       <Image
                         source={iconImage}
-                        style={[styles.iconImage, !unlocked && styles.iconImageLocked]}
+                        style={[
+                          styles.iconImage,
+                          isSportIcon(icon.icon_url) && styles.sportIconImage,
+                          !unlocked && styles.iconImageLocked,
+                        ]}
                         resizeMode="contain"
                       />
                     ) : !unlocked ? (
@@ -554,10 +564,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   backButtonText: {
     color: '#1A1A1A',
@@ -585,7 +595,7 @@ const styles = StyleSheet.create({
   },
   previewSection: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 12,
     paddingHorizontal: 16,
   },
   previewCard: {
@@ -597,10 +607,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   previewAvatar: {
     width: 100,
@@ -637,10 +647,10 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     padding: 4,
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   tab: {
     flex: 1,
@@ -669,7 +679,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mainScrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 16,
   },
   scrollView: {
     flex: 1,
@@ -698,10 +708,10 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
     marginBottom: 8,
     minHeight: 80,
     justifyContent: 'center',
@@ -712,6 +722,10 @@ const styles = StyleSheet.create({
   iconImage: {
     width: 48,
     height: 48,
+  },
+  sportIconImage: {
+    width: 36,
+    height: 36,
   },
   iconImageLocked: {
     opacity: 0.3,
@@ -746,7 +760,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#F2C94C',
     borderWidth: 2,
     borderColor: '#000000',
     justifyContent: 'center',
@@ -754,7 +768,7 @@ const styles = StyleSheet.create({
   },
   selectedBadgeText: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     fontFamily: 'DMSans_900Black',
   },
   // Frames List
@@ -771,10 +785,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   frameCardLocked: {
     backgroundColor: '#F0F0F0',
@@ -822,7 +836,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#F2C94C',
     borderWidth: 2,
     borderColor: '#000000',
     justifyContent: 'center',
@@ -863,7 +877,7 @@ const styles = StyleSheet.create({
   // Username Section
   usernameSection: {
     paddingHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   usernameCard: {
     flexDirection: 'row',
@@ -874,10 +888,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000000',
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 2,
+    elevation: 4,
   },
   usernameInfo: {
     flex: 1,

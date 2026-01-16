@@ -552,18 +552,58 @@ export async function setRoundStartTime(duelId: string): Promise<Duel | null> {
 export interface DuelWithOpponent extends Duel {
   opponent_username: string | null;
   opponent_id: string | null;
+  opponent_icon_url: string | null;
 }
 
-// Get active duels for a user (waiting or active)
+// Helper function to get opponent profile info including icon_url
+async function getOpponentInfo(opponentId: string | null): Promise<{ username: string | null; icon_url: string | null }> {
+  if (!opponentId) return { username: null, icon_url: null };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', opponentId)
+    .single();
+
+  // Get icon_url from user_stats
+  const { data: stats } = await supabase
+    .from('user_stats')
+    .select('selected_icon_id')
+    .eq('id', opponentId)
+    .single();
+
+  let icon_url = null;
+  if (stats?.selected_icon_id) {
+    const { data: iconData } = await supabase
+      .from('profile_icons')
+      .select('icon_url')
+      .eq('id', stats.selected_icon_id)
+      .single();
+    icon_url = iconData?.icon_url || null;
+  }
+
+  return {
+    username: profile?.username || null,
+    icon_url,
+  };
+}
+
+// Get active duels for a user (duels they created that are waiting or in progress)
 export async function getActiveDuels(userId: string): Promise<DuelWithOpponent[]> {
-  // Show duels that are:
-  // - waiting/invite: waiting for opponent to join
-  // - waiting_for_p2: user has played, waiting for friend to play (async duels)
+  // Only show duels from the last 48 hours (filter out expired ones)
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
+  // Show duels where user is player1 (creator) and:
+  // - waiting: waiting for random opponent
+  // - invite: invite code duel waiting for someone to join
+  // - waiting_for_p2: user (player1) has played, waiting for friend (player2) to play
+  // - active: real-time duel in progress
   const { data, error } = await supabase
     .from('duels')
     .select('*')
     .eq('player1_id', userId)
-    .in('status', ['waiting', 'invite', 'waiting_for_p2'])
+    .in('status', ['waiting', 'invite', 'waiting_for_p2', 'active'])
+    .gte('created_at', fortyEightHoursAgo)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -571,25 +611,16 @@ export async function getActiveDuels(userId: string): Promise<DuelWithOpponent[]
     return [];
   }
 
-  // Fetch opponent usernames separately
+  // Fetch opponent info separately
   const duelsWithOpponents = await Promise.all((data || []).map(async (duel: any) => {
-    const isPlayer1 = duel.player1_id === userId;
-    const opponentId = isPlayer1 ? duel.player2_id : duel.player1_id;
-
-    let opponentUsername = null;
-    if (opponentId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', opponentId)
-        .single();
-      opponentUsername = profile?.username || null;
-    }
+    const opponentId = duel.player2_id;
+    const opponentInfo = await getOpponentInfo(opponentId);
 
     return {
       ...duel,
       opponent_id: opponentId,
-      opponent_username: opponentUsername,
+      opponent_username: opponentInfo.username,
+      opponent_icon_url: opponentInfo.icon_url,
     };
   }));
 
@@ -598,16 +629,20 @@ export async function getActiveDuels(userId: string): Promise<DuelWithOpponent[]
 
 // Get incoming challenges for a user (invite duels they can join)
 export async function getIncomingChallenges(userId: string): Promise<DuelWithOpponent[]> {
-  // Get invite duels where:
-  // 1. User is not the creator
-  // 2. Either open to anyone (player2_id is null) OR specifically for this user
-  // Includes both regular invite duels and async friend duels (where challenger has completed)
+  // Only show duels from the last 48 hours (filter out expired ones)
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
+  // Get duels where user is player2 and needs to play:
+  // 1. Invite duels: status = 'invite' AND (player2_id is null OR player2_id = userId)
+  // 2. Waiting_for_p2 duels: status = 'waiting_for_p2' AND player2_id = userId (player1 has completed)
+  // 3. Active duels: status = 'active' AND player2_id = userId (real-time duel in progress)
+  // User must not be the creator (player1)
   const { data, error } = await supabase
     .from('duels')
     .select('*')
-    .eq('status', 'invite')
     .neq('player1_id', userId)
-    .or(`player2_id.is.null,player2_id.eq.${userId}`)
+    .gte('created_at', fortyEightHoursAgo)
+    .or(`and(status.eq.invite,or(player2_id.is.null,player2_id.eq.${userId})),and(status.eq.waiting_for_p2,player2_id.eq.${userId}),and(status.eq.active,player2_id.eq.${userId})`)
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -616,22 +651,15 @@ export async function getIncomingChallenges(userId: string): Promise<DuelWithOpp
     return [];
   }
 
-  // Fetch challenger usernames separately
+  // Fetch challenger info separately
   const challengesWithOpponents = await Promise.all((data || []).map(async (duel: any) => {
-    let opponentUsername = null;
-    if (duel.player1_id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', duel.player1_id)
-        .single();
-      opponentUsername = profile?.username || null;
-    }
+    const opponentInfo = await getOpponentInfo(duel.player1_id);
 
     return {
       ...duel,
       opponent_id: duel.player1_id,
-      opponent_username: opponentUsername,
+      opponent_username: opponentInfo.username,
+      opponent_icon_url: opponentInfo.icon_url,
     };
   }));
 
@@ -657,25 +685,17 @@ export async function getDuelHistory(userId: string, limit: number = 20): Promis
     return [];
   }
 
-  // Fetch opponent usernames separately
+  // Fetch opponent info separately
   const duelsWithOpponents = await Promise.all((data || []).map(async (duel: any) => {
     const isPlayer1 = duel.player1_id === userId;
     const opponentId = isPlayer1 ? duel.player2_id : duel.player1_id;
-
-    let opponentUsername = null;
-    if (opponentId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', opponentId)
-        .single();
-      opponentUsername = profile?.username || null;
-    }
+    const opponentInfo = await getOpponentInfo(opponentId);
 
     return {
       ...duel,
       opponent_id: opponentId,
-      opponent_username: opponentUsername,
+      opponent_username: opponentInfo.username,
+      opponent_icon_url: opponentInfo.icon_url,
     };
   }));
 
@@ -1203,16 +1223,13 @@ export async function getPendingAsyncChallenges(userId: string): Promise<DuelWit
 
   // Add opponent info (challenger is player1)
   const duelsWithOpponents = await Promise.all((data || []).map(async (duel) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('id', duel.player1_id)
-      .single();
+    const opponentInfo = await getOpponentInfo(duel.player1_id);
 
     return {
       ...duel,
       opponent_id: duel.player1_id,
-      opponent_username: profile?.username || null,
+      opponent_username: opponentInfo.username,
+      opponent_icon_url: opponentInfo.icon_url,
     };
   }));
 
@@ -1254,20 +1271,13 @@ export async function getWaitingAsyncDuels(userId: string): Promise<DuelWithOppo
 
   // Add opponent info (opponent is player2)
   const duelsWithOpponents = await Promise.all((data || []).map(async (duel) => {
-    let opponentUsername = null;
-    if (duel.player2_id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', duel.player2_id)
-        .single();
-      opponentUsername = profile?.username || null;
-    }
+    const opponentInfo = await getOpponentInfo(duel.player2_id);
 
     return {
       ...duel,
       opponent_id: duel.player2_id,
-      opponent_username: opponentUsername,
+      opponent_username: opponentInfo.username,
+      opponent_icon_url: opponentInfo.icon_url,
     };
   }));
 

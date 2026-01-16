@@ -27,6 +27,9 @@ import {
   DURATION_OPTIONS,
 } from '../lib/leaguesService';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import UserProfileIcon from '../components/UserProfileIcon';
+import InviteToLeagueModal from '../components/InviteToLeagueModal';
+import { countryCodeToFlag } from '../lib/countryUtils';
 
 interface Props {
   league: LeagueWithMemberCount;
@@ -34,7 +37,6 @@ interface Props {
   onLeaveLeague: () => void;
 }
 
-type RankingPeriod = 'weekly' | 'monthly' | 'all_time';
 
 // Sport icon images
 const sportIcons: Record<string, any> = {
@@ -42,6 +44,7 @@ const sportIcons: Record<string, any> = {
   pl: require('../../assets/images/icon-soccer.png'),
   nfl: require('../../assets/images/icon-football.png'),
   mlb: require('../../assets/images/icon-baseball.png'),
+  all: require('../../assets/images/icon-basketball.png'), // Use basketball as default for 'all' leagues
 };
 
 // Sport colors (neubrutalist palette)
@@ -60,7 +63,7 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
   const [members, setMembers] = useState<LeagueMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [period, setPeriod] = useState<RankingPeriod>('all_time');
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   const sportColor = getSportColor(league.sport);
@@ -86,9 +89,9 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
   };
 
   const loadMembers = useCallback(async () => {
-    const leaderboard = await getLeagueLeaderboard(league.id, period);
+    const leaderboard = await getLeagueLeaderboard(league.id, 'all_time');
     setMembers(leaderboard);
-  }, [league.id, period]);
+  }, [league.id]);
 
   useEffect(() => {
     const load = async () => {
@@ -102,11 +105,8 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
   // Subscribe to realtime updates
   useEffect(() => {
     channelRef.current = subscribeToLeague(league.id, (updatedMembers) => {
-      const pointsKey = `points_${period}` as keyof LeagueMember;
       const sorted = [...updatedMembers].sort((a, b) => {
-        const aPoints = (a[pointsKey] as number) || 0;
-        const bPoints = (b[pointsKey] as number) || 0;
-        return bPoints - aPoints;
+        return (b.points_all_time || 0) - (a.points_all_time || 0);
       });
       setMembers(sorted);
     });
@@ -116,7 +116,7 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
         unsubscribeFromLeague(channelRef.current);
       }
     };
-  }, [league.id, period]);
+  }, [league.id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -174,23 +174,9 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
     );
   };
 
-  const getPointsForPeriod = (member: LeagueMember): number => {
-    switch (period) {
-      case 'weekly': return member.points_weekly;
-      case 'monthly': return member.points_monthly;
-      default: return member.points_all_time;
-    }
-  };
-
-  const tabs: { key: RankingPeriod; label: string }[] = [
-    { key: 'weekly', label: 'Weekly' },
-    { key: 'monthly', label: 'Monthly' },
-    { key: 'all_time', label: 'All-Time' },
-  ];
-
-  // Sort members by selected period
+  // Sort members by points
   const sortedMembers = [...members].sort((a, b) => {
-    return getPointsForPeriod(b) - getPointsForPeriod(a);
+    return (b.points_all_time || 0) - (a.points_all_time || 0);
   });
 
   const renderMemberItem = ({ item, index }: { item: LeagueMember; index: number }) => {
@@ -206,23 +192,18 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
           </Text>
         </View>
         <View style={styles.usernameCell}>
+          <UserProfileIcon
+            iconUrl={item.icon_url}
+            size={28}
+            fallbackText={item.username || '?'}
+          />
           <Text style={[styles.usernameText, isCurrentUser && styles.highlightedText]}>
-            {item.username}
+            {item.username}{item.country ? ` ${countryCodeToFlag(item.country)}` : ''}
             {isCurrentUser && ' (You)'}
           </Text>
         </View>
         <View style={styles.pointsCell}>
-          <Text style={[styles.pointsText, period === 'weekly' && styles.activePointsText]}>
-            {item.points_weekly}
-          </Text>
-        </View>
-        <View style={styles.pointsCell}>
-          <Text style={[styles.pointsText, period === 'monthly' && styles.activePointsText]}>
-            {item.points_monthly}
-          </Text>
-        </View>
-        <View style={styles.pointsCell}>
-          <Text style={[styles.pointsText, period === 'all_time' && styles.activePointsText]}>
+          <Text style={styles.pointsText}>
             {item.points_all_time}
           </Text>
         </View>
@@ -239,19 +220,7 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
         <Text style={styles.headerText}>PLAYER</Text>
       </View>
       <View style={styles.pointsCell}>
-        <Text style={[styles.headerText, period === 'weekly' && { color: sportColor }]}>
-          WK
-        </Text>
-      </View>
-      <View style={styles.pointsCell}>
-        <Text style={[styles.headerText, period === 'monthly' && { color: sportColor }]}>
-          MO
-        </Text>
-      </View>
-      <View style={styles.pointsCell}>
-        <Text style={[styles.headerText, period === 'all_time' && { color: sportColor }]}>
-          ALL
-        </Text>
+        <Text style={styles.headerText}>PTS</Text>
       </View>
     </View>
   );
@@ -315,28 +284,19 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
               {league.invite_code}
             </Text>
           </View>
-          <TouchableOpacity
-            style={[styles.shareButton, { backgroundColor: sportColor }]}
-            onPress={handleShare}
-          >
-            <Text style={styles.shareButtonText}>Share</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          <View style={styles.tabs}>
-            {tabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.key}
-                style={[styles.tab, period === tab.key && styles.tabActive]}
-                onPress={() => setPeriod(tab.key)}
-              >
-                <Text style={[styles.tabText, period === tab.key && styles.tabTextActive]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.inviteButtons}>
+            <TouchableOpacity
+              style={[styles.shareButton, { backgroundColor: sportColor }]}
+              onPress={handleShare}
+            >
+              <Text style={styles.shareButtonText}>Share</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.inviteFriendsButton}
+              onPress={() => setShowInviteModal(true)}
+            >
+              <Text style={styles.inviteFriendsButtonText}>Invite</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -380,6 +340,14 @@ export default function LeagueDetailScreen({ league, onBack, onLeaveLeague }: Pr
 
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      {/* Invite Friends Modal */}
+      <InviteToLeagueModal
+        visible={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        leagueId={league.id}
+        leagueName={league.name}
+      />
     </SafeAreaView>
   );
 }
@@ -437,13 +405,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#000000',
+    overflow: 'hidden',
   },
   sportIcon: {
-    width: 36,
-    height: 36,
-    tintColor: '#FFFFFF',
+    width: 40,
+    height: 40,
   },
   sportIconFallback: {
     fontSize: 32,
@@ -539,50 +507,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'DMSans_900Black',
   },
-  tabsContainer: {
-    paddingHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 16,
-  },
-  tabs: {
+  inviteButtons: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    gap: 8,
+  },
+  inviteFriendsButton: {
+    backgroundColor: '#F2C94C',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#000000',
-    padding: 4,
     shadowColor: '#000000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  tabActive: {
-    backgroundColor: '#1ABC9C',
-  },
-  tabText: {
-    fontSize: 14,
-    fontFamily: 'DMSans_700Bold',
+  inviteFriendsButtonText: {
     color: '#1A1A1A',
-  },
-  tabTextActive: {
-    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: 'DMSans_900Black',
   },
   finalStandingsHeader: {
     backgroundColor: '#6B7280',
     marginHorizontal: 16,
+    marginTop: 20,
     paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
     alignItems: 'center',
-    marginBottom: 16,
   },
   finalStandingsText: {
     fontSize: 14,
@@ -593,6 +548,7 @@ const styles = StyleSheet.create({
   tableCard: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
+    marginTop: 20,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#000000',
@@ -623,7 +579,10 @@ const styles = StyleSheet.create({
   rankCellFirst: {},
   usernameCell: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingLeft: 8,
+    gap: 8,
   },
   pointsCell: {
     width: 44,
@@ -662,12 +621,8 @@ const styles = StyleSheet.create({
   },
   pointsText: {
     fontSize: 14,
-    fontFamily: 'DMSans_500Medium',
-    color: '#6B7280',
-  },
-  activePointsText: {
-    color: '#1A1A1A',
     fontFamily: 'DMSans_700Bold',
+    color: '#1A1A1A',
   },
   emptyContainer: {
     padding: 48,

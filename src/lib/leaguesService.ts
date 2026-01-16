@@ -41,6 +41,8 @@ export interface LeagueMember {
   points_all_time: number;
   joined_at: string;
   username?: string;
+  icon_url?: string | null;
+  country?: string | null;
 }
 
 export interface LeagueWithMemberCount extends League {
@@ -451,19 +453,45 @@ export async function getLeagueLeaderboard(
     return [];
   }
 
-  // Get usernames for all members
+  // Get usernames, country, and icon info for all members
   const userIds = members.map(m => m.user_id);
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, username')
-    .in('id', userIds);
+  const [profilesResult, statsResult] = await Promise.all([
+    supabase.from('profiles').select('id, username, country').in('id', userIds),
+    supabase.from('user_stats').select('id, selected_icon_id').in('id', userIds),
+  ]);
 
-  const usernameMap = new Map(profiles?.map(p => [p.id, p.username]) || []);
+  const profilesMap = new Map(profilesResult.data?.map(p => [p.id, { username: p.username, country: p.country }]) || []);
 
-  return members.map(m => ({
-    ...m,
-    username: usernameMap.get(m.user_id) || 'Unknown',
-  }));
+  // Get icon_url for users who have selected icons
+  const iconIdMap = new Map<string, string>();
+  const iconIds = statsResult.data?.filter(s => s.selected_icon_id).map(s => s.selected_icon_id) || [];
+
+  if (iconIds.length > 0) {
+    const { data: icons } = await supabase
+      .from('profile_icons')
+      .select('id, icon_url')
+      .in('id', iconIds);
+
+    // Create map from user_id to icon_url
+    statsResult.data?.forEach(stat => {
+      if (stat.selected_icon_id) {
+        const icon = icons?.find(i => i.id === stat.selected_icon_id);
+        if (icon) {
+          iconIdMap.set(stat.id, icon.icon_url);
+        }
+      }
+    });
+  }
+
+  return members.map(m => {
+    const profile = profilesMap.get(m.user_id);
+    return {
+      ...m,
+      username: profile?.username || 'Unknown',
+      country: profile?.country || null,
+      icon_url: iconIdMap.get(m.user_id) || null,
+    };
+  });
 }
 
 // Subscribe to league member updates

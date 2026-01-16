@@ -4,8 +4,8 @@
 -- Create profile_icons table
 CREATE TABLE IF NOT EXISTS profile_icons (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  icon_url TEXT NOT NULL, -- Can be emoji or image URL
+  name TEXT NOT NULL UNIQUE,
+  icon_url TEXT NOT NULL, -- Image key name (e.g., 'basketball', 'fire')
   unlock_type TEXT NOT NULL CHECK (unlock_type IN ('level', 'achievement', 'default')),
   unlock_level INTEGER, -- Required if unlock_type = 'level'
   unlock_achievement_id UUID REFERENCES achievements(id), -- Required if unlock_type = 'achievement'
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS profile_icons (
 -- Create profile_frames table
 CREATE TABLE IF NOT EXISTS profile_frames (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   frame_style JSONB NOT NULL, -- Contains border color, width, gradient, etc.
   unlock_level INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -37,51 +37,55 @@ CREATE POLICY "Anyone can read profile icons" ON profile_icons
 CREATE POLICY "Anyone can read profile frames" ON profile_frames
   FOR SELECT USING (true);
 
--- Seed profile frames (Default, Bronze, Silver, Gold, Platinum, Diamond, Legend)
+-- Seed profile frames (Default, Bronze, Silver, Gold, Platinum, Diamond)
+-- Frame colors:
+--   Default: Gray (#6B7280)
+--   Bronze: Bronze/copper (#CD7F32)
+--   Silver: Silver (#C0C0C0)
+--   Gold: Gold (#FFD700)
+--   Platinum: Light blue (#E5E4E2 / #A8D8EA)
+--   Diamond: Cyan (#00CED1)
 INSERT INTO profile_frames (name, frame_style, unlock_level) VALUES
-  ('Default', '{"borderColor": "#374151", "borderWidth": 3, "shadowColor": null}', 1),
-  ('Bronze', '{"borderColor": "#CD7F32", "borderWidth": 3, "shadowColor": "#CD7F32", "shadowOpacity": 0.3}', 5),
+  ('Default', '{"borderColor": "#6B7280", "borderWidth": 3}', 1),
+  ('Bronze', '{"borderColor": "#CD7F32", "borderWidth": 3, "shadowColor": "#CD7F32", "shadowOpacity": 0.3}', 1),
   ('Silver', '{"borderColor": "#C0C0C0", "borderWidth": 3, "shadowColor": "#C0C0C0", "shadowOpacity": 0.4}', 10),
   ('Gold', '{"borderColor": "#FFD700", "borderWidth": 4, "shadowColor": "#FFD700", "shadowOpacity": 0.5}', 15),
-  ('Platinum', '{"borderColor": "#E5E4E2", "borderWidth": 4, "shadowColor": "#E5E4E2", "shadowOpacity": 0.6, "gradient": ["#E5E4E2", "#A8A8A8"]}', 20),
-  ('Diamond', '{"borderColor": "#B9F2FF", "borderWidth": 4, "shadowColor": "#B9F2FF", "shadowOpacity": 0.7, "gradient": ["#B9F2FF", "#7DF9FF", "#00BFFF"]}', 25),
-  ('Legend', '{"borderColor": "#FF4500", "borderWidth": 5, "shadowColor": "#FF4500", "shadowOpacity": 0.8, "gradient": ["#FF4500", "#FFD700", "#FF4500"], "animated": true}', 30)
-ON CONFLICT DO NOTHING;
+  ('Platinum', '{"borderColor": "#E5E4E2", "borderWidth": 4, "shadowColor": "#A8D8EA", "shadowOpacity": 0.6}', 20),
+  ('Diamond', '{"borderColor": "#00CED1", "borderWidth": 4, "shadowColor": "#00CED1", "shadowOpacity": 0.7}', 25)
+ON CONFLICT (name) DO UPDATE SET
+  frame_style = EXCLUDED.frame_style,
+  unlock_level = EXCLUDED.unlock_level;
 
--- Seed default profile icons (emojis for simplicity)
+-- Seed profile icons
+-- icon_url is the key used in the app to load the image file
 INSERT INTO profile_icons (name, icon_url, unlock_type, unlock_level) VALUES
-  -- Default icons (level 1)
-  ('Basketball', '🏀', 'default', NULL),
-  ('Football', '⚽', 'default', NULL),
-  ('Star', '⭐', 'default', NULL),
-  ('Fire', '🔥', 'default', NULL),
+  -- Default icons (unlocked from start)
+  ('Basketball', 'basketball', 'default', NULL),
+  ('Soccer', 'soccer', 'default', NULL),
+  ('Football', 'football', 'default', NULL),
+  ('Baseball', 'baseball', 'default', NULL),
+  ('Star', 'star', 'default', NULL),
 
-  -- Level-based icons
-  ('Trophy', '🏆', 'level', 5),
-  ('Medal', '🥇', 'level', 10),
-  ('Crown', '👑', 'level', 15),
-  ('Lightning', '⚡', 'level', 20),
-  ('Diamond', '💎', 'level', 25),
-  ('Rocket', '🚀', 'level', 30)
-ON CONFLICT DO NOTHING;
+  -- Level 10 unlock icons
+  ('Sunglasses', 'sunglasses', 'level', 10),
+  ('Heart', 'heart', 'level', 10),
 
--- Add achievement-based icons (link to existing achievements)
--- First Victory achievement icon
-INSERT INTO profile_icons (name, icon_url, unlock_type, unlock_achievement_id)
-SELECT 'Champion', '🎯', 'achievement', id FROM achievements WHERE name = 'First Victory'
-ON CONFLICT DO NOTHING;
+  -- Level 15 unlock icons
+  ('Ghost', 'ghost', 'level', 15),
+  ('Cactus', 'cactus', 'level', 15),
 
--- Week Warrior achievement icon
-INSERT INTO profile_icons (name, icon_url, unlock_type, unlock_achievement_id)
-SELECT 'Streak Master', '🔥', 'achievement', id FROM achievements WHERE name = 'Week Warrior'
-ON CONFLICT DO NOTHING;
+  -- Level 20 unlock icons
+  ('Pizza', 'pizza', 'level', 20),
+  ('Donut', 'donut', 'level', 20),
 
--- Perfect Game achievement icon
-INSERT INTO profile_icons (name, icon_url, unlock_type, unlock_achievement_id)
-SELECT 'Perfection', '💯', 'achievement', id FROM achievements WHERE name = 'Perfect Game'
-ON CONFLICT DO NOTHING;
+  -- Level 25 unlock icons
+  ('Unicorn', 'unicorn', 'level', 25),
+  ('Alien', 'alien', 'level', 25),
 
--- Duel Champion achievement icon
-INSERT INTO profile_icons (name, icon_url, unlock_type, unlock_achievement_id)
-SELECT 'Duel Master', '⚔️', 'achievement', id FROM achievements WHERE name = 'Duel Champion'
-ON CONFLICT DO NOTHING;
+  -- Level 30 unlock icons
+  ('Robot', 'robot', 'level', 30),
+  ('Ninja', 'ninja', 'level', 30)
+ON CONFLICT (name) DO UPDATE SET
+  icon_url = EXCLUDED.icon_url,
+  unlock_type = EXCLUDED.unlock_type,
+  unlock_level = EXCLUDED.unlock_level;

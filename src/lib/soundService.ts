@@ -3,7 +3,7 @@ import { Audio } from 'expo-av';
 
 const SOUND_ENABLED_KEY = '@ballrs_sound_enabled';
 
-type SoundType = 'tick' | 'tickFast' | 'buzzer' | 'correct' | 'wrong' | 'buttonClick' | 'buttonClick2' | 'tickTock' | 'whistle' | 'xp' | 'levelUp' | 'triviaCorrect' | 'triviaWrong' | 'dailyCorrect';
+type SoundType = 'tick' | 'tickFast' | 'buzzer' | 'correct' | 'wrong' | 'buttonClick' | 'buttonClick2' | 'tickTock' | 'whistle' | 'xp' | 'levelUp' | 'triviaCorrect' | 'triviaWrong' | 'dailyCorrect' | 'countdownWhistle';
 
 // Only include sound files that actually exist and have content
 // Other sounds can be added here once proper .mp3 files are provided
@@ -12,6 +12,7 @@ const soundFiles: Partial<Record<SoundType, any>> = {
   buttonClick2: require('../../assets/sounds/button-click-2.mp3'),
   tickTock: require('../../assets/sounds/tick-tock.wav'),
   whistle: require('../../assets/sounds/whistle.m4a'),
+  countdownWhistle: require('../../assets/sounds/3-count-and-whistle.wav'),
   xp: require('../../assets/sounds/xp.mp3'),
   levelUp: require('../../assets/sounds/level-up.m4a'),
   triviaCorrect: require('../../assets/sounds/trivia-correct.mp3'),
@@ -119,6 +120,10 @@ class SoundService {
 
   async playWhistle(): Promise<void> {
     return this.play('whistle');
+  }
+
+  async playCountdownWhistle(): Promise<void> {
+    return this.play('countdownWhistle');
   }
 
   async playXP(): Promise<void> {

@@ -19,6 +19,7 @@ import {
 } from '../lib/pointsService';
 import { countryCodeToFlag } from '../lib/countryUtils';
 import { truncateUsername } from '../lib/theme';
+import UserProfileIcon from '../components/UserProfileIcon';
 
 type SportFilter = 'all' | 'nba' | 'pl' | 'nfl' | 'mlb';
 
@@ -168,19 +169,16 @@ export default function LeaderboardScreen({ onBack, selectedSports }: Props) {
           )}
         </View>
 
-        {/* Flag + Avatar + Username */}
+        {/* Avatar + Username + Flag */}
         <View style={styles.userSection}>
-          {item.country && (
-            <Text style={styles.countryFlag}>{countryCodeToFlag(item.country)}</Text>
-          )}
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {item.avatar || item.username.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <UserProfileIcon
+            iconUrl={item.icon_url}
+            size={32}
+            fallbackText={item.username}
+          />
           <View style={styles.usernameContainer}>
             <Text style={styles.username} numberOfLines={1}>
-              {truncateUsername(item.username)}
+              {truncateUsername(item.username)}{item.country ? ` ${countryCodeToFlag(item.country)}` : ''}
             </Text>
             {isCurrentUser && <Text style={styles.youLabel}>(You)</Text>}
           </View>

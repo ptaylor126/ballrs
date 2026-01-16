@@ -9,6 +9,7 @@ export interface LeaderboardEntry {
   country: string | null;
   points: number;
   avatar: string | null;
+  icon_url: string | null;
 }
 
 // Calculate points for daily puzzle based on clues used
@@ -142,19 +143,19 @@ export async function getGlobalLeaderboard(
   console.log('[getGlobalLeaderboard] Fetching with:', { timePeriod, sportFilter, limit });
 
   try {
-    // For "ALL" sports filter, we need to aggregate sport-specific columns
-    // because the total columns (points_weekly, etc.) may have inconsistent data
+    // For "ALL" sports filter, use the total points column directly
+    // This ensures consistency with what's shown in the Profile screen
     if (!sportFilter || sportFilter === 'all') {
-      const prefix = timePeriod === 'weekly' ? 'points_weekly'
+      const pointsColumn = timePeriod === 'weekly' ? 'points_weekly'
         : timePeriod === 'monthly' ? 'points_monthly'
         : 'points_all_time';
 
-      // Query all sport-specific columns for this time period
-      const sportColumns = ['nba', 'pl', 'nfl', 'mlb'].map(s => `${prefix}_${s}`);
-
       const { data: statsData, error: statsError } = await supabase
         .from('user_stats')
-        .select(`id, ${sportColumns.join(', ')}`);
+        .select(`id, selected_icon_id, ${pointsColumn}`)
+        .gt(pointsColumn, 0)
+        .order(pointsColumn, { ascending: false })
+        .limit(limit);
 
       if (statsError) {
         console.error('[getGlobalLeaderboard] Stats query error:', statsError);
@@ -165,22 +166,8 @@ export async function getGlobalLeaderboard(
         return [];
       }
 
-      // Calculate total points per user by summing sport columns
-      const usersWithPoints = statsData
-        .map((user: any) => ({
-          id: user.id,
-          totalPoints: sportColumns.reduce((sum, col) => sum + (user[col] || 0), 0)
-        }))
-        .filter(u => u.totalPoints > 0)
-        .sort((a, b) => b.totalPoints - a.totalPoints)
-        .slice(0, limit);
-
-      if (usersWithPoints.length === 0) {
-        return [];
-      }
-
       // Get profiles for these users
-      const userIds = usersWithPoints.map(u => u.id);
+      const userIds = statsData.map((u: any) => u.id);
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, username, country')
@@ -191,25 +178,43 @@ export async function getGlobalLeaderboard(
         return [];
       }
 
+      // Get icon_urls for users with selected icons
+      const iconIds = statsData
+        .map((u: any) => u.selected_icon_id)
+        .filter((id): id is string => id != null);
+
+      let iconsMap = new Map<string, string>();
+      if (iconIds.length > 0) {
+        const { data: iconsData } = await supabase
+          .from('profile_icons')
+          .select('id, icon_url')
+          .in('id', iconIds);
+
+        if (iconsData) {
+          iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+        }
+      }
+
       const profilesMap = new Map(
         (profilesData || []).map((p: any) => [p.id, p])
       );
 
-      const entries: LeaderboardEntry[] = usersWithPoints
-        .filter(user => profilesMap.has(user.id))
-        .map((user, index) => {
+      const entries: LeaderboardEntry[] = statsData
+        .filter((user: any) => profilesMap.has(user.id))
+        .map((user: any, index: number) => {
           const profile = profilesMap.get(user.id);
           return {
             rank: index + 1,
             user_id: user.id,
             username: profile?.username || 'Unknown',
             country: profile?.country || null,
-            points: user.totalPoints,
+            points: user[pointsColumn] || 0,
             avatar: null,
+            icon_url: user.selected_icon_id ? iconsMap.get(user.selected_icon_id) || null : null,
           };
         });
 
-      console.log('[getGlobalLeaderboard] Returning', entries.length, 'aggregated entries');
+      console.log('[getGlobalLeaderboard] Returning', entries.length, 'entries from', pointsColumn);
       return entries;
     }
 
@@ -222,7 +227,7 @@ export async function getGlobalLeaderboard(
 
     const { data: statsData, error: statsError } = await supabase
       .from('user_stats')
-      .select(`id, ${pointsColumn}`)
+      .select(`id, selected_icon_id, ${pointsColumn}`)
       .gt(pointsColumn, 0)
       .order(pointsColumn, { ascending: false })
       .limit(limit);
@@ -249,6 +254,23 @@ export async function getGlobalLeaderboard(
       return [];
     }
 
+    // Get icon_urls for users with selected icons
+    const iconIds = statsData
+      .map((u: any) => u.selected_icon_id)
+      .filter((id): id is string => id != null);
+
+    let iconsMap = new Map<string, string>();
+    if (iconIds.length > 0) {
+      const { data: iconsData } = await supabase
+        .from('profile_icons')
+        .select('id, icon_url')
+        .in('id', iconIds);
+
+      if (iconsData) {
+        iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+      }
+    }
+
     // Create a map of profiles by id
     const profilesMap = new Map(
       (profilesData || []).map((p: any) => [p.id, p])
@@ -266,6 +288,7 @@ export async function getGlobalLeaderboard(
           country: profile?.country || null,
           points: user[pointsColumn] || 0,
           avatar: null,
+          icon_url: user.selected_icon_id ? iconsMap.get(user.selected_icon_id) || null : null,
         };
       });
 
@@ -282,29 +305,23 @@ export async function getLeaderboardPlayerCount(
   timePeriod: TimePeriod = 'weekly',
   sportFilter?: string
 ): Promise<number> {
-  // For "ALL" sports filter, count users with any sport-specific points
+  // For "ALL" sports filter, use the total points column directly
   if (!sportFilter || sportFilter === 'all') {
-    const prefix = timePeriod === 'weekly' ? 'points_weekly'
+    const pointsColumn = timePeriod === 'weekly' ? 'points_weekly'
       : timePeriod === 'monthly' ? 'points_monthly'
       : 'points_all_time';
 
-    const sportColumns = ['nba', 'pl', 'nfl', 'mlb'].map(s => `${prefix}_${s}`);
-
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from('user_stats')
-      .select(`id, ${sportColumns.join(', ')}`);
+      .select('*', { count: 'exact', head: true })
+      .gt(pointsColumn, 0);
 
     if (error) {
       console.error('[getLeaderboardPlayerCount] Error:', error);
       return 0;
     }
 
-    // Count users with any points across all sports
-    const count = (data || []).filter((user: any) =>
-      sportColumns.some(col => (user[col] || 0) > 0)
-    ).length;
-
-    return count;
+    return count || 0;
   }
 
   // For specific sport filter, use the sport-specific column
@@ -368,7 +385,7 @@ export async function getFallbackLeaderboard(limit: number = 50): Promise<Leader
   // Get user_stats with actual points
   const { data: statsData, error: statsError } = await supabase
     .from('user_stats')
-    .select('id, points_all_time')
+    .select('id, points_all_time, selected_icon_id')
     .gt('points_all_time', 0)
     .order('points_all_time', { ascending: false })
     .limit(limit);
@@ -394,6 +411,23 @@ export async function getFallbackLeaderboard(limit: number = 50): Promise<Leader
     return [];
   }
 
+  // Get icon_urls for users with selected icons
+  const iconIds = statsData
+    .map((u: any) => u.selected_icon_id)
+    .filter((id): id is string => id != null);
+
+  let iconsMap = new Map<string, string>();
+  if (iconIds.length > 0) {
+    const { data: iconsData } = await supabase
+      .from('profile_icons')
+      .select('id, icon_url')
+      .in('id', iconIds);
+
+    if (iconsData) {
+      iconsMap = new Map(iconsData.map((i: any) => [i.id, i.icon_url]));
+    }
+  }
+
   // Create a map of profiles by id
   const profilesMap = new Map(
     (profilesData || []).map((p: any) => [p.id, p])
@@ -409,6 +443,7 @@ export async function getFallbackLeaderboard(limit: number = 50): Promise<Leader
       country: profile?.country || null,
       points: user.points_all_time || 0,
       avatar: null,
+      icon_url: user.selected_icon_id ? iconsMap.get(user.selected_icon_id) || null : null,
     };
   });
 

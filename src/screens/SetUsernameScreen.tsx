@@ -393,7 +393,7 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
           <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Sign In</Text>
                 <Text style={styles.modalSubtitle}>
-                  Welcome back! Sign in to recover your account.
+                  Welcome back! Sign in to recover{'\u00A0'}your{'\u00A0'}account.
                 </Text>
 
                 {signInError ? (
@@ -417,16 +417,18 @@ export default function SetUsernameScreen({ onComplete, onSignInComplete, onRepl
                   />
 
                   <Text style={styles.label}>PASSWORD</Text>
-                  <View style={styles.passwordContainer}>
-                    <TextInput
-                      style={styles.passwordInput}
-                      placeholder="Enter your password"
-                      placeholderTextColor="#999999"
-                      value={signInPassword}
-                      onChangeText={setSignInPassword}
-                      secureTextEntry={!showPassword}
-                      selectionColor="#1ABC9C"
-                    />
+                  <View style={styles.passwordWrapper}>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        style={styles.passwordInput}
+                        placeholder="Enter your password"
+                        placeholderTextColor="#999999"
+                        value={signInPassword}
+                        onChangeText={setSignInPassword}
+                        secureTextEntry={!showPassword}
+                        selectionColor="#1ABC9C"
+                      />
+                    </View>
                     <TouchableOpacity
                       style={styles.eyeButton}
                       onPress={() => setShowPassword(!showPassword)}
@@ -525,6 +527,10 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 2,
     borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   randomButton: {
     backgroundColor: '#F2C94C',
@@ -535,6 +541,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   randomButtonText: {
     fontSize: 24,
@@ -645,6 +655,7 @@ const styles = StyleSheet.create({
   },
   modalForm: {
     gap: 8,
+    overflow: 'visible',
   },
   label: {
     color: colors.text,
@@ -663,32 +674,44 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 2,
     borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+  },
+  passwordWrapper: {
+    position: 'relative',
+    overflow: 'visible',
   },
   passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   passwordInput: {
-    flex: 1,
     padding: 14,
+    paddingRight: 50,
     fontSize: 16,
     fontFamily: 'DMSans_400Regular',
     color: colors.text,
   },
   eyeButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    position: 'absolute',
+    right: 4,
+    top: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 12,
   },
   eyeIcon: {
-    width: 24,
-    height: 24,
-    tintColor: '#666666',
+    width: 36,
+    height: 20,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -717,6 +740,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   signInButtonText: {
     color: '#FFFFFF',

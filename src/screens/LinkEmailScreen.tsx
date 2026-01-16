@@ -352,7 +352,6 @@ const styles = StyleSheet.create({
   eyeIcon: {
     width: 24,
     height: 24,
-    tintColor: '#666666',
   },
   button: {
     backgroundColor: colors.primary,

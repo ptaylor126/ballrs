@@ -25,6 +25,9 @@ web-build/
 .env*.local
 .env
 
+# Firebase
+google-services.json
+
 # TypeScript
 *.tsbuildinfo
 
