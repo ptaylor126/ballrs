@@ -1044,6 +1044,18 @@ export async function submitChallengerResult(
 ): Promise<Duel | null> {
   console.log('submitChallengerResult called:', { duelId, result });
 
+  // First, fetch the current duel to check if player2 already finished
+  const { data: currentDuel, error: fetchError } = await supabase
+    .from('duels')
+    .select('*')
+    .eq('id', duelId)
+    .single();
+
+  if (fetchError || !currentDuel) {
+    console.error('Error fetching duel for challenger result:', fetchError);
+    return null;
+  }
+
   // Calculate player1's score from the result
   let player1Score = 0;
   try {
@@ -1055,24 +1067,112 @@ export async function submitChallengerResult(
     player1Score = result.correct ? 1 : 0;
   }
 
-  const { data, error } = await supabase
-    .from('duels')
-    .update({
-      player1_result: result,
-      player1_completed_at: new Date().toISOString(),
-      player1_score: player1Score,
-    })
-    .eq('id', duelId)
-    .select()
-    .single();
+  // Check if player2 has already finished
+  const p2AlreadyFinished = currentDuel.player2_result !== null;
 
-  if (error) {
-    console.error('Error submitting challenger result:', error);
-    return null;
+  if (p2AlreadyFinished) {
+    // Player2 already finished - complete the duel now
+    console.log('Player1 finishing after Player2 - completing duel');
+
+    const player2Score = currentDuel.player2_score || 0;
+
+    // Determine winner
+    let winnerId: string | null = null;
+    if (player1Score > player2Score) {
+      winnerId = currentDuel.player1_id;
+    } else if (player2Score > player1Score) {
+      winnerId = currentDuel.player2_id;
+    }
+    // Equal scores = tie (winnerId stays null)
+
+    // Update duel with player1's result and complete it
+    const { data, error } = await supabase
+      .from('duels')
+      .update({
+        player1_result: result,
+        player1_completed_at: new Date().toISOString(),
+        player1_score: player1Score,
+        winner_id: winnerId,
+        status: 'completed',
+      })
+      .eq('id', duelId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error completing duel after player1 finish:', error);
+      return null;
+    }
+
+    // Send notifications to BOTH players now that duel is complete
+    try {
+      // Get both usernames
+      const [p1Profile, p2Profile] = await Promise.all([
+        supabase.from('profiles').select('username').eq('id', currentDuel.player1_id).single(),
+        supabase.from('profiles').select('username').eq('id', currentDuel.player2_id).single(),
+      ]);
+
+      const p1Username = p1Profile.data?.username || 'Player 1';
+      const p2Username = p2Profile.data?.username || 'Player 2';
+
+      // Determine results for each player
+      const p1Result: 'win' | 'loss' | 'tie' =
+        player1Score === player2Score ? 'tie' :
+        winnerId === currentDuel.player1_id ? 'win' : 'loss';
+
+      const p2Result: 'win' | 'loss' | 'tie' =
+        player1Score === player2Score ? 'tie' :
+        winnerId === currentDuel.player2_id ? 'win' : 'loss';
+
+      // Send notification to player1 (challenger)
+      sendDuelResultNotification(
+        currentDuel.player1_id,
+        p1Result,
+        p2Username,
+        player1Score,
+        player2Score,
+        currentDuel.sport,
+        duelId
+      ).catch(err => console.log('Failed to send duel result notification to player1:', err));
+
+      // Send notification to player2 (opponent)
+      sendDuelResultNotification(
+        currentDuel.player2_id,
+        p2Result,
+        p1Username,
+        player2Score,
+        player1Score,
+        currentDuel.sport,
+        duelId
+      ).catch(err => console.log('Failed to send duel result notification to player2:', err));
+
+    } catch (notifError) {
+      console.log('Error preparing duel result notifications:', notifError);
+    }
+
+    console.log('Duel completed - both players finished');
+    return data;
+  } else {
+    // Player2 hasn't finished yet - just save player1's result
+    const { data, error } = await supabase
+      .from('duels')
+      .update({
+        player1_result: result,
+        player1_completed_at: new Date().toISOString(),
+        player1_score: player1Score,
+      })
+      .eq('id', duelId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error submitting challenger result:', error);
+      return null;
+    }
+
+    console.log('Challenger result saved, waiting for player2:', { player1_result: data?.player1_result });
+    return data;
   }
-
-  console.log('Challenger result saved:', { player1_result: data?.player1_result });
-  return data;
 }
 
 // Submit opponent's result (player2) and determine winner
@@ -1100,22 +1200,41 @@ export async function submitOpponentResult(
   let player1Score = 0;
   let player2Score = 0;
 
-  // Handle case where player1 didn't submit (shouldn't happen but be safe)
+  // Handle case where player1 hasn't finished yet
+  // DON'T treat as forfeit - wait for player1 to complete
   if (!p1Result) {
-    console.warn('Player1 result is null, treating as forfeit');
-    // Calculate player2's actual score from their results
+    console.log('Player2 finished before Player1 - saving result and waiting for Player1');
+
+    // Calculate player2's score
     try {
       const p2RoundResults = JSON.parse(p2Result.answer) as PlayerResult[];
       player2Score = p2RoundResults.filter(r => r.correct).length;
     } catch {
       player2Score = p2Result.correct ? 1 : 0;
     }
-    // Player1 forfeited - player2 wins only if they got at least 1 correct
-    // If both scores are 0, treat as a tie (no winner)
-    if (player2Score > 0) {
-      winnerId = duel.player2_id;
+
+    // Save player2's result but DON'T complete the duel yet
+    // Status stays as 'active' - waiting for player1 to finish
+    const { data: updatedDuel, error: updateError } = await supabase
+      .from('duels')
+      .update({
+        player2_result: result,
+        player2_completed_at: new Date().toISOString(),
+        player2_score: player2Score,
+        status: 'active', // Keep active until both players finish
+      })
+      .eq('id', duelId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error saving player2 result:', updateError);
+      return null;
     }
-    // If player2Score is 0, winnerId stays null (tie)
+
+    // DON'T send notification - wait until player1 finishes
+    console.log('Player2 result saved, waiting for Player1 to complete');
+    return updatedDuel;
   } else {
     // Calculate scores from player results first
     let isMultiQuestion = false;
@@ -1162,45 +1281,50 @@ export async function submitOpponentResult(
     return null;
   }
 
-  // Send notification to challenger (player1) that duel is complete
+  // Send notifications to BOTH players that duel is complete
   try {
-    // Get opponent's username (player2)
-    const { data: opponentProfile } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('id', duel.player2_id)
-      .single();
+    // Get both usernames
+    const [p1Profile, p2Profile] = await Promise.all([
+      supabase.from('profiles').select('username').eq('id', duel.player1_id).single(),
+      supabase.from('profiles').select('username').eq('id', duel.player2_id).single(),
+    ]);
 
-    const opponentUsername = opponentProfile?.username || 'Your opponent';
+    const p1Username = p1Profile.data?.username || 'Player 1';
+    const p2Username = p2Profile.data?.username || 'Player 2';
 
-    // Determine result from challenger's perspective
-    // Double-check: if scores are equal, it's always a tie regardless of winnerId
-    let challengerResult: 'win' | 'loss' | 'tie';
-    if (player1Score === player2Score) {
-      // Safety: equal scores should always be a tie
-      challengerResult = 'tie';
-      console.log(`Duel ${duelId}: Scores equal (${player1Score}-${player2Score}), result is tie`);
-    } else if (winnerId === duel.player1_id) {
-      challengerResult = 'win';
-    } else if (winnerId === duel.player2_id) {
-      challengerResult = 'loss';
-    } else {
-      challengerResult = 'tie';
-    }
+    // Determine results for each player
+    const p1Result: 'win' | 'loss' | 'tie' =
+      player1Score === player2Score ? 'tie' :
+      winnerId === duel.player1_id ? 'win' : 'loss';
 
-    // Send notification asynchronously (don't block on it)
-    // Use the already-calculated scores
+    const p2Result: 'win' | 'loss' | 'tie' =
+      player1Score === player2Score ? 'tie' :
+      winnerId === duel.player2_id ? 'win' : 'loss';
+
+    // Send notification to player1 (challenger)
     sendDuelResultNotification(
       duel.player1_id,
-      challengerResult,
-      opponentUsername,
+      p1Result,
+      p2Username,
       player1Score,
       player2Score,
       duel.sport,
       duelId
-    ).catch(err => console.log('Failed to send duel result notification:', err));
+    ).catch(err => console.log('Failed to send duel result notification to player1:', err));
+
+    // Send notification to player2 (opponent)
+    sendDuelResultNotification(
+      duel.player2_id,
+      p2Result,
+      p1Username,
+      player2Score,
+      player1Score,
+      duel.sport,
+      duelId
+    ).catch(err => console.log('Failed to send duel result notification to player2:', err));
+
   } catch (notifError) {
-    console.log('Error preparing duel result notification:', notifError);
+    console.log('Error preparing duel result notifications:', notifError);
   }
 
   return completedDuel;
