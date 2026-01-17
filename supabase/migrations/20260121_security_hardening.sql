@@ -235,29 +235,9 @@ $$;
 
 -- ============================================
 -- 8. SECURE VIEW FOR LEADERBOARD
--- Prevent data enumeration via limited exposure
+-- NOTE: Skipped - points are in user_stats table with complex joins
+-- The existing leaderboard queries in pointsService.ts handle this properly
 -- ============================================
-
-CREATE OR REPLACE VIEW public_leaderboard AS
-SELECT
-  p.id as user_id,
-  p.username,
-  p.icon_url,
-  p.country,
-  p.total_points,
-  p.weekly_points,
-  RANK() OVER (ORDER BY p.total_points DESC) as rank
-FROM profiles p
-WHERE p.username IS NOT NULL
-  AND NOT EXISTS (
-    SELECT 1 FROM blocked_users bu
-    WHERE bu.blocked_id = p.id AND bu.blocker_id = auth.uid()
-  )
-ORDER BY p.total_points DESC
-LIMIT 100;
-
--- Grant access to the view
-GRANT SELECT ON public_leaderboard TO authenticated;
 
 -- ============================================
 -- 9. ADD FUNCTION SEARCH PATH SECURITY
