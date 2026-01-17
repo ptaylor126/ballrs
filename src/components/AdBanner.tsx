@@ -15,7 +15,7 @@ import {
  */
 
 // Toggle this to hide ads for screenshots
-const HIDE_ADS_FOR_SCREENSHOTS = false;
+const HIDE_ADS_FOR_SCREENSHOTS = true;
 
 // Ad banner image
 const adBannerImage = require('../../assets/images/ad-banner.png');

@@ -72,6 +72,9 @@ const lightningIcon = require('../../assets/images/icon-lightning.png');
 // Banner for countdown
 const feedbackBannerImage = require('../../assets/images/feedback-banner.png');
 
+// Toggle this to hide banners for app review
+const HIDE_BANNERS_FOR_REVIEW = true;
+
 interface CluePlayer {
   id: number;
   name: string;
@@ -1483,17 +1486,19 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
         <View style={styles.countdownOverlay}>
           <SafeAreaView style={styles.countdownSafeArea} edges={['top']}>
             {/* Feedback Banner at top */}
-            <TouchableOpacity
-              style={styles.countdownAdBanner}
-              onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
-              activeOpacity={0.9}
-            >
-              <Image
-                source={feedbackBannerImage}
-                style={styles.countdownAdImage}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
+            {!HIDE_BANNERS_FOR_REVIEW && (
+              <TouchableOpacity
+                style={styles.countdownAdBanner}
+                onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
+                activeOpacity={0.9}
+              >
+                <Image
+                  source={feedbackBannerImage}
+                  style={styles.countdownAdImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            )}
 
             {/* Countdown Content */}
             <View style={styles.countdownContent}>

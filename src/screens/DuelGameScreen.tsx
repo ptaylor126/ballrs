@@ -22,7 +22,7 @@ import { soundService } from '../lib/soundService';
 import AdBanner from '../components/AdBanner';
 
 // Toggle this to hide ads for screenshots
-const HIDE_ADS_FOR_SCREENSHOTS = false;
+const HIDE_ADS_FOR_SCREENSHOTS = true;
 
 // Sport icons
 const sportIcons: Record<Sport, any> = {

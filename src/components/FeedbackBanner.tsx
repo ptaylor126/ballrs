@@ -15,7 +15,7 @@ import {
  */
 
 // Toggle this to hide banners for screenshots
-const HIDE_FOR_SCREENSHOTS = false;
+const HIDE_FOR_SCREENSHOTS = true;
 
 // Feedback banner image
 const feedbackBannerImage = require('../../assets/images/feedback-banner.png');

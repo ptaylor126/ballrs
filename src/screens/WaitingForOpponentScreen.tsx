@@ -24,6 +24,9 @@ const sportIcons: Record<Sport, any> = {
 // Banners
 const feedbackBannerImage = require('../../assets/images/feedback-banner.png');
 
+// Toggle this to hide banners for app review
+const HIDE_BANNERS_FOR_REVIEW = true;
+
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
   pl: 'EPL',
@@ -66,17 +69,19 @@ export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOppo
   return (
     <SafeAreaView style={styles.container}>
       {/* Feedback Banner at top */}
-      <TouchableOpacity
-        style={styles.adBanner}
-        onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
-        activeOpacity={0.9}
-      >
-        <Image
-          source={feedbackBannerImage}
-          style={styles.adImage}
-          resizeMode="contain"
-        />
-      </TouchableOpacity>
+      {!HIDE_BANNERS_FOR_REVIEW && (
+        <TouchableOpacity
+          style={styles.adBanner}
+          onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
+          activeOpacity={0.9}
+        >
+          <Image
+            source={feedbackBannerImage}
+            style={styles.adImage}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      )}
 
       <View style={styles.content}>
         {/* Sport Badge */}
