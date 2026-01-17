@@ -69,8 +69,8 @@ const sportIcons: Record<Sport, any> = {
 const fireIcon = require('../../assets/images/icon-fire.png');
 const lightningIcon = require('../../assets/images/icon-lightning.png');
 
-// Ad banner for countdown
-const countdownAdImage = require('../../assets/images/ad-banner-email-big.png');
+// Banner for countdown
+const feedbackBannerImage = require('../../assets/images/feedback-banner.png');
 
 interface CluePlayer {
   id: number;
@@ -1482,16 +1482,16 @@ ${pointsEarned > 0 ? `+${pointsEarned} points\n` : ''}ðŸ”¥ ${playStreakValue} âš
       {showCountdown && !solved && !gaveUp && (
         <View style={styles.countdownOverlay}>
           <SafeAreaView style={styles.countdownSafeArea} edges={['top']}>
-            {/* Ad Banner at top */}
+            {/* Feedback Banner at top */}
             <TouchableOpacity
               style={styles.countdownAdBanner}
-              onPress={() => Linking.openURL('https://parlaysfordays.com')}
+              onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
               activeOpacity={0.9}
             >
               <Image
-                source={countdownAdImage}
+                source={feedbackBannerImage}
                 style={styles.countdownAdImage}
-                resizeMode="cover"
+                resizeMode="contain"
               />
             </TouchableOpacity>
 

@@ -40,9 +40,9 @@ const crownIcon = require('../../assets/images/icon-crown.png');
 const speakerIcon = require('../../assets/images/icon-speaker.png');
 
 // Ad banners
-const adBannerImage = require('../../assets/images/ad-banner-email.png');
-const countdownAdImage = require('../../assets/images/ad-banner-email-big.png');
-const questionAdImage = require('../../assets/images/ad-banner-email.png');
+const adBannerImage = require('../../assets/images/ad-banner.png');
+const countdownAdImage = require('../../assets/images/ad-banner.png');
+const feedbackBannerImage = require('../../assets/images/feedback-banner.png');
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
@@ -1689,15 +1689,15 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
             ))}
           </View>
 
-          {/* Ad Banner at bottom of questions */}
+          {/* Feedback Banner at bottom of questions */}
           {!HIDE_ADS_FOR_SCREENSHOTS && (
             <TouchableOpacity
               style={styles.questionAdBanner}
-              onPress={() => Linking.openURL('https://parlaysfordays.com')}
+              onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
               activeOpacity={0.9}
             >
               <Image
-                source={questionAdImage}
+                source={feedbackBannerImage}
                 style={styles.questionAdImage}
                 resizeMode="contain"
               />
@@ -1794,7 +1794,7 @@ export default function DuelGameScreen({ duel: initialDuel, onBack, onComplete, 
                   activeOpacity={0.9}
                 >
                   <Image
-                    source={require('../../assets/images/ad-banner-email.png')}
+                    source={adBannerImage}
                     style={styles.presentedByAdImage}
                     resizeMode="contain"
                   />

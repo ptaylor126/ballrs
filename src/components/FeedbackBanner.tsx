@@ -8,25 +8,25 @@ import {
 } from 'react-native';
 
 /**
- * AdBanner Component
+ * FeedbackBanner Component
  *
- * Custom ad banner that displays an image and opens a URL when tapped.
+ * Banner that displays feedback/newsletter signup and opens a URL when tapped.
  * Standard banner size: 320x50 (with padding = 60px total height)
  */
 
-// Toggle this to hide ads for screenshots
-const HIDE_ADS_FOR_SCREENSHOTS = false;
+// Toggle this to hide banners for screenshots
+const HIDE_FOR_SCREENSHOTS = false;
 
-// Ad banner image
-const adBannerImage = require('../../assets/images/ad-banner.png');
+// Feedback banner image
+const feedbackBannerImage = require('../../assets/images/feedback-banner.png');
 
-interface AdBannerProps {
+interface FeedbackBannerProps {
   url?: string;
 }
 
-export default function AdBanner({ url = 'https://parlaysfordays.com' }: AdBannerProps) {
-  // Hide ads for App Store screenshots
-  if (HIDE_ADS_FOR_SCREENSHOTS) {
+export default function FeedbackBanner({ url = 'mailto:hello@ballrs.net' }: FeedbackBannerProps) {
+  // Hide for App Store screenshots
+  if (HIDE_FOR_SCREENSHOTS) {
     return null;
   }
 
@@ -44,13 +44,13 @@ export default function AdBanner({ url = 'https://parlaysfordays.com' }: AdBanne
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={styles.adTouchable}
+        style={styles.bannerTouchable}
         onPress={handlePress}
         activeOpacity={0.9}
       >
         <Image
-          source={adBannerImage}
-          style={styles.adImage}
+          source={feedbackBannerImage}
+          style={styles.bannerImage}
           resizeMode="contain"
         />
       </TouchableOpacity>
@@ -58,12 +58,12 @@ export default function AdBanner({ url = 'https://parlaysfordays.com' }: AdBanne
   );
 }
 
-// Ad banner height constant for use in other components
-export const AD_BANNER_HEIGHT = 60;
+// Banner height constant for use in other components
+export const FEEDBACK_BANNER_HEIGHT = 60;
 
 const styles = StyleSheet.create({
   container: {
-    height: AD_BANNER_HEIGHT,
+    height: FEEDBACK_BANNER_HEIGHT,
     width: '100%',
     backgroundColor: '#F5F2EB',
     justifyContent: 'center',
@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 16,
   },
-  adTouchable: {
+  bannerTouchable: {
     height: 50,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  adImage: {
+  bannerImage: {
     width: '100%',
     height: 50,
   },

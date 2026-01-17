@@ -266,7 +266,7 @@ export default function XPEarnedModal({
               activeOpacity={0.9}
             >
               <Image
-                source={require('../../assets/images/ad-banner-email.png')}
+                source={require('../../assets/images/ad-banner.png')}
                 style={styles.presentedByAdImage}
                 resizeMode="contain"
               />

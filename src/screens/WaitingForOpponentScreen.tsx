@@ -21,8 +21,8 @@ const sportIcons: Record<Sport, any> = {
   mlb: require('../../assets/images/icon-baseball.png'),
 };
 
-// Ad banner
-const adBannerImage = require('../../assets/images/ad-banner-email-big.png');
+// Banners
+const feedbackBannerImage = require('../../assets/images/feedback-banner.png');
 
 const sportNames: Record<Sport, string> = {
   nba: 'NBA',
@@ -65,16 +65,16 @@ export default function WaitingForOpponentScreen({ duel, sport, onCancel, onOppo
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Ad Banner at top - same style as countdown screen */}
+      {/* Feedback Banner at top */}
       <TouchableOpacity
         style={styles.adBanner}
-        onPress={() => Linking.openURL('https://parlaysfordays.com')}
+        onPress={() => Linking.openURL('mailto:hello@ballrs.net')}
         activeOpacity={0.9}
       >
         <Image
-          source={adBannerImage}
+          source={feedbackBannerImage}
           style={styles.adImage}
-          resizeMode="cover"
+          resizeMode="contain"
         />
       </TouchableOpacity>
 
